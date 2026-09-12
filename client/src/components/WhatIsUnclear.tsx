@@ -76,9 +76,37 @@ export function WhatIsUnclear({ items }: { items: readonly Unclear[] }) {
 function Groups({ items, waiting }: { items: readonly Unclear[]; waiting: boolean }) {
   return (
     <ul className="unclear__list">
-      {groupUnclear(items).map((group: UnclearGroup) => (
+      {groupUnclear(items).map((group: UnclearGroup) => {
+        /*
+         * ONE QUANTITY FOR THE GROUP WHEN EVERY ROW IN IT CARRIES THE SAME ONE.
+         *
+         * THE SAME ARGUMENT THE REASON ALREADY WON, APPLIED TO THE NUMBER. This component exists
+         * because a sentence repeated in every row carries no information in any of them; the
+         * reason was hoisted to the group and the count was deliberately left beside each split,
+         * so that what a reader can act on stayed where it was.
+         *
+         * On the record every arrival has, that count is the same in every row. All six buckets
+         * are empty on both sides, so all six ask for the same figure, and the screen printed it
+         * six times over -- a number repeated down a column, which is a progress bar with the bar
+         * left out and the reader supplying the arithmetic. `GATE-GOAL-NOT-A-DENOMINATOR` guards
+         * against exactly that shape eleven rows further down the page and cannot see this one,
+         * because there is no goal in it and no percentage.
+         *
+         * WHEN THE ROWS DIFFER, NOTHING MOVES. A record far enough along for its buckets to be
+         * short by different amounts is one where the per-split number is the information, and it
+         * stays exactly where it was.
+         */
+        const needs = group.items.map((item) => item.needs);
+        const shared =
+          needs[0] !== null && needs.every((n) => n === needs[0]) && needs.length > 1
+            ? needs[0]
+            : null;
+        return (
         <li key={group.because} className="unclear__group" data-waiting={String(waiting)}>
           <span className="unclear__because">{group.sentence}</span>
+          {shared !== null && (
+            <span className="unclear__needs unclear__needs--shared">{needsLabel(shared)}</span>
+          )}
           <ul className="unclear__whats">
             {group.items.map((item) => (
               <li
@@ -92,14 +120,41 @@ function Groups({ items, waiting }: { items: readonly Unclear[]; waiting: boolea
                   * could go stale, and so a screen reader reaches "eight more decisions" as its own
                   * phrase rather than buried mid-clause.
                   */}
-                {item.needs !== null && (
-                  <span className="unclear__needs">עוד {item.needs} החלטות</span>
+                {item.needs !== null && shared === null && (
+                  /*
+                   * `לפחות`, AND THE SINGULAR WRITTEN OUT.
+                   *
+                   * The number is a LOWER BOUND: it assumes every decision the player takes next
+                   * lands on the side of the split that needs one, and nothing makes that true --
+                   * somebody who keeps playing fast can add a hundred decisions to the comparison
+                   * set and close none of the gap. Rendered bare it reads as a countdown that can
+                   * only go down, and a player who takes exactly that many and finds the row
+                   * unchanged has been told something false by a screen whose job is to say
+                   * whether going on helps.
+                   *
+                   * AND `עוד 1 החלטות` IS NOT HEBREW. It is the last step before a bucket becomes
+                   * readable, so the ungrammatical branch was the one at the finish line.
+                   */
+                  <span className="unclear__needs">{needsLabel(item.needs)}</span>
                 )}
               </li>
             ))}
           </ul>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
+}
+
+/**
+ * The figure, said the same way wherever it lands.
+ *
+ * ONE FUNCTION BECAUSE IT IS RENDERED IN TWO PLACES NOW -- once per split when the splits differ,
+ * once for the group when they do not -- and this product has found the same clause drifting
+ * between its own copies four times. A shared number and a per-row number that worded themselves
+ * differently would be the fifth.
+ */
+function needsLabel(needs: number): string {
+  return needs === 1 ? "עוד החלטה אחת לפחות" : `לפחות עוד ${needs} החלטות`;
 }

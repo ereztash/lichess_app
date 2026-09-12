@@ -294,7 +294,86 @@ describe("what the record cannot say, said once per reason", () => {
      */
     render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
     const needs = [...document.querySelectorAll(".unclear__needs")].map((n) => n.textContent);
-    expect(needs).toEqual(["עוד 8 החלטות", "עוד 12 החלטות", "עוד 5 החלטות", "עוד 21 החלטות"]);
+    /*
+     * `לפחות`, BECAUSE THE FIGURE IS A LOWER BOUND. It assumes every decision the player takes next
+     * lands on the side of the split that needs one, and nothing makes that true. Rendered bare it
+     * read as a countdown, and a player who took exactly that many and found the row unchanged had
+     * been told something false by the screen whose job is to say whether going on helps.
+     */
+    expect(needs).toEqual([
+      "לפחות עוד 8 החלטות",
+      "לפחות עוד 12 החלטות",
+      "לפחות עוד 5 החלטות",
+      "לפחות עוד 21 החלטות",
+    ]);
+    expect(
+      needs.every((text) => /^לפחות עוד \d+ החלטות$/.test(text ?? "")),
+      "a count rendered as a countdown rather than as a floor",
+    ).toBe(true);
+  });
+
+  it("says one quantity once when every split in a group asks for the same one", () => {
+    /*
+     * THE RECORD EVERY ARRIVAL HAS. All six buckets are empty on both sides, so all six ask for the
+     * same figure, and the screen printed it six times down a column -- a number repeated in every
+     * row, which is a progress bar with the bar left out and the reader supplying the arithmetic.
+     * `GATE-GOAL-NOT-A-DENOMINATOR` guards that shape eleven rows further down the page and cannot
+     * see this one: no goal in it and no percentage.
+     *
+     * IT IS THE SAME ARGUMENT THE REASON ALREADY WON. This component hoisted the reason to the
+     * group because a sentence repeated in every row carries no information in any of them, and
+     * left the count per split on purpose, so what a reader can act on stayed where it was. On this
+     * record the count is not information either.
+     */
+    const sameEverywhere = ["בפתיחה", "באמצע", "בסיום", "מהיר", "איטי", "שעון"].map((scope) => ({
+      what: `החלטות ${scope}`,
+      because: "too-few-in-bucket" as const,
+      needs: 60,
+      waitingHelps: true,
+    }));
+    render(<WhatIsUnclear items={sameEverywhere} />);
+    const needs = [...document.querySelectorAll(".unclear__needs")].map((n) => n.textContent);
+    expect(needs, `the figure was printed ${needs.length} times`).toEqual(["לפחות עוד 60 החלטות"]);
+    /* And it is on the group, beside the reason, rather than attached to one arbitrary split. */
+    expect(document.querySelector(".unclear__needs--shared")).toBeTruthy();
+    /* Every split is still listed: hoisting the number may not cost a row. */
+    expect(document.querySelectorAll(".unclear__item")).toHaveLength(6);
+  });
+
+  it("leaves the quantity on each split the moment they differ", () => {
+    // The other half of the control. A record far enough along for its buckets to be short by
+    // different amounts is one where the per-split number IS the information.
+    const differing = [8, 12].map((needs, i) => ({
+      what: `החלטות ${i}`,
+      because: "too-few-in-bucket" as const,
+      needs,
+      waitingHelps: true,
+    }));
+    render(<WhatIsUnclear items={differing} />);
+    const needs = [...document.querySelectorAll(".unclear__needs")].map((n) => n.textContent);
+    expect(needs).toEqual(["לפחות עוד 8 החלטות", "לפחות עוד 12 החלטות"]);
+    expect(document.querySelector(".unclear__needs--shared")).toBeNull();
+  });
+
+  it("says the last step before a split opens in Hebrew", () => {
+    /*
+     * `עוד 1 החלטות` IS NOT A SENTENCE, and this is the branch at the finish line: one decision
+     * short is the state a player reaches just before a bucket becomes readable, so the
+     * ungrammatical digit-plus-plural was reserved for the moment they are closest to a reading.
+     *
+     * The same defect has been fixed three times in this product, each time in a separate
+     * hand-rolled copy of a clause -- the front door's, the journey ledger's, and the reveal
+     * strip's. This is a fourth copy, in a fourth file, found by reading the branch rather than by
+     * a test failing.
+     */
+    render(
+      <WhatIsUnclear
+        items={[{ what: "החלטות בפתיחה", because: "too-few-in-bucket", needs: 1, waitingHelps: true }]}
+      />,
+    );
+    const text = document.querySelector(".unclear__needs")?.textContent;
+    expect(text).toBe("עוד החלטה אחת לפחות");
+    expect(text, "the digit plus a plural noun").not.toMatch(/\b1 החלטות/);
   });
 
   it("still draws a wait differently from a dead end", () => {

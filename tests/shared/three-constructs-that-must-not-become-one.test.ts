@@ -6,7 +6,7 @@
  * first time somebody wants a single number that goes up.
  */
 import { describe, expect, it } from "vitest";
-import { decisionsHeldElsewhere } from "../../shared/plain-reading";
+import { decisionsHeldElsewhere } from "../../shared/decisions-elsewhere";
 import {
   JOURNEY_STAGES,
   UNPROMPTED_FLOOR,

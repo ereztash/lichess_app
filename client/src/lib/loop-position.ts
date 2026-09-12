@@ -1,5 +1,5 @@
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
-import { decisionsHeldElsewhere } from "@shared/plain-reading";
+import { decisionsHeldElsewhere } from "@shared/decisions-elsewhere";
 /**
  * Where you are in the loop, and the one thing that moves you along it.
  *

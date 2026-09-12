@@ -1,0 +1,923 @@
+{
+  "runtime_version": "0.2",
+  "rnd_telos_version": "0.2-candidate",
+  "task": {
+    "calibration_version": "0.1",
+    "task_id": "CAL-LICHESS-ORCHESTRATION-001",
+    "telos": {
+      "statement": "Decide whether an orchestration surface in Decision Lab may render what deriveNextAction proposes, and what such a surface may state about where the player stands, without inventing a claim the frozen evidence ceiling forbids or breaking the product's own published refusal to recommend what to learn.",
+      "success_condition": "A disposition that names which of four hypotheses may be built, what it may say, and what authority owns anything it may not say. It must hold in the state where no personal pattern is ever found, must not introduce a progress percentage or a rating denominator, and must not require the product to break a refusal it publishes to its own users."
+    },
+    "current_state": {
+      "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The measurement and learning machinery is built and gated: a six-bucket detector, player-authored rules, a spaced retrieval queue, drills, prompted transfer checks, refutation and retirement, an import diagnostic, and a nine-stage learning-object ledger. 44 repository gates, each with a positive control that must go red. WHAT IS BUILT AND OWNS NOTHING: shared/next-action.ts derives the whole next-action union from record facts, and shared/primary-action.ts maps each kind onto a closed vocabulary of primary acts via actFor/agreesWith. client/src/lib/next-action-shadow.ts runs the derivation beside one screen and writes the comparison to a trial ledger. A test asserts the set of callers is exactly [ResumeScreen.tsx], that the screen does not bind the return value, and that the shadow reads no more of the ledger than idempotency needs. docs/decisions/D22-next-action-ownership.md records mode DEFER at evidence level E2 and names four reversal conditions. Its stated reason is section 23's coaching rule applied to the product's own navigation: a claim of this shape may not act on a player until something could have shown it wrong. Its second reason is cost: instrumenting the other two shadow surfaces live would pull the blitz reading chain at +16.1 kB raw / +5.1 kB gzipped into two hot routes to write a row nobody reads. THE PRODUCT PUBLISHES A REFUSAL LIST TO ITS OWN USERS, in the help overlay WhatThisIs: no score, no rating, no streak, no badge; 'it will not recommend what to learn -- it measures, it does not coach'; it will not say more about you than it measured; it will not grade itself a success. WHAT THE JOURNEY LOOKS LIKE TODAY, walked at 390x844 on the shipped build. The record page is the route '/'. In source order it renders: the resume card, the first-decision card, an outcome summary, WhatIsUnclear, WhatIsUnderTest, an anchor control, the record dashboard, the player's own goal sentence, the learning-object ledger, and the import diagnostic. The goal -- the player's own words about why they are here -- is BELOW every count on the page, placed there deliberately so it can never render beside one. 'What is still unclear' is near the top and is eleven rows on a small record, five of which end in the identical quantity 'another 30 decisions'.",
+      "known_constraints": [
+        "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement.",
+        "A GOAL IS FRAMING AND NEVER A DENOMINATOR. shared/goal.ts stores one sentence in the player's words, capped at 140 characters and never parsed for a number, because three numbers in a row are an arithmetic problem the reader will solve. GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count.",
+        "THE PRODUCT PUBLISHES 'it will not recommend what to learn -- it measures, it does not coach' TO ITS USERS. Any surface that recommends breaks a promise the product makes on screen.",
+        "EVIDENCE_POLICY v4: discovery reads free-play decisions and nothing else -- not the front door's handoff, not the shared bank, not a drill, not a transfer check, not an imported game, not a row that never recorded its context. Its own words: a source does not become eligible because excluding it leaves too little data.",
+        "GUIDED PRACTICE, PROMPTED RECALL AND UNPROMPTED PLAY ARE THREE CONSTRUCTS AND NEVER ONE NUMBER. Maximum transfer is what a learner can do when prompted; typical transfer is what they do when nobody prompts them.",
+        "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT: MIN_BUCKET_N is 30 and is needed inside and outside a bucket, so 60 measured decisions precede any claim. The calibration wait is not automatically removable friction.",
+        "THE SHIPPED DETECTOR IS NOT THE VALIDATED RESEARCH PIPELINE. The six-bucket detector returns not-separable on the owner's whole 2,209-game record while a frozen research pipeline finds a residual on that same record which survives its own within-game permutation null. Any sentence about finding nothing is a sentence about the detector."
+      ],
+      "available_resources": [
+        "RND",
+        "NETA",
+        "SCAFFOLD",
+        "OWNER",
+        "REPO",
+        "ENVIRONMENT",
+        "FIELD"
+      ]
+    },
+    "decision_blocked": {
+      "statement": "May an orchestration surface render what deriveNextAction proposes, and what may it state about where the player stands? H-1: render the proposal's REASON and not its choice -- the surface keeps offering exactly the act it offers today, and the derivation supplies the sentence saying what completing it makes knowable. H-2: hand the act over as well, since the walk found agreement and ownership is the point of the sequence. H-3: neither -- D22's E2 is about the mapping and not about the screens, and two agreeing states are not evidence that a third would agree; wait for the acquisition trial. H-4: the binding constraint is not ownership at all but the instrument-first ordering -- the player's purpose is below every count and the shortfall wall is above them; re-order and decide nothing.",
+      "current_default": "H-1. Render the reason, change no act, add no progress number, add no rating denominator, add no telemetry.",
+      "reversal_condition": "Change the default if rendering a reason attached to an act is itself a recommendation under the product's own published refusal, or if 'what completing this makes knowable' cannot be stated without an INTERVENTION claim. Either collapses H-1 into H-2's problem and the answer becomes H-3."
+    },
+    "signals": [
+      "OWNER: The owner has now asked twice, in consecutive missions, for one orchestration surface answering: my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown. The owner is not research authority for whether the product may recommend.",
+      "REPO: D22's first reversal condition -- a screen and the derivation disagreeing in a walk over the built app -- has now been performed for the first time. At 390x844 from an empty profile: the record page empty proposes play-first-decision and offers play-first-decision; the record page with one decision proposes play-blitz and offers play-blitz. Two states, both agree. Agreement is not the condition; disagreement is.",
+      "REPO: D22's cost argument may rest on a routing conflation. It treats 'the front door' and 'the record page' as two surfaces, and App.tsx routes '/' to Record. Checked before stating it and it is narrower than it looks: ResumeScreen is lazy-loaded, so the reading chain is a separate chunk fetched only when ResumeScreen renders -- which is for a returning player and not a cold arrival. The price is real for a first visit and already paid for a return.",
+      "REPO: The same conflation produced a false finding an hour earlier: a first draft of the walk navigated to a URL the router does not have, read the 404 as a surface offering nothing, and reported D22's reversal condition as met. It was a typo. Weigh the routing observation accordingly.",
+      "REPO: next-action.ts states its own line in writing: 'A layer that recommended would be measuring the player and then changing what they see, which changes what is being measured.' Every action it derives is justified by a fact about the RECORD -- a game nothing has scored, a bucketing with too few decisions on one side, a run left half-finished -- and never by a prediction about the player.",
+      "FIELD: Three cold users have used this product. Two of three could not complete the core move. That was repaired and NO COLD USER HAS SEEN THE REPAIRED BUILD. Nobody has ever been observed using the learning layer or the record page."
+    ],
+    "allowed_resources": [
+      "RND",
+      "NETA",
+      "SCAFFOLD",
+      "OWNER",
+      "REPO",
+      "ENVIRONMENT",
+      "FIELD"
+    ],
+    "context_refs": [
+      "docs/SHARED_EPISTEMIC_KERNEL.md",
+      "docs/REALITY_AUTHORITY_PERMISSION.md",
+      "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+      "docs/TELOS.md"
+    ],
+    "budget": {
+      "max_resource_calls": 3,
+      "max_parallel_calls": 1
+    }
+  },
+  "diagnosis": {
+    "material_question": "Can H-1 — a surface that renders deriveNextAction's REASON while leaving the offered act exactly as it is today — state \"what completing this makes knowable\" for every member of the closed next-action union using only record facts, and does attaching that sentence to an act read as a recommendation under the product's own published refusal (\"it will not recommend what to learn — it measures, it does not coach\")?",
+    "bottleneck": "Two claims of different authority are being carried as one blocked decision, and the cheap one has not been run. (a) ENUMERABILITY is REPO-owned and unrun: whether a knowability sentence exists for EVERY kind in the next-action union justified solely by a record fact (a game nothing has scored, a bucketing short on one side, a half-finished run) and never by a prediction about the player. The stated reversal condition already says that if \"what completing this makes knowable\" cannot be stated without an INTERVENTION claim, H-1 collapses into H-2's problem and the answer is H-3 — so a single enumeration over a closed vocabulary can fire the reversal by itself. (b) PERCEPTION is FIELD-owned at R6 and currently unreachable: whether reason-attached-to-act reads as coaching to a stranger. No cold user has seen the repaired build; two of three failed the core move on the prior one. The miscalibration is that deliberation is being paid against (b) while (a) sits uninspected, and that D22's reversal condition is being probed with walks that find AGREEMENT — agreement cannot fire a condition whose trigger is disagreement, so the two-state walk bought no decision delta and the earlier 404 typo shows the walk instrument is not yet trustworthy. A second, possibly larger miscalibration is unpriced: H-4 claims the binding constraint is instrument-first ordering (the player's goal below every count; eleven unclear-rows, five ending in the identical quantity \"another 30 decisions\"), which is a product-perception question nobody has routed to the peer that owns it.",
+    "resource_assessment": [
+      {
+        "resource": "REPO",
+        "expected_contribution": "Enumerate the closed next-action union in shared/next-action.ts against shared/primary-action.ts actFor/agreesWith and attempt a record-fact-only knowability sentence per kind; also confirm whether the ResumeScreen lazy chunk keeps the +16.1 kB raw / +5.1 kB gzipped reading chain off a cold arrival. Can close the enumerability claim outright at R1/R3 and can fire the stated reversal by counterexample.",
+        "authority_ceiling": "Establishes code paths, the derivation's justifications and bundle/route facts. Cannot establish how a rendered sentence is perceived, whether the published refusal's wording covers act+reason, or whether the owner accepts the tradeoff.",
+        "uncertainty": "A kind may be enumerable in code yet only expressible in prose that smuggles a prediction; the boundary between \"this act makes bucket N crossable\" and \"this act will help you\" is drawn by reading, not by the compiler. The prior false finding from a routing typo lowers trust in walk-derived observations until re-run.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "NETA",
+        "expected_contribution": "Owns the live question: which product mechanisms fit \"a reason rendered beside an act\" — measurement report, justification, or recommendation-by-adjacency — and what observation would discriminate them before any field protocol is designed. Also the only peer competent on H-4: whether the goal-below-counts ordering and the five-identical-\"another 30 decisions\" shortfall wall are the actual binding perception constraint, and whether that is a DIFFERENT_QUESTION from ownership rather than a competing hypothesis.",
+        "authority_ceiling": "Product perception, mechanism competition and discriminator design; can declare a FIELD ceiling and name the smallest field requirement. Cannot close the perception claim itself (that is FIELD/R6), cannot rule on the repo enumeration, and cannot decide the owner's intent about the refusal's scope.",
+        "uncertainty": "Neta may return that H-1 and H-4 are not rival answers to one question, which would leave the ordering question live and unbudgeted; or may find the recommendation/measurement distinction is not separable by any admissible product observation short of R6.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "OWNER",
+        "expected_contribution": "Sole authority on what the published refusal means in its own product: whether \"will not recommend what to learn\" forbids a reason attached to an already-offered navigation act, or forbids only selecting the learning content. Also owns whether the H-4 re-order is worth trying and whether the acquisition-trial wait is accepted risk. Has now asked twice in consecutive missions for the orchestration surface, which is a priority signal, not a permission.",
+        "authority_ceiling": "Intent, tradeoff, accepted risk, reversible-change authorization. Cannot establish what a stranger perceives, cannot upgrade an INTERVENTION or OUTCOME claim, and cannot waive an unmet reality floor — a waiver accepts risk, it does not make an unsupported claim supported.",
+        "uncertainty": "Asking may itself invite an authorization the evidence cannot support; the owner's repeated request creates pressure toward H-2, which two agreeing states do not license. Owner reading of own published wording is legitimate and decisive for scope, but is R5-at-best about strangers.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": false,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "FIELD",
+        "expected_contribution": "The only authority that can close whether a reason-bearing surface reads as coaching, and the only one that can close whether the repaired core move now completes. Would convert the perception claim from INSUFFICIENT_REALITY to a decidable state at R6.",
+        "authority_ceiling": "Establishes what external people notice, understand, prefer and do under the protocol actually run. Cannot resolve owner intent, cannot resolve the code enumeration, and cannot supply the mechanism vocabulary it would need to be tested against.",
+        "uncertainty": "Not admissible now: nobody has used the repaired build, nobody has ever been observed on the learning layer or record page, and a field run whose participants cannot complete the core move measures the front door rather than the orchestration surface. Running it before the distinction is operationalized would spend the scarcest resource on an unformed question.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": false
+        }
+      },
+      {
+        "resource": "ENVIRONMENT",
+        "expected_contribution": "Could confirm in the deployed build that the ResumeScreen chunk is fetched only on a returning render, pricing D22's cost argument rather than restating it.",
+        "authority_ceiling": "Deployed configuration and runtime behavior only. Cannot touch either live claim; the cost argument is a secondary reason in D22, not the reason the decision is blocked.",
+        "uncertainty": "Low expected value: the walk already ran on the shipped build, and even a fully favorable cost finding leaves both the enumerability and the perception claims exactly where they are.",
+        "expected_delta": {
+          "decision": false,
+          "action": false,
+          "reversal": false,
+          "evidence": true,
+          "allocation": true,
+          "distinction": false
+        }
+      },
+      {
+        "resource": "SCAFFOLD",
+        "expected_contribution": "Could propose a hypothesis outside the given four — for example a surface that renders only what is still unknown and the act it is already offering, with no reason text at all — as a cheaper way past the recommendation question.",
+        "authority_ceiling": "Candidate source only. No authority over this product's published refusal, its evidence ceiling, or its claim ladder; its defaults are trained on products that do coach, which is the exact failure mode under test.",
+        "uncertainty": "The owner has already decomposed the space into four hypotheses with a stated collapse rule, which is the work a scaffold is usually borrowed for; marginal synthesis value looks low and contamination risk is directional toward recommending.",
+        "expected_delta": {
+          "decision": false,
+          "action": false,
+          "reversal": false,
+          "evidence": false,
+          "allocation": false,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "RND",
+        "expected_contribution": "Splits the compound block into an enumerability claim (REPO, cheap, unrun) and a perception claim (FIELD, R6, unreachable); specifies the enumeration as a falsifier with a named counterexample condition; and diagnoses that the D22 walk was run in a direction that cannot fire its own reversal condition, so a disagreement-seeking record state is required instead of another agreement walk.",
+        "authority_ceiling": "Research decomposition, reuse/adapt/build discrimination, falsifier design, claim disposition and continuity. Cannot make the product decision, cannot interpret the owner's published promise, and does not gain FIELD or OWNER authority by routing to them.",
+        "uncertainty": "Whether the enumeration is genuinely decision-changing or merely confirms what next-action.ts already asserts in writing about itself; a self-describing comment is not a verified property of every branch.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      }
+    ],
+    "candidate_moves": [
+      {
+        "move": "COLLECT_REPO",
+        "resource": "REPO",
+        "expected_decision_value": "Highest value per unit cost. Walk every kind in the next-action union and attempt a knowability sentence justified only by a record fact. A single kind that cannot be stated without an INTERVENTION claim fires the reversal condition already written into the current default and moves the disposition to H-3 without consulting any other resource. Full enumerability leaves H-1 standing on its own terms and isolates the remaining block to the FIELD-owned perception claim.",
+        "reversibility": "Fully reversible — read-only inspection of a closed vocabulary, no surface change, no telemetry, no row written."
+      },
+      {
+        "move": "INVOKE_NETA",
+        "resource": "NETA",
+        "expected_decision_value": "Second highest. Two things only this peer can supply: whether reason-beside-act is a recommendation-shaped product mechanism or a measurement report, with a discriminator short of R6; and whether H-4's ordering claim is a rival hypothesis or a different question that the ownership frame has been hiding. Signal-to-interpretation ambiguity is the defining feature of this decision, which is Neta's trigger condition.",
+        "reversibility": "Fully reversible — a bounded peer handoff producing claims and a possible field requirement, not a change to any screen."
+      },
+      {
+        "move": "WAIT",
+        "resource": "OWNER",
+        "expected_decision_value": "Moderate and scope-limited. Ask one question only: does the published refusal forbid a reason attached to an act the surface already offers, or only the selection of learning content? This is the owner's own promise and nobody else can read its scope. Do not ask for authorization of the surface; an owner yes cannot supply the perception evidence and would convert a blocked claim into an unsupported build.",
+        "reversibility": "Reversible — a scope reading, recorded as OWNER intent, not a permission to change production."
+      },
+      {
+        "move": "TEST",
+        "resource": "REPO",
+        "expected_decision_value": "Moderate, and corrective. Construct the record state predicted to make the screen and the derivation DISAGREE, rather than walking more states that agree. D22's first reversal condition is disagreement; two agreeing states are not evidence for it and the prior 404 typo shows the walk instrument needs its own positive control before its output counts.",
+        "reversibility": "Reversible — a fixture-level walk on a constructed profile; no production change."
+      },
+      {
+        "move": "USE_EXISTING",
+        "resource": "RND",
+        "expected_decision_value": "Hold H-1 as the standing default while the enumeration runs. The surface changes nothing today, adds no progress number, no rating denominator and no telemetry, and the shadow ledger already accumulates the comparison without acting on a player. Doing nothing is cheap and keeps every reversal condition live.",
+        "reversibility": "Fully reversible by construction — this is the current state."
+      },
+      {
+        "move": "STOP",
+        "resource": "RND",
+        "expected_decision_value": "Rule H-2 out now rather than carrying it. Handing the act over requires evidence that the derivation and the screens agree where it matters; the walk produced agreement in exactly two states, which is agreement and not independent triangulation, and the third surface was never instrumented. H-2's premise is unsupported regardless of how the enumeration lands.",
+        "reversibility": "Reversible — reopens if a disagreement-seeking walk plus the acquisition trial change the evidence."
+      },
+      {
+        "move": "COLLECT_FIELD",
+        "resource": "FIELD",
+        "expected_decision_value": "Decisive in principle, inadmissible now. Nobody has seen the repaired build and nobody has ever been observed on the learning layer, so a run would measure the front door and contaminate the one scarce resource before Neta has operationalized what would count as reading-it-as-coaching. Defer, and let Neta name the smallest field requirement instead.",
+        "reversibility": "Low — field exposure of a small user pool is partly spent once used, and a badly framed protocol burns the participants who could have answered the real question."
+      },
+      {
+        "move": "USE_LESS",
+        "resource": "SCAFFOLD",
+        "expected_decision_value": "Low. The hypothesis space is already decomposed with a written collapse rule, and borrowed reasoning here is trained toward products that coach — the exact failure under test. Skip unless the enumeration and Neta both return without a discriminator.",
+        "reversibility": "Fully reversible — nothing is spent by not invoking it."
+      }
+    ],
+    "needs": {
+      "signal_interpretation_ambiguity": true,
+      "multiple_plausible_mechanisms": true,
+      "proxy_substitution_risk": true,
+      "research_to_intervention_transition": true,
+      "broad_reasoning_needed": false,
+      "architecture_alternatives_needed": false,
+      "novel_synthesis_needed": false,
+      "external_research_needed": false,
+      "owner_authority_needed": true,
+      "repo_authority_needed": true,
+      "environment_authority_needed": false,
+      "field_authority_needed": true
+    },
+    "rationale": "The blocked decision is compound and is being worked at the wrong authority. Its own stated reversal condition contains a REPO-closable test — whether \"what completing this makes knowable\" can be stated without an INTERVENTION claim — and that test has not been run, while deliberation continues against a perception claim that only FIELD at R6 can close and that FIELD cannot be asked today. So the cheapest decision-changing learning is the enumeration over the closed next-action union, which can collapse H-1 into H-3 by a single counterexample and costs one read-only pass. Second is Neta, because the residual question after enumeration is signal-to-interpretation ambiguity with competing product mechanisms — recommendation versus measurement report — which is Neta's primary domain and not R&D's, and because H-4 has been left unrouted despite naming a concrete perception defect (the player's purpose below every count, five of eleven unclear-rows ending in the identical quantity) that may be the real binding constraint rather than a rival hypothesis. Third, and scope-limited, is one OWNER question about what the published refusal covers; the owner asking twice for the surface is a priority signal and not a permission, and an owner yes cannot raise a claim's reality floor. Three moves fits the budget. Two proxy substitutions are flagged rather than averaged away: the D22 walk sought agreement where the reversal condition is disagreement, so it produced no delta and its instrument is not yet trusted after the 404 typo; and \"another 30 decisions\" repeated five times is functioning as a progress denominator in a product that refuses denominators, which is a perception defect independent of the ownership question. H-2 is ruled unsupported on present evidence. The disposition must hold in the state where no personal pattern is ever found, so any sentence the surface renders must be justified by a record fact — a game nothing scored, a bucketing short on one side, a run left half-finished — and never by a prediction about the player; that is exactly the property the enumeration tests."
+  },
+  "routing": {
+    "resources": [
+      "NETA"
+    ],
+    "fired": {
+      "NETA": [
+        "multiple_plausible_mechanisms",
+        "proxy_substitution_risk",
+        "research_to_intervention_transition",
+        "signal_interpretation_ambiguity"
+      ],
+      "AUTHORITY": [
+        "owner_authority_needed",
+        "repo_authority_needed",
+        "field_authority_needed"
+      ]
+    },
+    "authority_handoffs": [
+      "FIELD",
+      "OWNER",
+      "REPO"
+    ]
+  },
+  "resource_invocations": [
+    {
+      "resource": "RND",
+      "phase": "DIAGNOSE",
+      "request": {
+        "resource": "RND",
+        "phase": "DIAGNOSE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-ORCHESTRATION-001",
+          "telos": {
+            "statement": "Decide whether an orchestration surface in Decision Lab may render what deriveNextAction proposes, and what such a surface may state about where the player stands, without inventing a claim the frozen evidence ceiling forbids or breaking the product's own published refusal to recommend what to learn.",
+            "success_condition": "A disposition that names which of four hypotheses may be built, what it may say, and what authority owns anything it may not say. It must hold in the state where no personal pattern is ever found, must not introduce a progress percentage or a rating denominator, and must not require the product to break a refusal it publishes to its own users."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The measurement and learning machinery is built and gated: a six-bucket detector, player-authored rules, a spaced retrieval queue, drills, prompted transfer checks, refutation and retirement, an import diagnostic, and a nine-stage learning-object ledger. 44 repository gates, each with a positive control that must go red. WHAT IS BUILT AND OWNS NOTHING: shared/next-action.ts derives the whole next-action union from record facts, and shared/primary-action.ts maps each kind onto a closed vocabulary of primary acts via actFor/agreesWith. client/src/lib/next-action-shadow.ts runs the derivation beside one screen and writes the comparison to a trial ledger. A test asserts the set of callers is exactly [ResumeScreen.tsx], that the screen does not bind the return value, and that the shadow reads no more of the ledger than idempotency needs. docs/decisions/D22-next-action-ownership.md records mode DEFER at evidence level E2 and names four reversal conditions. Its stated reason is section 23's coaching rule applied to the product's own navigation: a claim of this shape may not act on a player until something could have shown it wrong. Its second reason is cost: instrumenting the other two shadow surfaces live would pull the blitz reading chain at +16.1 kB raw / +5.1 kB gzipped into two hot routes to write a row nobody reads. THE PRODUCT PUBLISHES A REFUSAL LIST TO ITS OWN USERS, in the help overlay WhatThisIs: no score, no rating, no streak, no badge; 'it will not recommend what to learn -- it measures, it does not coach'; it will not say more about you than it measured; it will not grade itself a success. WHAT THE JOURNEY LOOKS LIKE TODAY, walked at 390x844 on the shipped build. The record page is the route '/'. In source order it renders: the resume card, the first-decision card, an outcome summary, WhatIsUnclear, WhatIsUnderTest, an anchor control, the record dashboard, the player's own goal sentence, the learning-object ledger, and the import diagnostic. The goal -- the player's own words about why they are here -- is BELOW every count on the page, placed there deliberately so it can never render beside one. 'What is still unclear' is near the top and is eleven rows on a small record, five of which end in the identical quantity 'another 30 decisions'.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement.",
+              "A GOAL IS FRAMING AND NEVER A DENOMINATOR. shared/goal.ts stores one sentence in the player's words, capped at 140 characters and never parsed for a number, because three numbers in a row are an arithmetic problem the reader will solve. GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count.",
+              "THE PRODUCT PUBLISHES 'it will not recommend what to learn -- it measures, it does not coach' TO ITS USERS. Any surface that recommends breaks a promise the product makes on screen.",
+              "EVIDENCE_POLICY v4: discovery reads free-play decisions and nothing else -- not the front door's handoff, not the shared bank, not a drill, not a transfer check, not an imported game, not a row that never recorded its context. Its own words: a source does not become eligible because excluding it leaves too little data.",
+              "GUIDED PRACTICE, PROMPTED RECALL AND UNPROMPTED PLAY ARE THREE CONSTRUCTS AND NEVER ONE NUMBER. Maximum transfer is what a learner can do when prompted; typical transfer is what they do when nobody prompts them.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT: MIN_BUCKET_N is 30 and is needed inside and outside a bucket, so 60 measured decisions precede any claim. The calibration wait is not automatically removable friction.",
+              "THE SHIPPED DETECTOR IS NOT THE VALIDATED RESEARCH PIPELINE. The six-bucket detector returns not-separable on the owner's whole 2,209-game record while a frozen research pipeline finds a residual on that same record which survives its own within-game permutation null. Any sentence about finding nothing is a sentence about the detector."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "May an orchestration surface render what deriveNextAction proposes, and what may it state about where the player stands? H-1: render the proposal's REASON and not its choice -- the surface keeps offering exactly the act it offers today, and the derivation supplies the sentence saying what completing it makes knowable. H-2: hand the act over as well, since the walk found agreement and ownership is the point of the sequence. H-3: neither -- D22's E2 is about the mapping and not about the screens, and two agreeing states are not evidence that a third would agree; wait for the acquisition trial. H-4: the binding constraint is not ownership at all but the instrument-first ordering -- the player's purpose is below every count and the shortfall wall is above them; re-order and decide nothing.",
+            "current_default": "H-1. Render the reason, change no act, add no progress number, add no rating denominator, add no telemetry.",
+            "reversal_condition": "Change the default if rendering a reason attached to an act is itself a recommendation under the product's own published refusal, or if 'what completing this makes knowable' cannot be stated without an INTERVENTION claim. Either collapses H-1 into H-2's problem and the answer becomes H-3."
+          },
+          "signals": [
+            "OWNER: The owner has now asked twice, in consecutive missions, for one orchestration surface answering: my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown. The owner is not research authority for whether the product may recommend.",
+            "REPO: D22's first reversal condition -- a screen and the derivation disagreeing in a walk over the built app -- has now been performed for the first time. At 390x844 from an empty profile: the record page empty proposes play-first-decision and offers play-first-decision; the record page with one decision proposes play-blitz and offers play-blitz. Two states, both agree. Agreement is not the condition; disagreement is.",
+            "REPO: D22's cost argument may rest on a routing conflation. It treats 'the front door' and 'the record page' as two surfaces, and App.tsx routes '/' to Record. Checked before stating it and it is narrower than it looks: ResumeScreen is lazy-loaded, so the reading chain is a separate chunk fetched only when ResumeScreen renders -- which is for a returning player and not a cold arrival. The price is real for a first visit and already paid for a return.",
+            "REPO: The same conflation produced a false finding an hour earlier: a first draft of the walk navigated to a URL the router does not have, read the 404 as a surface offering nothing, and reported D22's reversal condition as met. It was a typo. Weigh the routing observation accordingly.",
+            "REPO: next-action.ts states its own line in writing: 'A layer that recommended would be measuring the player and then changing what they see, which changes what is being measured.' Every action it derives is justified by a fact about the RECORD -- a game nothing has scored, a bucketing with too few decisions on one side, a run left half-finished -- and never by a prediction about the player.",
+            "FIELD: Three cold users have used this product. Two of three could not complete the core move. That was repaired and NO COLD USER HAS SEEN THE REPAIRED BUILD. Nobody has ever been observed using the learning layer or the record page."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 1
+          }
+        },
+        "instruction": "Diagnose resource↔telos miscalibration, map candidate resource moves, commit ex ante to which decision-state dimensions each assessed resource could change, and return exactly the Calibration Loop v0.2 diagnosis shape."
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "NETA",
+      "phase": "ANALYZE",
+      "request": {
+        "resource": "NETA",
+        "phase": "ANALYZE",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-ORCHESTRATION-001",
+          "telos": {
+            "statement": "Decide whether an orchestration surface in Decision Lab may render what deriveNextAction proposes, and what such a surface may state about where the player stands, without inventing a claim the frozen evidence ceiling forbids or breaking the product's own published refusal to recommend what to learn.",
+            "success_condition": "A disposition that names which of four hypotheses may be built, what it may say, and what authority owns anything it may not say. It must hold in the state where no personal pattern is ever found, must not introduce a progress percentage or a rating denominator, and must not require the product to break a refusal it publishes to its own users."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The measurement and learning machinery is built and gated: a six-bucket detector, player-authored rules, a spaced retrieval queue, drills, prompted transfer checks, refutation and retirement, an import diagnostic, and a nine-stage learning-object ledger. 44 repository gates, each with a positive control that must go red. WHAT IS BUILT AND OWNS NOTHING: shared/next-action.ts derives the whole next-action union from record facts, and shared/primary-action.ts maps each kind onto a closed vocabulary of primary acts via actFor/agreesWith. client/src/lib/next-action-shadow.ts runs the derivation beside one screen and writes the comparison to a trial ledger. A test asserts the set of callers is exactly [ResumeScreen.tsx], that the screen does not bind the return value, and that the shadow reads no more of the ledger than idempotency needs. docs/decisions/D22-next-action-ownership.md records mode DEFER at evidence level E2 and names four reversal conditions. Its stated reason is section 23's coaching rule applied to the product's own navigation: a claim of this shape may not act on a player until something could have shown it wrong. Its second reason is cost: instrumenting the other two shadow surfaces live would pull the blitz reading chain at +16.1 kB raw / +5.1 kB gzipped into two hot routes to write a row nobody reads. THE PRODUCT PUBLISHES A REFUSAL LIST TO ITS OWN USERS, in the help overlay WhatThisIs: no score, no rating, no streak, no badge; 'it will not recommend what to learn -- it measures, it does not coach'; it will not say more about you than it measured; it will not grade itself a success. WHAT THE JOURNEY LOOKS LIKE TODAY, walked at 390x844 on the shipped build. The record page is the route '/'. In source order it renders: the resume card, the first-decision card, an outcome summary, WhatIsUnclear, WhatIsUnderTest, an anchor control, the record dashboard, the player's own goal sentence, the learning-object ledger, and the import diagnostic. The goal -- the player's own words about why they are here -- is BELOW every count on the page, placed there deliberately so it can never render beside one. 'What is still unclear' is near the top and is eleven rows on a small record, five of which end in the identical quantity 'another 30 decisions'.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement.",
+              "A GOAL IS FRAMING AND NEVER A DENOMINATOR. shared/goal.ts stores one sentence in the player's words, capped at 140 characters and never parsed for a number, because three numbers in a row are an arithmetic problem the reader will solve. GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count.",
+              "THE PRODUCT PUBLISHES 'it will not recommend what to learn -- it measures, it does not coach' TO ITS USERS. Any surface that recommends breaks a promise the product makes on screen.",
+              "EVIDENCE_POLICY v4: discovery reads free-play decisions and nothing else -- not the front door's handoff, not the shared bank, not a drill, not a transfer check, not an imported game, not a row that never recorded its context. Its own words: a source does not become eligible because excluding it leaves too little data.",
+              "GUIDED PRACTICE, PROMPTED RECALL AND UNPROMPTED PLAY ARE THREE CONSTRUCTS AND NEVER ONE NUMBER. Maximum transfer is what a learner can do when prompted; typical transfer is what they do when nobody prompts them.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT: MIN_BUCKET_N is 30 and is needed inside and outside a bucket, so 60 measured decisions precede any claim. The calibration wait is not automatically removable friction.",
+              "THE SHIPPED DETECTOR IS NOT THE VALIDATED RESEARCH PIPELINE. The six-bucket detector returns not-separable on the owner's whole 2,209-game record while a frozen research pipeline finds a residual on that same record which survives its own within-game permutation null. Any sentence about finding nothing is a sentence about the detector."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "May an orchestration surface render what deriveNextAction proposes, and what may it state about where the player stands? H-1: render the proposal's REASON and not its choice -- the surface keeps offering exactly the act it offers today, and the derivation supplies the sentence saying what completing it makes knowable. H-2: hand the act over as well, since the walk found agreement and ownership is the point of the sequence. H-3: neither -- D22's E2 is about the mapping and not about the screens, and two agreeing states are not evidence that a third would agree; wait for the acquisition trial. H-4: the binding constraint is not ownership at all but the instrument-first ordering -- the player's purpose is below every count and the shortfall wall is above them; re-order and decide nothing.",
+            "current_default": "H-1. Render the reason, change no act, add no progress number, add no rating denominator, add no telemetry.",
+            "reversal_condition": "Change the default if rendering a reason attached to an act is itself a recommendation under the product's own published refusal, or if 'what completing this makes knowable' cannot be stated without an INTERVENTION claim. Either collapses H-1 into H-2's problem and the answer becomes H-3."
+          },
+          "signals": [
+            "OWNER: The owner has now asked twice, in consecutive missions, for one orchestration surface answering: my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown. The owner is not research authority for whether the product may recommend.",
+            "REPO: D22's first reversal condition -- a screen and the derivation disagreeing in a walk over the built app -- has now been performed for the first time. At 390x844 from an empty profile: the record page empty proposes play-first-decision and offers play-first-decision; the record page with one decision proposes play-blitz and offers play-blitz. Two states, both agree. Agreement is not the condition; disagreement is.",
+            "REPO: D22's cost argument may rest on a routing conflation. It treats 'the front door' and 'the record page' as two surfaces, and App.tsx routes '/' to Record. Checked before stating it and it is narrower than it looks: ResumeScreen is lazy-loaded, so the reading chain is a separate chunk fetched only when ResumeScreen renders -- which is for a returning player and not a cold arrival. The price is real for a first visit and already paid for a return.",
+            "REPO: The same conflation produced a false finding an hour earlier: a first draft of the walk navigated to a URL the router does not have, read the 404 as a surface offering nothing, and reported D22's reversal condition as met. It was a typo. Weigh the routing observation accordingly.",
+            "REPO: next-action.ts states its own line in writing: 'A layer that recommended would be measuring the player and then changing what they see, which changes what is being measured.' Every action it derives is justified by a fact about the RECORD -- a game nothing has scored, a bucketing with too few decisions on one side, a run left half-finished -- and never by a prediction about the player.",
+            "FIELD: Three cold users have used this product. Two of three could not complete the core move. That was repaired and NO COLD USER HAS SEEN THE REPAIRED BUILD. Nobody has ever been observed using the learning layer or the record page."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 1
+          }
+        },
+        "requested_focus": [
+          "multiple_plausible_mechanisms",
+          "proxy_substitution_risk",
+          "research_to_intervention_transition",
+          "signal_interpretation_ambiguity"
+        ],
+        "independence_rule": "Analyze the task independently. Do not infer another resource's conclusion and do not turn agreement into independent evidence.",
+        "prompt_ref": "prompts/SYSTEM.md",
+        "role_boundary": "Challenge framing, proxy substitution, mechanism collapse and premature intervention. Do not decide external research validity or architecture doctrine."
+      },
+      "expected_delta": {
+        "decision": true,
+        "action": true,
+        "reversal": true,
+        "evidence": false,
+        "allocation": true,
+        "distinction": true
+      },
+      "observed_delta": {
+        "decision": "H-1 moved from standing default to conditionally admissible under three named constraints and sequenced second; H-4 moved from possible rival to first move; H-3 moved from available to rejected as over-deferral; H-2's denial gained a second independent ground.",
+        "action": "The immediate build action changes from 'render a reason sentence' to 'collapse the repeated-quantity unclear list and lift the goal above the counts', and any later reason sentence must carry a subject gate with a positive control plus a pre/post free-play decision-rate reading.",
+        "reversal": "The written reversal condition is now answerable rather than open — 'what completing this makes knowable' CAN be stated without an INTERVENTION claim, but only under a record-subject grammar with no numeral — and a new falsifier was added that did not exist before: ship the reordering and observe whether the owner's six-part request recurs.",
+        "evidence": null,
+        "allocation": "The planned REPO enumeration is re-specified to a harder acceptance test and gains two higher-value questions in the same pass; the OWNER question is redirected from 'what does the published refusal cover' to 'authorize the reordering trial, then does the ask recur'; FIELD and SCAFFOLD hold.",
+        "distinction": "Record-as-subject versus player-as-subject as a mechanizable test; denominator-by-repetition versus denominator-in-the-goal-element; stated 30 versus required 60 (inside and outside a bucket); salience change as intervention even when the act is byte-identical; most-determined versus contested branches of the union; 'the detector found nothing' as a sentence about the detector and never about the player."
+      },
+      "material": true,
+      "result": {
+        "resource": "NETA",
+        "summary": "DISPOSITION: the hypothesis set is mis-cut, and the cut is the finding. The owner's RAW SIGNAL — asked twice, in his own words: 'my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown' — is six questions, five of them orientation and one of them action. H-1/H-2/H-3 all argue about the action question (whether the surface may own the derivation's choice or only its reason), which is one sixth of the signal, and they inherit D22's ownership frame rather than testing it. H-4 is the only hypothesis addressing the other five sixths, and it is written as mutually exclusive ('re-order and decide nothing'), which is a false dichotomy: re-ordering decides one mechanism, cheaply, at the lowest authority, with no new claim. COMPETING MECHANISMS for why the owner cannot say where he stands, at most three: (M1) ORIENTATION — no single surface holds current state, so the owner reconstructs it by reading eleven rows; predicts the ask recurs even with the act perfectly rendered. (M2) PERCEPTION/ORDER — the act exists and is first in source order, but the page's perceptual centre is the shortfall wall above it: 'what is still unclear' is eleven rows on a small record, five ending in the identical quantity 'another 30 decisions'; five identical quantities give the eye no basis to rank the rows, so the region reads as one wall of deficit and outranks a single resume card. (M3) PAYOFF — the act is findable and completing it leaves no visible trace, so 'where I stand' is unanswerable regardless of who owns the choice; H-1's reason sentence is a PAYOFF repair wearing navigation clothes. ONE DISCRIMINATOR, available now, no new claim, reversible: collapse the eleven-row unclear list so that no quantity repeats, and place the player's goal sentence above the counts rather than below them; then ask the owner whether the same request recurs. If it recurs, ownership (H-1/H-2) is live; if it does not, the binding constraint was ordering and D22 never needed reopening. AUTHORITY: the mechanism split is NETA/REPO; whether to try the reordering is OWNER; whether any surface orients a person who is not the owner is FIELD. EVIDENCE STATE: OWNER_SIGNAL for the ask, REPRODUCED for the page composition and the walk, FIELD_REQUIRED for every orientation outcome — three cold users, two of three failed the core move, the repair unseen by any cold user, nobody ever observed on the record page. H-2 is DENIED on an observation, not on doctrine: the walk agreed on empty-record and one-decision, the two most-determined branches of the union, where the derivation has essentially no choice to make; agreement there is not evidence about the contested branches (half-finished run, bucketing short on one side, unscored game co-occurring), and D22's condition was disagreement anyway. H-3 over-defers: it blocks the ordering repair, which requires no E-level. H-1 is CONDITIONALLY ADMISSIBLE under two constraints named below, and with them it reduces mostly to H-4.",
+        "unique_delta": "Three things I did not see carried in the framing. FIRST — THE DENOMINATOR IS ALREADY ON THE PAGE, ELEVEN ROWS ABOVE WHERE THE GATE GUARDS. The constraint list locates denominator risk in the goal element: goal.ts caps one sentence at 140 chars, is never parsed for a number, and GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count. But 'what is still unclear', five of whose eleven rows end in the identical quantity 'another 30 decisions', is already a progress number the reader will assemble — the arithmetic problem the goal rule exists to prevent, reproduced at higher salience in a different element. The success condition says 'must not introduce a progress percentage'; on the walked build one is present, unlabeled, by repetition. H-1's 'what completing this makes knowable' would attach a sixth instance to the offered act, which is the nearest thing to a recommendation the product can emit without stating one. SECOND — THE COUNTDOWN MAY BE ARITHMETICALLY FALSE AS WELL AS FORBIDDEN. MIN_BUCKET_N is 30 and is required inside and outside a bucket, so 60 measured decisions precede the claim. A reason sentence rendering 'another 30 decisions' as what makes something knowable promises eligibility at half its cost. That is not a style problem; it is an instrument-constraint misstatement on the surface that steers the only admissible source. THIRD — H-1'S OWN SELF-DESCRIPTION ('change no act, add no telemetry') HIDES A CONTAMINATION PATH THAT NOTHING WOULD DETECT. next-action.ts writes its own line: a layer that recommended would be measuring the player and then changing what they see, which changes what is being measured. Salience is such a change even when the act is byte-identical — a justified act is a different act perceptually. EVIDENCE_POLICY v4 admits free-play decisions and nothing else, so a surface that raises free-play decision volume perturbs the sole admissible source, and 'add no telemetry' guarantees the perturbation is unfalsifiable. THEREFORE, the reversal condition in decision_blocked can be answered rather than left open: 'what completing this makes knowable' CAN be stated without an INTERVENTION claim, but only under a grammatical test, not a topical one — the sentence's subject must be the RECORD's eligibility state and never the player ('the blitz bucket is not yet comparable' passes; 'you need 30 more to see your blitz pattern' fails, and so does every second-person capability verb). That test is mechanizable as a sibling of GATE-GOAL-NOT-A-DENOMINATOR with a positive control that must go red. So H-1 becomes admissible only with (a) that subject gate, (b) no numeral in the reason sentence at all — the countdown is the denominator, and removing it removes both the false-eligibility promise and the progress number, and (c) a pre/post free-play decision-rate reading on the owner's own record (OWNER/REPO, R5) so the salience change is at least observable. With (a),(b),(c) applied, what survives of H-1 is a non-numeric eligibility statement, which is a legibility repair of the same family as H-4 — which is why I read the two as sequential, not rival: do the ordering first, because it is the only move here that can fail cheaply and visibly. Everything in this disposition holds in the state where no personal pattern is ever found: eligibility statements about a record remain true when the residual is null, and the shipped detector returning not-separable on 2,209 games is a sentence about the detector, not about the player — a surface must never render it as one.",
+        "evidence_refs": [
+          "docs/SHARED_EPISTEMIC_KERNEL.md",
+          "docs/REALITY_AUTHORITY_PERMISSION.md",
+          "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+          "docs/TELOS.md",
+          "task_id CAL-LICHESS-ORCHESTRATION-001",
+          "decision_blocked.statement H-1/H-2/H-3/H-4 and its stated reversal_condition",
+          "current_state.summary: record page route '/' source order walked at 390x844 (resume card, first-decision card, outcome summary, WhatIsUnclear, WhatIsUnderTest, anchor control, record dashboard, goal sentence, learning-object ledger, import diagnostic)",
+          "current_state.summary: 'what is still unclear' is eleven rows on a small record, five ending in the identical quantity 'another 30 decisions'",
+          "current_state.summary: the goal sentence is below every count, placed deliberately so it never renders beside one",
+          "shared/next-action.ts",
+          "shared/primary-action.ts (actFor/agreesWith)",
+          "client/src/lib/next-action-shadow.ts and its trial ledger",
+          "docs/decisions/D22-next-action-ownership.md (mode DEFER, evidence level E2, four reversal conditions)",
+          "ResumeScreen.tsx (asserted sole caller; lazy-loaded)",
+          "App.tsx routing '/' to Record",
+          "shared/goal.ts (140-char cap, never parsed for a number)",
+          "GATE-GOAL-NOT-A-DENOMINATOR",
+          "EVIDENCE_POLICY v4 (free-play decisions and nothing else)",
+          "MIN_BUCKET_N = 30 required inside and outside a bucket (60 measured decisions precede a claim)",
+          "WhatThisIs help overlay refusal list, including 'it will not recommend what to learn -- it measures, it does not coach'",
+          "known_constraints: frozen mechanism research places CAUSALITY (FIELD), INTERVENTION (OWNER), OUTCOME (FIELD) beyond the discovery pipeline under any result",
+          "known_constraints: guided practice / prompted recall / unprompted play are three constructs and never one number",
+          "known_constraints: the shipped six-bucket detector returns not-separable on the owner's 2,209-game record while the frozen research pipeline finds a residual surviving its within-game permutation null",
+          "REPO signal: walk from empty profile — empty record proposes and offers play-first-decision; one decision proposes and offers play-blitz; two states, both agree",
+          "REPO signal: next-action.ts's written line that a recommending layer would change what is being measured, and that every derived action is justified by a record fact",
+          "REPO signal: the earlier false finding produced by navigating to a URL the router does not have and reading the 404 as a surface offering nothing",
+          "REPO signal: ResumeScreen lazy-loading narrows D22's +16.1 kB raw / +5.1 kB gzipped cost argument to first visit",
+          "OWNER signal: the same orchestration request made twice in consecutive missions, in six parts",
+          "FIELD signal: three cold users, two of three could not complete the core move, no cold user has seen the repaired build, nobody has been observed using the learning layer or record page"
+        ],
+        "limitations": [
+          "I did not read the repository. Every composition fact above is taken from the walk as reported in current_state and the REPO signals; the claim that five 'what is still unclear' rows end in an identical quantity is REPRODUCED only in that report, and a second walk should confirm it before the reordering is built.",
+          "Whether the two walked states are in fact the least-determined branches of the next-action union is a REPO fact I inferred from their description, not from reading the union. If the union has only these branches reachable from an empty profile, my H-2 objection weakens to 'the walk is early' rather than 'the walk exercised the easy cases'.",
+          "I do not decide external research validity. Whether the frozen mechanism research's ceiling is correctly drawn, and whether a residual surviving a within-game permutation null licenses anything, is R&D-owned; I treated the ceiling as given and reasoned only about what a surface may say under it.",
+          "I do not decide architecture doctrine. Whether D22 should be reopened, re-scoped, or superseded is an OWNER/REPO decision; I argue only that the walk's two agreements do not meet its stated reversal condition and that the ordering question does not require reopening it.",
+          "The proposed subject gate ('the sentence's subject is the record, never the player') is a DESIGN_MECHANISM-level proposal, not a validated rule. It has no positive control yet, and I have not tested it against a neighboring case where it must NOT fire — for example a first-person sentence the player authored themselves, which shared/goal.ts already stores.",
+          "Every orientation outcome in this analysis is FIELD_REQUIRED and unresolved. The owner asking twice is OWNER_SIGNAL about the owner's own experience at R5; it is not evidence that a stranger cannot orient, and the reordering discriminator I propose is answered by the owner, so it separates mechanisms for him and not for anyone else.",
+          "The contamination concern (a justified act raising free-play decision volume and perturbing the only admissible source) is MECHANISM_SUPPORTED and NOT MEASURED. I propose a pre/post reading on the owner's own record because it is the cheapest admissible observation, but an owner-only reading cannot establish the effect's size for other players.",
+          "I did not cost the reordering. Collapsing the unclear list may interact with WhatIsUnderTest, the anchor control, or gates I cannot see, and 'no new claim' is an epistemic statement, not an implementation-risk statement."
+        ],
+        "_adapter_meta": {
+          "adapter": "claude_cli_adapter",
+          "resource": "NETA",
+          "transport": "claude CLI --print",
+          "provider": "anthropic",
+          "requested_model": "opus",
+          "served_model": "claude-opus-5",
+          "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+          "uuid": "217af351-3bfd-4681-923a-4fa671e1f555",
+          "num_turns": 1,
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.37904550000000004,
+          "context_delivery": {
+            "requested": 4,
+            "delivered": 4,
+            "manifest": [
+              "- `docs/SHARED_EPISTEMIC_KERNEL.md` delivered (6557 bytes, whole)",
+              "- `docs/REALITY_AUTHORITY_PERMISSION.md` delivered (6554 bytes, whole)",
+              "- `docs/AGENT_AUTHORITY_BOUNDARIES.md` delivered (5999 bytes, whole)",
+              "- `docs/TELOS.md` delivered (4896 bytes, whole)"
+            ]
+          },
+          "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+          "phase": "ANALYZE"
+        }
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "RND",
+      "phase": "SYNTHESIZE",
+      "request": {
+        "resource": "RND",
+        "phase": "SYNTHESIZE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-ORCHESTRATION-001",
+          "telos": {
+            "statement": "Decide whether an orchestration surface in Decision Lab may render what deriveNextAction proposes, and what such a surface may state about where the player stands, without inventing a claim the frozen evidence ceiling forbids or breaking the product's own published refusal to recommend what to learn.",
+            "success_condition": "A disposition that names which of four hypotheses may be built, what it may say, and what authority owns anything it may not say. It must hold in the state where no personal pattern is ever found, must not introduce a progress percentage or a rating denominator, and must not require the product to break a refusal it publishes to its own users."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The measurement and learning machinery is built and gated: a six-bucket detector, player-authored rules, a spaced retrieval queue, drills, prompted transfer checks, refutation and retirement, an import diagnostic, and a nine-stage learning-object ledger. 44 repository gates, each with a positive control that must go red. WHAT IS BUILT AND OWNS NOTHING: shared/next-action.ts derives the whole next-action union from record facts, and shared/primary-action.ts maps each kind onto a closed vocabulary of primary acts via actFor/agreesWith. client/src/lib/next-action-shadow.ts runs the derivation beside one screen and writes the comparison to a trial ledger. A test asserts the set of callers is exactly [ResumeScreen.tsx], that the screen does not bind the return value, and that the shadow reads no more of the ledger than idempotency needs. docs/decisions/D22-next-action-ownership.md records mode DEFER at evidence level E2 and names four reversal conditions. Its stated reason is section 23's coaching rule applied to the product's own navigation: a claim of this shape may not act on a player until something could have shown it wrong. Its second reason is cost: instrumenting the other two shadow surfaces live would pull the blitz reading chain at +16.1 kB raw / +5.1 kB gzipped into two hot routes to write a row nobody reads. THE PRODUCT PUBLISHES A REFUSAL LIST TO ITS OWN USERS, in the help overlay WhatThisIs: no score, no rating, no streak, no badge; 'it will not recommend what to learn -- it measures, it does not coach'; it will not say more about you than it measured; it will not grade itself a success. WHAT THE JOURNEY LOOKS LIKE TODAY, walked at 390x844 on the shipped build. The record page is the route '/'. In source order it renders: the resume card, the first-decision card, an outcome summary, WhatIsUnclear, WhatIsUnderTest, an anchor control, the record dashboard, the player's own goal sentence, the learning-object ledger, and the import diagnostic. The goal -- the player's own words about why they are here -- is BELOW every count on the page, placed there deliberately so it can never render beside one. 'What is still unclear' is near the top and is eleven rows on a small record, five of which end in the identical quantity 'another 30 decisions'.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement.",
+              "A GOAL IS FRAMING AND NEVER A DENOMINATOR. shared/goal.ts stores one sentence in the player's words, capped at 140 characters and never parsed for a number, because three numbers in a row are an arithmetic problem the reader will solve. GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count.",
+              "THE PRODUCT PUBLISHES 'it will not recommend what to learn -- it measures, it does not coach' TO ITS USERS. Any surface that recommends breaks a promise the product makes on screen.",
+              "EVIDENCE_POLICY v4: discovery reads free-play decisions and nothing else -- not the front door's handoff, not the shared bank, not a drill, not a transfer check, not an imported game, not a row that never recorded its context. Its own words: a source does not become eligible because excluding it leaves too little data.",
+              "GUIDED PRACTICE, PROMPTED RECALL AND UNPROMPTED PLAY ARE THREE CONSTRUCTS AND NEVER ONE NUMBER. Maximum transfer is what a learner can do when prompted; typical transfer is what they do when nobody prompts them.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT: MIN_BUCKET_N is 30 and is needed inside and outside a bucket, so 60 measured decisions precede any claim. The calibration wait is not automatically removable friction.",
+              "THE SHIPPED DETECTOR IS NOT THE VALIDATED RESEARCH PIPELINE. The six-bucket detector returns not-separable on the owner's whole 2,209-game record while a frozen research pipeline finds a residual on that same record which survives its own within-game permutation null. Any sentence about finding nothing is a sentence about the detector."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "May an orchestration surface render what deriveNextAction proposes, and what may it state about where the player stands? H-1: render the proposal's REASON and not its choice -- the surface keeps offering exactly the act it offers today, and the derivation supplies the sentence saying what completing it makes knowable. H-2: hand the act over as well, since the walk found agreement and ownership is the point of the sequence. H-3: neither -- D22's E2 is about the mapping and not about the screens, and two agreeing states are not evidence that a third would agree; wait for the acquisition trial. H-4: the binding constraint is not ownership at all but the instrument-first ordering -- the player's purpose is below every count and the shortfall wall is above them; re-order and decide nothing.",
+            "current_default": "H-1. Render the reason, change no act, add no progress number, add no rating denominator, add no telemetry.",
+            "reversal_condition": "Change the default if rendering a reason attached to an act is itself a recommendation under the product's own published refusal, or if 'what completing this makes knowable' cannot be stated without an INTERVENTION claim. Either collapses H-1 into H-2's problem and the answer becomes H-3."
+          },
+          "signals": [
+            "OWNER: The owner has now asked twice, in consecutive missions, for one orchestration surface answering: my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown. The owner is not research authority for whether the product may recommend.",
+            "REPO: D22's first reversal condition -- a screen and the derivation disagreeing in a walk over the built app -- has now been performed for the first time. At 390x844 from an empty profile: the record page empty proposes play-first-decision and offers play-first-decision; the record page with one decision proposes play-blitz and offers play-blitz. Two states, both agree. Agreement is not the condition; disagreement is.",
+            "REPO: D22's cost argument may rest on a routing conflation. It treats 'the front door' and 'the record page' as two surfaces, and App.tsx routes '/' to Record. Checked before stating it and it is narrower than it looks: ResumeScreen is lazy-loaded, so the reading chain is a separate chunk fetched only when ResumeScreen renders -- which is for a returning player and not a cold arrival. The price is real for a first visit and already paid for a return.",
+            "REPO: The same conflation produced a false finding an hour earlier: a first draft of the walk navigated to a URL the router does not have, read the 404 as a surface offering nothing, and reported D22's reversal condition as met. It was a typo. Weigh the routing observation accordingly.",
+            "REPO: next-action.ts states its own line in writing: 'A layer that recommended would be measuring the player and then changing what they see, which changes what is being measured.' Every action it derives is justified by a fact about the RECORD -- a game nothing has scored, a bucketing with too few decisions on one side, a run left half-finished -- and never by a prediction about the player.",
+            "FIELD: Three cold users have used this product. Two of three could not complete the core move. That was repaired and NO COLD USER HAS SEEN THE REPAIRED BUILD. Nobody has ever been observed using the learning layer or the record page."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 1
+          }
+        },
+        "diagnosis": {
+          "material_question": "Can H-1 — a surface that renders deriveNextAction's REASON while leaving the offered act exactly as it is today — state \"what completing this makes knowable\" for every member of the closed next-action union using only record facts, and does attaching that sentence to an act read as a recommendation under the product's own published refusal (\"it will not recommend what to learn — it measures, it does not coach\")?",
+          "bottleneck": "Two claims of different authority are being carried as one blocked decision, and the cheap one has not been run. (a) ENUMERABILITY is REPO-owned and unrun: whether a knowability sentence exists for EVERY kind in the next-action union justified solely by a record fact (a game nothing has scored, a bucketing short on one side, a half-finished run) and never by a prediction about the player. The stated reversal condition already says that if \"what completing this makes knowable\" cannot be stated without an INTERVENTION claim, H-1 collapses into H-2's problem and the answer is H-3 — so a single enumeration over a closed vocabulary can fire the reversal by itself. (b) PERCEPTION is FIELD-owned at R6 and currently unreachable: whether reason-attached-to-act reads as coaching to a stranger. No cold user has seen the repaired build; two of three failed the core move on the prior one. The miscalibration is that deliberation is being paid against (b) while (a) sits uninspected, and that D22's reversal condition is being probed with walks that find AGREEMENT — agreement cannot fire a condition whose trigger is disagreement, so the two-state walk bought no decision delta and the earlier 404 typo shows the walk instrument is not yet trustworthy. A second, possibly larger miscalibration is unpriced: H-4 claims the binding constraint is instrument-first ordering (the player's goal below every count; eleven unclear-rows, five ending in the identical quantity \"another 30 decisions\"), which is a product-perception question nobody has routed to the peer that owns it.",
+          "resource_assessment": [
+            {
+              "resource": "REPO",
+              "expected_contribution": "Enumerate the closed next-action union in shared/next-action.ts against shared/primary-action.ts actFor/agreesWith and attempt a record-fact-only knowability sentence per kind; also confirm whether the ResumeScreen lazy chunk keeps the +16.1 kB raw / +5.1 kB gzipped reading chain off a cold arrival. Can close the enumerability claim outright at R1/R3 and can fire the stated reversal by counterexample.",
+              "authority_ceiling": "Establishes code paths, the derivation's justifications and bundle/route facts. Cannot establish how a rendered sentence is perceived, whether the published refusal's wording covers act+reason, or whether the owner accepts the tradeoff.",
+              "uncertainty": "A kind may be enumerable in code yet only expressible in prose that smuggles a prediction; the boundary between \"this act makes bucket N crossable\" and \"this act will help you\" is drawn by reading, not by the compiler. The prior false finding from a routing typo lowers trust in walk-derived observations until re-run.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "NETA",
+              "expected_contribution": "Owns the live question: which product mechanisms fit \"a reason rendered beside an act\" — measurement report, justification, or recommendation-by-adjacency — and what observation would discriminate them before any field protocol is designed. Also the only peer competent on H-4: whether the goal-below-counts ordering and the five-identical-\"another 30 decisions\" shortfall wall are the actual binding perception constraint, and whether that is a DIFFERENT_QUESTION from ownership rather than a competing hypothesis.",
+              "authority_ceiling": "Product perception, mechanism competition and discriminator design; can declare a FIELD ceiling and name the smallest field requirement. Cannot close the perception claim itself (that is FIELD/R6), cannot rule on the repo enumeration, and cannot decide the owner's intent about the refusal's scope.",
+              "uncertainty": "Neta may return that H-1 and H-4 are not rival answers to one question, which would leave the ordering question live and unbudgeted; or may find the recommendation/measurement distinction is not separable by any admissible product observation short of R6.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "OWNER",
+              "expected_contribution": "Sole authority on what the published refusal means in its own product: whether \"will not recommend what to learn\" forbids a reason attached to an already-offered navigation act, or forbids only selecting the learning content. Also owns whether the H-4 re-order is worth trying and whether the acquisition-trial wait is accepted risk. Has now asked twice in consecutive missions for the orchestration surface, which is a priority signal, not a permission.",
+              "authority_ceiling": "Intent, tradeoff, accepted risk, reversible-change authorization. Cannot establish what a stranger perceives, cannot upgrade an INTERVENTION or OUTCOME claim, and cannot waive an unmet reality floor — a waiver accepts risk, it does not make an unsupported claim supported.",
+              "uncertainty": "Asking may itself invite an authorization the evidence cannot support; the owner's repeated request creates pressure toward H-2, which two agreeing states do not license. Owner reading of own published wording is legitimate and decisive for scope, but is R5-at-best about strangers.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": false,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "FIELD",
+              "expected_contribution": "The only authority that can close whether a reason-bearing surface reads as coaching, and the only one that can close whether the repaired core move now completes. Would convert the perception claim from INSUFFICIENT_REALITY to a decidable state at R6.",
+              "authority_ceiling": "Establishes what external people notice, understand, prefer and do under the protocol actually run. Cannot resolve owner intent, cannot resolve the code enumeration, and cannot supply the mechanism vocabulary it would need to be tested against.",
+              "uncertainty": "Not admissible now: nobody has used the repaired build, nobody has ever been observed on the learning layer or record page, and a field run whose participants cannot complete the core move measures the front door rather than the orchestration surface. Running it before the distinction is operationalized would spend the scarcest resource on an unformed question.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": false
+              }
+            },
+            {
+              "resource": "ENVIRONMENT",
+              "expected_contribution": "Could confirm in the deployed build that the ResumeScreen chunk is fetched only on a returning render, pricing D22's cost argument rather than restating it.",
+              "authority_ceiling": "Deployed configuration and runtime behavior only. Cannot touch either live claim; the cost argument is a secondary reason in D22, not the reason the decision is blocked.",
+              "uncertainty": "Low expected value: the walk already ran on the shipped build, and even a fully favorable cost finding leaves both the enumerability and the perception claims exactly where they are.",
+              "expected_delta": {
+                "decision": false,
+                "action": false,
+                "reversal": false,
+                "evidence": true,
+                "allocation": true,
+                "distinction": false
+              }
+            },
+            {
+              "resource": "SCAFFOLD",
+              "expected_contribution": "Could propose a hypothesis outside the given four — for example a surface that renders only what is still unknown and the act it is already offering, with no reason text at all — as a cheaper way past the recommendation question.",
+              "authority_ceiling": "Candidate source only. No authority over this product's published refusal, its evidence ceiling, or its claim ladder; its defaults are trained on products that do coach, which is the exact failure mode under test.",
+              "uncertainty": "The owner has already decomposed the space into four hypotheses with a stated collapse rule, which is the work a scaffold is usually borrowed for; marginal synthesis value looks low and contamination risk is directional toward recommending.",
+              "expected_delta": {
+                "decision": false,
+                "action": false,
+                "reversal": false,
+                "evidence": false,
+                "allocation": false,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "RND",
+              "expected_contribution": "Splits the compound block into an enumerability claim (REPO, cheap, unrun) and a perception claim (FIELD, R6, unreachable); specifies the enumeration as a falsifier with a named counterexample condition; and diagnoses that the D22 walk was run in a direction that cannot fire its own reversal condition, so a disagreement-seeking record state is required instead of another agreement walk.",
+              "authority_ceiling": "Research decomposition, reuse/adapt/build discrimination, falsifier design, claim disposition and continuity. Cannot make the product decision, cannot interpret the owner's published promise, and does not gain FIELD or OWNER authority by routing to them.",
+              "uncertainty": "Whether the enumeration is genuinely decision-changing or merely confirms what next-action.ts already asserts in writing about itself; a self-describing comment is not a verified property of every branch.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            }
+          ],
+          "candidate_moves": [
+            {
+              "move": "COLLECT_REPO",
+              "resource": "REPO",
+              "expected_decision_value": "Highest value per unit cost. Walk every kind in the next-action union and attempt a knowability sentence justified only by a record fact. A single kind that cannot be stated without an INTERVENTION claim fires the reversal condition already written into the current default and moves the disposition to H-3 without consulting any other resource. Full enumerability leaves H-1 standing on its own terms and isolates the remaining block to the FIELD-owned perception claim.",
+              "reversibility": "Fully reversible — read-only inspection of a closed vocabulary, no surface change, no telemetry, no row written."
+            },
+            {
+              "move": "INVOKE_NETA",
+              "resource": "NETA",
+              "expected_decision_value": "Second highest. Two things only this peer can supply: whether reason-beside-act is a recommendation-shaped product mechanism or a measurement report, with a discriminator short of R6; and whether H-4's ordering claim is a rival hypothesis or a different question that the ownership frame has been hiding. Signal-to-interpretation ambiguity is the defining feature of this decision, which is Neta's trigger condition.",
+              "reversibility": "Fully reversible — a bounded peer handoff producing claims and a possible field requirement, not a change to any screen."
+            },
+            {
+              "move": "WAIT",
+              "resource": "OWNER",
+              "expected_decision_value": "Moderate and scope-limited. Ask one question only: does the published refusal forbid a reason attached to an act the surface already offers, or only the selection of learning content? This is the owner's own promise and nobody else can read its scope. Do not ask for authorization of the surface; an owner yes cannot supply the perception evidence and would convert a blocked claim into an unsupported build.",
+              "reversibility": "Reversible — a scope reading, recorded as OWNER intent, not a permission to change production."
+            },
+            {
+              "move": "TEST",
+              "resource": "REPO",
+              "expected_decision_value": "Moderate, and corrective. Construct the record state predicted to make the screen and the derivation DISAGREE, rather than walking more states that agree. D22's first reversal condition is disagreement; two agreeing states are not evidence for it and the prior 404 typo shows the walk instrument needs its own positive control before its output counts.",
+              "reversibility": "Reversible — a fixture-level walk on a constructed profile; no production change."
+            },
+            {
+              "move": "USE_EXISTING",
+              "resource": "RND",
+              "expected_decision_value": "Hold H-1 as the standing default while the enumeration runs. The surface changes nothing today, adds no progress number, no rating denominator and no telemetry, and the shadow ledger already accumulates the comparison without acting on a player. Doing nothing is cheap and keeps every reversal condition live.",
+              "reversibility": "Fully reversible by construction — this is the current state."
+            },
+            {
+              "move": "STOP",
+              "resource": "RND",
+              "expected_decision_value": "Rule H-2 out now rather than carrying it. Handing the act over requires evidence that the derivation and the screens agree where it matters; the walk produced agreement in exactly two states, which is agreement and not independent triangulation, and the third surface was never instrumented. H-2's premise is unsupported regardless of how the enumeration lands.",
+              "reversibility": "Reversible — reopens if a disagreement-seeking walk plus the acquisition trial change the evidence."
+            },
+            {
+              "move": "COLLECT_FIELD",
+              "resource": "FIELD",
+              "expected_decision_value": "Decisive in principle, inadmissible now. Nobody has seen the repaired build and nobody has ever been observed on the learning layer, so a run would measure the front door and contaminate the one scarce resource before Neta has operationalized what would count as reading-it-as-coaching. Defer, and let Neta name the smallest field requirement instead.",
+              "reversibility": "Low — field exposure of a small user pool is partly spent once used, and a badly framed protocol burns the participants who could have answered the real question."
+            },
+            {
+              "move": "USE_LESS",
+              "resource": "SCAFFOLD",
+              "expected_decision_value": "Low. The hypothesis space is already decomposed with a written collapse rule, and borrowed reasoning here is trained toward products that coach — the exact failure under test. Skip unless the enumeration and Neta both return without a discriminator.",
+              "reversibility": "Fully reversible — nothing is spent by not invoking it."
+            }
+          ],
+          "needs": {
+            "signal_interpretation_ambiguity": true,
+            "multiple_plausible_mechanisms": true,
+            "proxy_substitution_risk": true,
+            "research_to_intervention_transition": true,
+            "broad_reasoning_needed": false,
+            "architecture_alternatives_needed": false,
+            "novel_synthesis_needed": false,
+            "external_research_needed": false,
+            "owner_authority_needed": true,
+            "repo_authority_needed": true,
+            "environment_authority_needed": false,
+            "field_authority_needed": true
+          },
+          "rationale": "The blocked decision is compound and is being worked at the wrong authority. Its own stated reversal condition contains a REPO-closable test — whether \"what completing this makes knowable\" can be stated without an INTERVENTION claim — and that test has not been run, while deliberation continues against a perception claim that only FIELD at R6 can close and that FIELD cannot be asked today. So the cheapest decision-changing learning is the enumeration over the closed next-action union, which can collapse H-1 into H-3 by a single counterexample and costs one read-only pass. Second is Neta, because the residual question after enumeration is signal-to-interpretation ambiguity with competing product mechanisms — recommendation versus measurement report — which is Neta's primary domain and not R&D's, and because H-4 has been left unrouted despite naming a concrete perception defect (the player's purpose below every count, five of eleven unclear-rows ending in the identical quantity) that may be the real binding constraint rather than a rival hypothesis. Third, and scope-limited, is one OWNER question about what the published refusal covers; the owner asking twice for the surface is a priority signal and not a permission, and an owner yes cannot raise a claim's reality floor. Three moves fits the budget. Two proxy substitutions are flagged rather than averaged away: the D22 walk sought agreement where the reversal condition is disagreement, so it produced no delta and its instrument is not yet trusted after the 404 typo; and \"another 30 decisions\" repeated five times is functioning as a progress denominator in a product that refuses denominators, which is a perception defect independent of the ownership question. H-2 is ruled unsupported on present evidence. The disposition must hold in the state where no personal pattern is ever found, so any sentence the surface renders must be justified by a record fact — a game nothing scored, a bucketing short on one side, a run left half-finished — and never by a prediction about the player; that is exactly the property the enumeration tests."
+        },
+        "routing": {
+          "resources": [
+            "NETA"
+          ],
+          "fired": {
+            "NETA": [
+              "multiple_plausible_mechanisms",
+              "proxy_substitution_risk",
+              "research_to_intervention_transition",
+              "signal_interpretation_ambiguity"
+            ],
+            "AUTHORITY": [
+              "owner_authority_needed",
+              "repo_authority_needed",
+              "field_authority_needed"
+            ]
+          },
+          "authority_handoffs": [
+            "FIELD",
+            "OWNER",
+            "REPO"
+          ]
+        },
+        "resource_results": [
+          {
+            "resource": "NETA",
+            "summary": "DISPOSITION: the hypothesis set is mis-cut, and the cut is the finding. The owner's RAW SIGNAL — asked twice, in his own words: 'my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown' — is six questions, five of them orientation and one of them action. H-1/H-2/H-3 all argue about the action question (whether the surface may own the derivation's choice or only its reason), which is one sixth of the signal, and they inherit D22's ownership frame rather than testing it. H-4 is the only hypothesis addressing the other five sixths, and it is written as mutually exclusive ('re-order and decide nothing'), which is a false dichotomy: re-ordering decides one mechanism, cheaply, at the lowest authority, with no new claim. COMPETING MECHANISMS for why the owner cannot say where he stands, at most three: (M1) ORIENTATION — no single surface holds current state, so the owner reconstructs it by reading eleven rows; predicts the ask recurs even with the act perfectly rendered. (M2) PERCEPTION/ORDER — the act exists and is first in source order, but the page's perceptual centre is the shortfall wall above it: 'what is still unclear' is eleven rows on a small record, five ending in the identical quantity 'another 30 decisions'; five identical quantities give the eye no basis to rank the rows, so the region reads as one wall of deficit and outranks a single resume card. (M3) PAYOFF — the act is findable and completing it leaves no visible trace, so 'where I stand' is unanswerable regardless of who owns the choice; H-1's reason sentence is a PAYOFF repair wearing navigation clothes. ONE DISCRIMINATOR, available now, no new claim, reversible: collapse the eleven-row unclear list so that no quantity repeats, and place the player's goal sentence above the counts rather than below them; then ask the owner whether the same request recurs. If it recurs, ownership (H-1/H-2) is live; if it does not, the binding constraint was ordering and D22 never needed reopening. AUTHORITY: the mechanism split is NETA/REPO; whether to try the reordering is OWNER; whether any surface orients a person who is not the owner is FIELD. EVIDENCE STATE: OWNER_SIGNAL for the ask, REPRODUCED for the page composition and the walk, FIELD_REQUIRED for every orientation outcome — three cold users, two of three failed the core move, the repair unseen by any cold user, nobody ever observed on the record page. H-2 is DENIED on an observation, not on doctrine: the walk agreed on empty-record and one-decision, the two most-determined branches of the union, where the derivation has essentially no choice to make; agreement there is not evidence about the contested branches (half-finished run, bucketing short on one side, unscored game co-occurring), and D22's condition was disagreement anyway. H-3 over-defers: it blocks the ordering repair, which requires no E-level. H-1 is CONDITIONALLY ADMISSIBLE under two constraints named below, and with them it reduces mostly to H-4.",
+            "unique_delta": "Three things I did not see carried in the framing. FIRST — THE DENOMINATOR IS ALREADY ON THE PAGE, ELEVEN ROWS ABOVE WHERE THE GATE GUARDS. The constraint list locates denominator risk in the goal element: goal.ts caps one sentence at 140 chars, is never parsed for a number, and GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count. But 'what is still unclear', five of whose eleven rows end in the identical quantity 'another 30 decisions', is already a progress number the reader will assemble — the arithmetic problem the goal rule exists to prevent, reproduced at higher salience in a different element. The success condition says 'must not introduce a progress percentage'; on the walked build one is present, unlabeled, by repetition. H-1's 'what completing this makes knowable' would attach a sixth instance to the offered act, which is the nearest thing to a recommendation the product can emit without stating one. SECOND — THE COUNTDOWN MAY BE ARITHMETICALLY FALSE AS WELL AS FORBIDDEN. MIN_BUCKET_N is 30 and is required inside and outside a bucket, so 60 measured decisions precede the claim. A reason sentence rendering 'another 30 decisions' as what makes something knowable promises eligibility at half its cost. That is not a style problem; it is an instrument-constraint misstatement on the surface that steers the only admissible source. THIRD — H-1'S OWN SELF-DESCRIPTION ('change no act, add no telemetry') HIDES A CONTAMINATION PATH THAT NOTHING WOULD DETECT. next-action.ts writes its own line: a layer that recommended would be measuring the player and then changing what they see, which changes what is being measured. Salience is such a change even when the act is byte-identical — a justified act is a different act perceptually. EVIDENCE_POLICY v4 admits free-play decisions and nothing else, so a surface that raises free-play decision volume perturbs the sole admissible source, and 'add no telemetry' guarantees the perturbation is unfalsifiable. THEREFORE, the reversal condition in decision_blocked can be answered rather than left open: 'what completing this makes knowable' CAN be stated without an INTERVENTION claim, but only under a grammatical test, not a topical one — the sentence's subject must be the RECORD's eligibility state and never the player ('the blitz bucket is not yet comparable' passes; 'you need 30 more to see your blitz pattern' fails, and so does every second-person capability verb). That test is mechanizable as a sibling of GATE-GOAL-NOT-A-DENOMINATOR with a positive control that must go red. So H-1 becomes admissible only with (a) that subject gate, (b) no numeral in the reason sentence at all — the countdown is the denominator, and removing it removes both the false-eligibility promise and the progress number, and (c) a pre/post free-play decision-rate reading on the owner's own record (OWNER/REPO, R5) so the salience change is at least observable. With (a),(b),(c) applied, what survives of H-1 is a non-numeric eligibility statement, which is a legibility repair of the same family as H-4 — which is why I read the two as sequential, not rival: do the ordering first, because it is the only move here that can fail cheaply and visibly. Everything in this disposition holds in the state where no personal pattern is ever found: eligibility statements about a record remain true when the residual is null, and the shipped detector returning not-separable on 2,209 games is a sentence about the detector, not about the player — a surface must never render it as one.",
+            "evidence_refs": [
+              "docs/SHARED_EPISTEMIC_KERNEL.md",
+              "docs/REALITY_AUTHORITY_PERMISSION.md",
+              "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+              "docs/TELOS.md",
+              "task_id CAL-LICHESS-ORCHESTRATION-001",
+              "decision_blocked.statement H-1/H-2/H-3/H-4 and its stated reversal_condition",
+              "current_state.summary: record page route '/' source order walked at 390x844 (resume card, first-decision card, outcome summary, WhatIsUnclear, WhatIsUnderTest, anchor control, record dashboard, goal sentence, learning-object ledger, import diagnostic)",
+              "current_state.summary: 'what is still unclear' is eleven rows on a small record, five ending in the identical quantity 'another 30 decisions'",
+              "current_state.summary: the goal sentence is below every count, placed deliberately so it never renders beside one",
+              "shared/next-action.ts",
+              "shared/primary-action.ts (actFor/agreesWith)",
+              "client/src/lib/next-action-shadow.ts and its trial ledger",
+              "docs/decisions/D22-next-action-ownership.md (mode DEFER, evidence level E2, four reversal conditions)",
+              "ResumeScreen.tsx (asserted sole caller; lazy-loaded)",
+              "App.tsx routing '/' to Record",
+              "shared/goal.ts (140-char cap, never parsed for a number)",
+              "GATE-GOAL-NOT-A-DENOMINATOR",
+              "EVIDENCE_POLICY v4 (free-play decisions and nothing else)",
+              "MIN_BUCKET_N = 30 required inside and outside a bucket (60 measured decisions precede a claim)",
+              "WhatThisIs help overlay refusal list, including 'it will not recommend what to learn -- it measures, it does not coach'",
+              "known_constraints: frozen mechanism research places CAUSALITY (FIELD), INTERVENTION (OWNER), OUTCOME (FIELD) beyond the discovery pipeline under any result",
+              "known_constraints: guided practice / prompted recall / unprompted play are three constructs and never one number",
+              "known_constraints: the shipped six-bucket detector returns not-separable on the owner's 2,209-game record while the frozen research pipeline finds a residual surviving its within-game permutation null",
+              "REPO signal: walk from empty profile — empty record proposes and offers play-first-decision; one decision proposes and offers play-blitz; two states, both agree",
+              "REPO signal: next-action.ts's written line that a recommending layer would change what is being measured, and that every derived action is justified by a record fact",
+              "REPO signal: the earlier false finding produced by navigating to a URL the router does not have and reading the 404 as a surface offering nothing",
+              "REPO signal: ResumeScreen lazy-loading narrows D22's +16.1 kB raw / +5.1 kB gzipped cost argument to first visit",
+              "OWNER signal: the same orchestration request made twice in consecutive missions, in six parts",
+              "FIELD signal: three cold users, two of three could not complete the core move, no cold user has seen the repaired build, nobody has been observed using the learning layer or record page"
+            ],
+            "limitations": [
+              "I did not read the repository. Every composition fact above is taken from the walk as reported in current_state and the REPO signals; the claim that five 'what is still unclear' rows end in an identical quantity is REPRODUCED only in that report, and a second walk should confirm it before the reordering is built.",
+              "Whether the two walked states are in fact the least-determined branches of the next-action union is a REPO fact I inferred from their description, not from reading the union. If the union has only these branches reachable from an empty profile, my H-2 objection weakens to 'the walk is early' rather than 'the walk exercised the easy cases'.",
+              "I do not decide external research validity. Whether the frozen mechanism research's ceiling is correctly drawn, and whether a residual surviving a within-game permutation null licenses anything, is R&D-owned; I treated the ceiling as given and reasoned only about what a surface may say under it.",
+              "I do not decide architecture doctrine. Whether D22 should be reopened, re-scoped, or superseded is an OWNER/REPO decision; I argue only that the walk's two agreements do not meet its stated reversal condition and that the ordering question does not require reopening it.",
+              "The proposed subject gate ('the sentence's subject is the record, never the player') is a DESIGN_MECHANISM-level proposal, not a validated rule. It has no positive control yet, and I have not tested it against a neighboring case where it must NOT fire — for example a first-person sentence the player authored themselves, which shared/goal.ts already stores.",
+              "Every orientation outcome in this analysis is FIELD_REQUIRED and unresolved. The owner asking twice is OWNER_SIGNAL about the owner's own experience at R5; it is not evidence that a stranger cannot orient, and the reordering discriminator I propose is answered by the owner, so it separates mechanisms for him and not for anyone else.",
+              "The contamination concern (a justified act raising free-play decision volume and perturbing the only admissible source) is MECHANISM_SUPPORTED and NOT MEASURED. I propose a pre/post reading on the owner's own record because it is the cheapest admissible observation, but an owner-only reading cannot establish the effect's size for other players.",
+              "I did not cost the reordering. Collapsing the unclear list may interact with WhatIsUnderTest, the anchor control, or gates I cannot see, and 'no new claim' is an epistemic statement, not an implementation-risk statement."
+            ],
+            "_adapter_meta": {
+              "adapter": "claude_cli_adapter",
+              "resource": "NETA",
+              "transport": "claude CLI --print",
+              "provider": "anthropic",
+              "requested_model": "opus",
+              "served_model": "claude-opus-5",
+              "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+              "uuid": "217af351-3bfd-4681-923a-4fa671e1f555",
+              "num_turns": 1,
+              "stop_reason": "end_turn",
+              "total_cost_usd": 0.37904550000000004,
+              "context_delivery": {
+                "requested": 4,
+                "delivered": 4,
+                "manifest": [
+                  "- `docs/SHARED_EPISTEMIC_KERNEL.md` delivered (6557 bytes, whole)",
+                  "- `docs/REALITY_AUTHORITY_PERMISSION.md` delivered (6554 bytes, whole)",
+                  "- `docs/AGENT_AUTHORITY_BOUNDARIES.md` delivered (5999 bytes, whole)",
+                  "- `docs/TELOS.md` delivered (4896 bytes, whole)"
+                ]
+              },
+              "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+              "phase": "ANALYZE"
+            }
+          }
+        ],
+        "instruction": "Compare resource deltas against the ex-ante expected_delta commitments, update the blocked decision, choose the cheapest next calibration move, and record what the system learned about future resource allocation. For each invoked resource, report observed_delta by decision/action/reversal/evidence/allocation/distinction. Do not average disagreements away."
+      },
+      "state": "COMPLETE"
+    }
+  ],
+  "synthesis": {
+    "decision_before": "H-1 held as standing default (render deriveNextAction's reason, change no act, add no number, no denominator, no telemetry), with the block treated as compound: a REPO-owned enumerability claim (can 'what completing this makes knowable' be stated from record facts alone for every kind in the closed next-action union) that was cheap and unrun, and a FIELD-owned perception claim (does reason-attached-to-act read as coaching) at R6 that is currently inadmissible. Planned allocation was: (1) COLLECT_REPO enumeration as the cheapest decision-changing learning, able to fire the written reversal by a single counterexample; (2) INVOKE_NETA for the recommendation-vs-measurement mechanism split and for H-4, which had been left unrouted; (3) a scope-limited OWNER question about what the published refusal actually forbids. H-2 ruled unsupported (two agreeing walk states are not triangulation; the walk instrument was already discredited once by a 404 typo). H-3 treated as available but over-deferring. H-4 carried as a possible rival hypothesis of unknown weight.",
+    "decision_after": "The hypothesis cut itself was wrong, and that is the operative change. H-4 is no longer a rival to H-1: it is promoted to the FIRST move, because the owner's raw six-part ask is five orientation questions and one action question, and H-1/H-2/H-3 all argue only the action question while inheriting D22's ownership frame instead of testing it. New default disposition: (a) do the ordering repair first — collapse the eleven-row 'what is still unclear' list so no quantity repeats, lift the player's goal sentence above the counts — because it introduces no claim, needs no evidence level, is OWNER-authorized, and fails cheaply and visibly; (b) H-1 is downgraded from standing default to CONDITIONALLY ADMISSIBLE and sequenced second, admissible only with three constraints Neta named: a grammatical subject gate (the sentence's subject is the record's eligibility state, never the player; 'the blitz bucket is not yet comparable' passes, any second-person capability verb fails) built as a sibling of GATE-GOAL-NOT-A-DENOMINATOR with a positive control that must go red; no numeral anywhere in the reason sentence; and a pre/post free-play decision-rate reading on the owner's own record so the salience change is at least observable. (c) H-2 stays DENIED, now on a second and independent ground: the two agreeing states (empty record, one decision) are the most-determined branches of the union where the derivation has almost no choice to make, so the agreement is uninformative about the contested branches (half-finished run, bucketing short on one side, unscored game co-occurring) quite apart from the fact that D22's condition was disagreement. (d) H-3 is rejected as over-deferral — it blocks the ordering repair, which requires no E-level. (e) The REPO enumeration is NOT cancelled but re-specified: its acceptance test is no longer 'can a sentence be written from a record fact' but 'can a record-subject, numeral-free sentence be written for every kind', which is a strictly harder and more decision-relevant falsifier. (f) Two new REPO-closable facts now outrank the original question in cost-to-value: a progress denominator appears already to exist on the shipped page (five of eleven unclear-rows ending in the identical quantity 'another 30 decisions' is a progress number assembled by repetition, eleven rows above where GATE-GOAL-NOT-A-DENOMINATOR guards), and that quantity may also be arithmetically false, since MIN_BUCKET_N is 30 required inside and outside a bucket, i.e. 60 measured decisions precede a claim. The second is a correctness defect on the surface steering the only admissible evidence source, independent of the entire ownership hypothesis space.",
+    "next_move": "COLLECT_REPO — one read-only pass, re-specified by Neta's output, carrying three questions at once because they share the same walk: (1) confirm the record-page composition independently (eleven unclear-rows; five terminating in the identical 'another 30 decisions'), since that fact is currently reproduced only in the walk report and Neta explicitly did not read the repository; (2) check whether that copy understates the requirement — MIN_BUCKET_N = 30 needed inside AND outside a bucket implies 60 measured decisions before a claim — because if it does, a shipped sentence misstates an instrument constraint on the surface that steers free-play volume, and that is fixable now at any evidence level; (3) walk every kind in the closed next-action union in shared/next-action.ts against shared/primary-action.ts actFor/agreesWith and attempt a RECORD-SUBJECT, NUMERAL-FREE knowability sentence per kind — a single kind requiring a second-person capability verb or a count fires the written reversal and collapses H-1 into H-3. Then, and only then, one OWNER move: authorize the ordering repair and, after it ships, ask whether the same six-part request recurs — recurrence keeps ownership (H-1) live, non-recurrence shows the binding constraint was ordering and D22 never needed reopening. FIELD stays deferred (no cold user has seen the repaired build; two of three failed the core move; a run now measures the front door). SCAFFOLD stays unused.",
+    "resource_deltas": [
+      {
+        "resource": "NETA",
+        "material": true,
+        "unique_delta": "Re-cut the hypothesis space instead of answering inside it: the owner's twice-repeated ask is six questions, five of them orientation and one action, so H-1/H-2/H-3 contest one sixth of the signal while inheriting D22's ownership frame rather than testing it, and H-4's 'decide nothing' self-description is a false dichotomy because re-ordering decides one mechanism at the lowest authority with no new claim. Supplied three mechanisms (M1 orientation: no single surface holds current state; M2 perception/order: five identical quantities give the eye no basis to rank rows so the shortfall region reads as one wall and outranks the resume card; M3 payoff: completing the act leaves no visible trace, making H-1 a payoff repair wearing navigation clothes) and one discriminator answerable now with no new claim. Converted the blocked decision's open reversal condition from unanswered to answerable by a GRAMMATICAL rather than topical test — the sentence's subject must be the record's eligibility state, never the player — which is mechanizable with a positive control. Named a denominator already present on the shipped page eleven rows above where the goal gate guards, and a possible arithmetic falsehood in that same copy (30 stated where 60 is required). Named a contamination path that H-1's own 'add no telemetry' self-description makes unfalsifiable: a justified act is perceptually a different act, EVIDENCE_POLICY v4 admits free-play decisions and nothing else, so raised free-play volume perturbs the sole admissible source with nothing recording it. Finally, invalidated the D22 walk on a ground the diagnosis had not identified — the two agreeing states are the most-determined branches, so the agreement is uninformative even setting aside its wrong direction.",
+        "observed_delta": {
+          "decision": "H-1 moved from standing default to conditionally admissible under three named constraints and sequenced second; H-4 moved from possible rival to first move; H-3 moved from available to rejected as over-deferral; H-2's denial gained a second independent ground.",
+          "action": "The immediate build action changes from 'render a reason sentence' to 'collapse the repeated-quantity unclear list and lift the goal above the counts', and any later reason sentence must carry a subject gate with a positive control plus a pre/post free-play decision-rate reading.",
+          "reversal": "The written reversal condition is now answerable rather than open — 'what completing this makes knowable' CAN be stated without an INTERVENTION claim, but only under a record-subject grammar with no numeral — and a new falsifier was added that did not exist before: ship the reordering and observe whether the owner's six-part request recurs.",
+          "evidence": null,
+          "allocation": "The planned REPO enumeration is re-specified to a harder acceptance test and gains two higher-value questions in the same pass; the OWNER question is redirected from 'what does the published refusal cover' to 'authorize the reordering trial, then does the ask recur'; FIELD and SCAFFOLD hold.",
+          "distinction": "Record-as-subject versus player-as-subject as a mechanizable test; denominator-by-repetition versus denominator-in-the-goal-element; stated 30 versus required 60 (inside and outside a bucket); salience change as intervention even when the act is byte-identical; most-determined versus contested branches of the union; 'the detector found nothing' as a sentence about the detector and never about the player."
+        }
+      }
+    ],
+    "learning_records": [
+      {
+        "record": "expected_vs_observed",
+        "expected": "NETA expected to change decision, action, reversal, allocation and distinction, and NOT evidence.",
+        "observed": "Exactly that: five dimensions changed, evidence did not. The ex-ante commitment was accurate on every dimension.",
+        "lesson": "The expected_delta commitment for NETA on a signal-to-interpretation task with competing product mechanisms is now calibrated by one confirming instance. It does not license skipping the commitment next time; it licenses treating NETA as first-choice, not second, when the presenting signal is a user's own multi-part description rather than a code property."
+      },
+      {
+        "record": "routing_error_found_by_the_invoked_peer",
+        "expected": "NETA would rule on recommendation-versus-measurement and price H-4 as a rival hypothesis.",
+        "observed": "NETA rejected the decomposition that produced the routing, showing the diagnosis had accepted D22's ownership frame as the shape of the question when the owner's raw signal was five-sixths orientation.",
+        "lesson": "The diagnosis pre-decomposed a raw OWNER signal into an authority question before routing it to the peer that owns product perception. Raw multi-part owner language should reach NETA BEFORE R&D fixes the hypothesis set, because the cut is itself a perception judgment and R&D's cut silently cost the ordering question a budget slot."
+      },
+      {
+        "record": "cheapest_move_was_not_the_cheapest",
+        "expected": "The REPO enumeration was ranked highest value per unit cost and would run first.",
+        "observed": "Running NETA first made the same REPO pass strictly more decisive by changing its acceptance criterion from 'a sentence exists' to 'a record-subject, numeral-free sentence exists', and added two higher-value questions to the identical read-only walk.",
+        "lesson": "A cheap REPO test whose PASS CRITERION is still soft is not yet the cheapest decision-changing learning. Price the specification of the falsifier, not just the execution of the walk; a peer that sharpens the criterion before the walk can be cheaper than the walk run twice."
+      },
+      {
+        "record": "instrument_distrust_pattern",
+        "expected": "The walk instrument was already distrusted for one reason (the 404 typo that read a missing route as a surface offering nothing, and reported D22's reversal met).",
+        "observed": "Two further defects in the same instrument: it was run in the direction that cannot fire its own reversal condition (sought agreement where the trigger is disagreement), and the two states it walked are the most-determined branches of the union.",
+        "lesson": "Three defects on one instrument, two of them discovered only when a peer read the walk's own output. A REPO walk must state, before it runs, which branch it is trying to break and what result would count as a counterexample. Until it does, walk-derived observations are candidate signals, not evidence. This is an instrument-discipline lesson, not yet a routing lesson."
+      },
+      {
+        "record": "authority_ceiling_preserved",
+        "expected": "The perception claim (does reason-attached-to-act read as coaching) is FIELD-owned at R6 and unreachable now.",
+        "observed": "Unchanged and explicitly reaffirmed by NETA. Every orientation outcome in its analysis is FIELD_REQUIRED. Critically, the discriminator NETA proposed is answered by the OWNER, so it separates mechanisms for the owner at R5 and for nobody else; the owner asking twice is OWNER_SIGNAL about the owner's own experience, not evidence that a stranger cannot orient.",
+        "lesson": "The cheapest available discriminator and the authoritative one are different objects here. Running the reordering trial buys an owner-scoped mechanism split; it does not and cannot close the stranger-perception claim, and the deposit must record it at R5 or it will later be misread as field evidence."
+      },
+      {
+        "record": "unresolved_conflict_kept_open",
+        "expected": "The enumerability claim would be closed by NETA or by the REPO pass.",
+        "observed": "NETA answered the FORM the sentence must take but explicitly did not read the repository and did not enumerate the union; it also flagged that it inferred, rather than verified, that the two walked states are the least-determined branches. The claim therefore remains REPO-owned and OPEN.",
+        "lesson": "A peer supplying the acceptance criterion for a claim has not closed the claim. Classify this as DIFFERENT_QUESTION, not agreement: NETA answered 'what would a passing sentence look like', REPO must still answer 'does one exist for every kind'. Do not record the enumerability claim as supported on NETA's output."
+      },
+      {
+        "record": "constraint_set_contradicted_by_the_build",
+        "expected": "Denominator risk lives in the goal element, guarded by GATE-GOAL-NOT-A-DENOMINATOR, and the success condition is to avoid INTRODUCING a progress number.",
+        "observed": "NETA reads a progress number as ALREADY PRESENT and unlabeled on the shipped page, assembled by five identical 'another 30 decisions' rows at higher salience than the guarded element — and possibly arithmetically false, since MIN_BUCKET_N is required inside and outside a bucket (60 decisions).",
+        "lesson": "A gate that names an element rather than a property can be satisfied while the property it exists to protect is violated elsewhere on the same screen. Gate the property (a quantity the reader can assemble into progress) and give it a positive control. Both observations are REPO-closable and unverified; do not act on either until the independent walk confirms the composition."
+      },
+      {
+        "record": "unfalsifiable_self_description",
+        "expected": "H-1 was safe partly because it adds no telemetry.",
+        "observed": "The same clause makes its contamination path undetectable: salience change is a change to what the player sees, EVIDENCE_POLICY v4 admits free-play decisions and nothing else, so any lift in free-play volume perturbs the sole admissible source with no record of it.",
+        "lesson": "Treat 'adds no telemetry' as a reduction in falsifiability, not only a reduction in risk. Any surface change touching the path that feeds the exclusive evidence source needs at minimum a pre/post reading on an already-consenting record, or its safety claim is unobservable."
+      },
+      {
+        "record": "independence",
+        "expected": "n/a",
+        "observed": "NETA ran on the same model lineage as this synthesis, per the adapter's own independence caveat, and its composition facts came from the walk report rather than from the repository.",
+        "lesson": "Nothing in this run is independent triangulation. Where NETA and R&D agree (H-2 denied, FIELD deferred), the agreement is role-conditioned execution and carries no evidential weight; the load is carried by the distinctions NETA added that R&D did not hold, not by the concurrence."
+      },
+      {
+        "record": "candidate_routing_amendment_not_yet_earned",
+        "expected": "n/a",
+        "observed": "One instance in which R&D's decomposition of a raw owner signal misallocated the budget, and one instrument (the REPO walk) with three defects.",
+        "lesson": "Both are candidates for a routing or gate amendment; neither is yet repeated evidence across tasks. Carry them forward and amend only if a third independent case appears. One attractive case is not a pattern."
+      }
+    ],
+    "stop_or_continue": "CONTINUE",
+    "routing_amendment_proposed": null
+  },
+  "final_state": "COMPLETE",
+  "failure": null
+}

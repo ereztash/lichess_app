@@ -38,7 +38,7 @@
  */
 
 import { MIN_BUCKET_N } from "./detector.js";
-import { decisionsHeldElsewhere } from "./plain-reading.js";
+import { decisionsHeldElsewhere } from "./decisions-elsewhere.js";
 import type { LearningRule } from "./learning-record.js";
 import { RETRIEVAL_INTERVAL_DAYS, TRANSFER_POSITION_COUNT } from "./learning-record.js";
 

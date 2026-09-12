@@ -57,10 +57,12 @@ const GOAL_OWNERS = ["client/src/lib/player-goal.ts", "client/src/components/Goa
  * The surfaces that may turn `readElsewhere` into a sentence, and the module that owns the words.
  *
  * `record-service.ts` and `record-dashboard.ts` COMPUTE the count; the rest RENDER it, and each
- * of them must render it through `decisionsHeldElsewhere`. `plain-reading.ts` is where that string
- * lives and is excluded from its own search.
+ * of them must render it through `decisionsHeldElsewhere`. `decisions-elsewhere.ts` is where that string
+ * lives and is excluded from its own search; `plain-reading.ts` stays listed because it is where the
+ * argument was written and still discusses the clause.
  */
 const ELSEWHERE_OWNERS = [
+  "shared/decisions-elsewhere.ts",
   "shared/plain-reading.ts",
   "shared/record-service.ts",
   "shared/record-dashboard.ts",

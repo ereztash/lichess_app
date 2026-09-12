@@ -58,13 +58,33 @@ describe("reading the record", () => {
      *
      * The screen that renders this figure did not exist when the field was written, which is how a
      * number that answers the wrong question survives: nothing had ever put it in a sentence.
+     *
+     * AND THEN IT READ 30, AND 30 WAS THE SAME BUG ONE STEP ON. The sentence above disposes of it
+     * in its own words: a player told "three more" would have taken three and found the split
+     * unreadable -- and a player told "thirty more" can take thirty, land every one of them inside,
+     * and find it exactly as unreadable. The gap on the binding side is a fact about the bucket;
+     * what the row renders is a statement about what the player must go and produce, and on this
+     * record that is 3 more inside AND 30 more outside.
+     *
+     * WORST WHERE IT IS READ MOST: on a fresh record both sides are empty, so the binding gap is 30
+     * and the requirement is 60. Off by a factor of two, on the first record every arrival has.
      */
     const reading = readRecord(many(MIN_BUCKET_N - 3, { secondsTaken: 10 }));
     const fast = reading.buckets.find((b) => b.key === "fast-under-45s");
     expect(fast?.measurable).toBe(false);
     expect(fast?.inside.n).toBe(MIN_BUCKET_N - 3);
     expect(fast?.outside.n).toBe(0);
-    expect(fast?.shortBy).toBe(MIN_BUCKET_N);
+    /* Three still missing inside, thirty still missing outside. Asserted as the sum it is. */
+    expect(fast?.shortBy).toBe(3 + MIN_BUCKET_N);
+    /*
+     * THE PROPERTY, NOT THE ARITHMETIC, so a future change to the floor cannot quietly restore the
+     * understatement: whatever the record, the figure is what BOTH sides still need.
+     */
+    for (const bucket of reading.buckets) {
+      expect(bucket.shortBy).toBe(
+        Math.max(0, MIN_BUCKET_N - bucket.inside.n) + Math.max(0, MIN_BUCKET_N - bucket.outside.n),
+      );
+    }
     /* And at this size it is still a WAIT: 27 decisions say nothing about where the line belongs. */
     expect(fast?.unmeasurableReason).toBe("too-few");
   });

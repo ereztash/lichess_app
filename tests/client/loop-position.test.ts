@@ -6,7 +6,7 @@
  * decisions" -- those are different answers and section 4.5 is about exactly that difference.
  */
 import { describe, expect, it } from "vitest";
-import { decisionsHeldElsewhere } from "@shared/plain-reading";
+import { decisionsHeldElsewhere } from "@shared/decisions-elsewhere";
 import {
   LOOP_STEPS,
   loopPosition,

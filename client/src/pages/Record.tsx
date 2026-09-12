@@ -657,11 +657,54 @@ export default function Record() {
       {measured > 0 && (
         <section className="journey-layer" aria-label="מה נלמד עליי עד עכשיו">
           <Suspense fallback={null}>
-            <GoalNote />
-
             <JourneyLedger claim={claimView.data} />
           </Suspense>
         </section>
+      )}
+
+      {/*
+        * THE PLAYER'S OWN SENTENCE, WHICH USED TO BE ABSENT FROM THE SCREEN IT MATTERS MOST ON.
+        *
+        * IT RENDERED ONLY WHEN `measured > 0`. It sat inside the "מה נלמד עליי עד עכשיו" layer,
+        * which correctly has nothing to show on an empty record, and the goal inherited that
+        * condition. So the one line on this page that is the PLAYER'S rather than the instrument's
+        * was absent for the whole period when somebody is deciding whether this product is for
+        * them, and appeared only once the product had something to say about them. A note about why
+        * you are here is not a thing learned about you.
+        *
+        * IT STAYS BELOW THE COUNTS, AND THE REPOSITORY IS WHY. It was tried above them -- the
+        * calibration run sequenced that first, as a repair introducing no claim and needing no
+        * evidence level. Three instruments refused it and all three were right. `GoalNote` is
+        * behind `lazyChunk`, so above the fold its chunk arrives after paint: measured at 390px it
+        * pushed `section.first-decision` from y=248 to y=323 and scored 0.059 of cumulative layout
+        * shift against a budget of 0.02, and 0.031 at 1280px. The front-door stage went to 141
+        * words against a ceiling of 140 and to 67 before the one act against a ceiling of 65.
+        *
+        * MAKING IT EAGER WOULD HAVE TRADED THE SHIFT FOR THE ENTRY, on a gzip ceiling that this
+        * same commit had just spent its last tenth of. So the position is unchanged and the
+        * CONDITION is what was wrong: the defect found was the absence, not the placement, and
+        * `shared/goal.ts`'s argument for keeping the goal away from every count still stands.
+        *
+        * OUTSIDE THE LOADING BRANCH TOO. Its text comes from `localStorage` and never from the
+        * reading, so a request it does not depend on was a second condition it had no reason to
+        * inherit.
+        *
+        * AND THE CONDITION IS `returning`, NOT `measured`. The two differ exactly where it matters:
+        * somebody who has recorded a decision the engine has not scored yet has `measured === 0`
+        * and has used this product. Tying the goal to whether the INSTRUMENT has something to say
+        * was the defect; tying it to whether the PLAYER has been here before is the fact the
+        * question is actually about.
+        *
+        * It also keeps four words off the cold front door, which is not an accounting trick. That
+        * screen is the product explaining itself to a stranger who has done nothing yet, and
+        * "write down why you are here" is a question with no context to answer it in. Measured:
+        * unconditional it put the front-door stage at 141 words against a ceiling of 140. The
+        * ceiling is not raised, because the words were not earned there.
+        */}
+      {returning && (
+        <Suspense fallback={null}>
+          <GoalNote />
+        </Suspense>
       )}
 
       {/*
