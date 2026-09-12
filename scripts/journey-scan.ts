@@ -181,3 +181,80 @@ function firstBlankAfter(lines: string[], at: number): number {
   for (let i = at; i < lines.length; i += 1) if (lines[i].trim() === "") return i;
   return lines.length;
 }
+
+/**
+ * A panel's finding rendered after, or quieter than, the numbers it is about
+ * (`GATE-FINDING-OUTRANKS-ITS-NUMBERS`).
+ *
+ * THE DEFECT THIS EXISTS FOR SHIPPED, AND WAS FOUND BY LOOKING RATHER THAN BY A TEST. The import
+ * panel listed six accuracy rates in its largest type and then, roughly eight hundred phone pixels
+ * below them and after a horizontal rule, said through `NotMeasured` that none of them separates
+ * from the others. `NotMeasured` renders `.value-provenance`: the register this codebase reserves
+ * for WHERE A NUMBER CAME FROM. So a conclusion was wearing the typography of a footnote about the
+ * numbers it was denying.
+ *
+ * WHAT IS CHECKED, and it is deliberately the narrow half. A file that renders a reading list
+ * (`.bucket-list`) must render its finding BEFORE that list in source order, and must not render
+ * the finding through `NotMeasured`. Source order is not visual order in general -- but in this
+ * codebase these are block elements in one column, and the shipped defect was exactly a source
+ * ordering. What this CANNOT check is relative type size, which lives in CSS, and it does not
+ * pretend to: the register half is enforced by refusing `NotMeasured`, which is the one component
+ * that guarantees the wrong size.
+ *
+ * NOT A CLAIM ABOUT READERS. That the ordering renders the denial below the ranking is an
+ * observation. That players misread it needs R6 and is not asserted by this gate.
+ */
+export function findFindingsBelowTheirNumbers(roots: string[]): Finding[] {
+  const out: Finding[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const source = readFileSync(file, "utf8");
+      if (!/className="bucket-list"/.test(source)) continue;
+      const path = posix(relative(process.cwd(), file));
+      const lines = source.split("\n");
+      /*
+       * ONLY A LIST THAT INVITES A RANKING READ. A `.bucket-list` whose rows are a COMPOSITION --
+       * how the one-thing kinds divide up, each a share of the same n -- carries no claim that one
+       * row is worse than another, so demanding a separation finding above it would be demanding a
+       * sentence about a comparison nobody made. The discriminator is the row content: a signed gap
+       * or an accuracy rate is a quantity readers rank; a share of a whole is not.
+       *
+       * Found by this gate firing on `MixBlock` on its first run, which was the gate being too
+       * broad rather than a second defect.
+       */
+      const list = lines.findIndex(
+        (l, i) =>
+          /className="bucket-list"/.test(l) &&
+          /SignedProportion|accurateRate|versusPopulation/.test(lines.slice(i, i + 40).join("\n")),
+      );
+      if (list === -1) continue;
+      /*
+       * A RENDER, NOT A DEFINITION, and the difference is why this gate once passed on the defect
+       * it was written for. The first pattern also matched `className="import-finding"` inside the
+       * component's own body, which sits above the list in the same file -- so moving the CALL back
+       * to the bottom, which is exactly the shipped state, left the gate green. Same trap LAW 1's
+       * scanner avoids by excluding a component's own file by name.
+       */
+      const finding = lines.findIndex((l) => /<[A-Za-z]*Finding[\s/>]/.test(l));
+      if (finding === -1) {
+        out.push({ file: path, line: list + 1, text: "a reading list with no finding above it" });
+      } else if (finding > list) {
+        out.push({
+          file: path,
+          line: finding + 1,
+          text: "the finding renders after the numbers it is about",
+        });
+      }
+      for (const [index, line] of lines.entries()) {
+        if (/<NotMeasured\b/.test(line) && /separ|נבדל|קרובים|סף/.test(line)) {
+          out.push({
+            file: path,
+            line: index + 1,
+            text: "a finding rendered through NotMeasured, which is the provenance register",
+          });
+        }
+      }
+    }
+  }
+  return out;
+}

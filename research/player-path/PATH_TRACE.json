@@ -1,0 +1,893 @@
+{
+  "runtime_version": "0.2",
+  "rnd_telos_version": "0.2-candidate",
+  "task": {
+    "calibration_version": "0.1",
+    "task_id": "CAL-LICHESS-PLAYER-PATH-001",
+    "telos": {
+      "statement": "Determine the strongest product process Lichess App can honestly implement that carries a player from 'I want to get better at chess' to a next act they judge worth taking, a personally relevant learning process, and an honest account of what has and has not changed.",
+      "success_condition": "A named process survives falsification; it works in every state including the one where no personal pattern is ever found; every progress construct names its own unit and none of them is rating; the highest remaining uncertainty is FIELD rather than REPO or RESEARCH."
+    },
+    "current_state": {
+      "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The BACK HALF of a learning path is built, gated and shipped: a six-bucket detector (MIN_BUCKET_N=30 inside and outside, so 60 revealed decisions before any claim); a claim carrying its scope and refutation condition; a pre-registered narrowed search after an import (floor 20); drills on claim-matched positions; player-authored learning rules; a spaced retrieval queue with grades derived from the record; transfer tests; refutation and retirement; a journey ledger whose stages are ACCUMULATING, NOTHING_SEPARATED, CANDIDATE, CONTEXT_CHECKED, PRACTISED, PROMPTED_CHECK, WATCHED_IN_PLAY, REFUTED, RETIRED, each carrying its construct, denominator, next act and stated limit; a scalar pointer (record -> detect -> drill -> grade) that now names waiting rule work; and two gates refusing a goal rendered beside a count and a stage number rendered without its construct. 41 gates, each with a positive control that must go red. THE FRONT HALF DOES NOT EXIST. A player arriving cold meets the machinery with nothing having told them what this product uniquely does. The front door explains the ordering (decision before engine) but never says that the product is trying to find something that RECURS SPECIFICALLY IN THEIR DECISIONS, which is the only thing distinguishing it from Chess.com analysis, Lichess analysis, puzzles or Aimchess. There is no entry frame carrying the player's own aspiration. The goal note exists but renders only on the record screen, below the readings, and only once the record holds something. The IMPORT SCREEN is where a player with history first meets a conclusion: it lists six buckets, each with an accuracy rate and its n, at equal salience and high on the screen; the honest conclusion ('the types measured are closer to each other than their own sampling error; there is a lowest number but it does not separate') renders far below, after a ledger and two methodological paragraphs.",
+      "known_constraints": [
+        "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement or attribute rating change to the product.",
+        "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT, NOT ONLY A COPY PROBLEM: 60 revealed decisions before any claim is possible, and the research-grade personal residual needed >= 1786 admissible blitz games. A prior run recorded that the calibration wait is an instrument constraint and not automatically removable friction.",
+        "AN IMPORT CANNOT PRODUCE A CALIBRATION GAP. Old games carry no confidence stated before the engine spoke, so imported evidence is move accuracy only. This is the structural reason prospective decisions contain a kind of evidence history cannot supply, and the product has never said so as a REASON TO ACT.",
+        "OWNERSHIP IS LOAD-BEARING: the decision is committed before the engine reveals anything. No layer may turn the app into an engine-answer feed.",
+        "REPOSITORY LAWS: LAW 1 forbids record readings while a decision is open; LAW 2 permits one primary action per screen; R1 forbids a percentage without its denominator and now forbids a goal rendered in the same element as a count; R3 keeps the engine silent before commit. A ratchet holds the front door's word count and only comes down.",
+        "FIELD STATE: n = 3 cold users, two of whom could not complete the core move. That was repaired and has never been revalidated. Nobody has ever been observed using the shipped journey layer.",
+        "A PRIOR PAIRED R&D RUN on a different provider lineage concluded that the compact five-prompt audit surface should be kept, and layered distinctions used selectively where they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from rating outcome. Its one finding naming a missing SURFACE rather than a missing distinction: surface the personal-inference promise BEFORE the dashboard machinery, using the advancement goal as the entry frame."
+      ],
+      "available_resources": [
+        "RND",
+        "NETA",
+        "SCAFFOLD",
+        "OWNER",
+        "REPO",
+        "ENVIRONMENT",
+        "FIELD"
+      ]
+    },
+    "decision_blocked": {
+      "statement": "What is the player's path, and where is the binding constraint on it? Four readings are live. H-1: the gap is at the FRONT — the back half is built and nothing tells an arriving player what the product uniquely does before they meet it, so the value that would justify the wait is never offered. H-2: the gap is time-to-value — even a perfect frame cannot make the first session's payoff worth 60 decisions, and the build should target the first session instead. H-3: the gap is the import screen — it is where a player with history first meets a conclusion, and its visual claim (six rates, one visibly lowest) is stronger than its textual one (nothing separated). H-4: nothing should be built; only FIELD can move this.",
+      "current_default": "H-1. Build an entry frame carrying the player's own aspiration and the personal-inference promise, placed before the machinery, plus one next act with its payoff stated. Add no new progress number, no programme, no rating denominator, and no change to the detector.",
+      "reversal_condition": "Evidence that the front is not the binding constraint: that a player told exactly what the product uniquely does still judges the next act not worth taking, which is H-2 and a different build; or that the import screen's visual-over-textual claim is severe enough to outrank the entry frame, which is H-3 and a smaller, cheaper build."
+    },
+    "signals": [
+      "OWNER/FIELD, mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI'. He framed the product as managed effort toward a user-selected goal rather than a mistake-reporting tool, said the customer journey begins from the player's desired improvement and not from the detector, said generic chess mistakes are not interesting and the value becomes interesting when the system moves from statistical error to something personal, and named time-to-value as a blocker. This is a signal about a missing user contract. It is NOT research authority for the correct KPI, and it does not establish that a prescribed programme works.",
+      "REPO: the product already refuses to estimate an unknown distance and already distinguishes 'enough decisions and nothing separated' from 'not enough decisions', calling the former an answer rather than a silence. The question is whether that discipline extends to a path or breaks on one.",
+      "REPO: the import screen's own conclusion is correct and is rendered last. Nothing about it is dishonest in words; the ordering and salience are the whole of the concern.",
+      "REPO: a player can know exactly what to do and rationally decide it is not worth doing. Action clarity, execution ability, expected payoff, effort and continuation are five different things, and no representation collapses them."
+    ],
+    "allowed_resources": [
+      "RND",
+      "NETA",
+      "SCAFFOLD",
+      "OWNER",
+      "REPO",
+      "ENVIRONMENT",
+      "FIELD"
+    ],
+    "context_refs": [
+      "docs/SHARED_EPISTEMIC_KERNEL.md",
+      "docs/REALITY_AUTHORITY_PERMISSION.md",
+      "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+      "docs/TELOS.md"
+    ],
+    "budget": {
+      "max_resource_calls": 4,
+      "max_parallel_calls": 1
+    }
+  },
+  "diagnosis": {
+    "material_question": "Which of the four live readings (H-1 front entry frame, H-2 time-to-value, H-3 import-screen salience, H-4 build nothing) is the binding constraint on a cold player's path — and can that discrimination be bought below FIELD, given that the claim actually at stake ('a player judges the next act worth taking') is a FIELD/R6 outcome claim that no amount of BUILD or RESEARCH can close?",
+    "bottleneck": "Wrong authority is about to be paid. The default move (H-1: build an entry frame) presupposes a discrimination that no currently held evidence supports: H-1 and H-2 differ only in what a stranger does after being told what the product uniquely does, which is FIELD/R6, while the system's last field state is n=3 with two users unable to complete the core move, repaired and never revalidated, and nobody ever observed on the shipped journey layer. Two cheaper mismatches sit underneath: (a) H-3 is being treated as a competing build when it is a REPO-resolvable representation defect — the import screen's visual claim (six rates, one visibly lowest) outranks its correct textual conclusion, which is an ordering/salience fact already governed by R1 and the existing gates, and is separable from and non-exclusive with H-1; (b) the strongest honest entry-frame content already exists as an established structural fact — an import cannot produce a calibration gap, so prospective decisions carry a kind of evidence history cannot supply — and has never been rendered as a reason to act, meaning the candidate build may need no new construct, no new number and no detector change at all. There is also an unpriced observation: runtime arrival/drop-off in the deployed product could separate 'never started' from 'started and abandoned' without touching FIELD, and it has not been consulted.",
+    "resource_assessment": [
+      {
+        "resource": "RND",
+        "expected_contribution": "Recover and dispose of the prior paired-lineage run's conclusion (keep the compact surface; the one missing-SURFACE finding already names the personal-inference promise before the machinery); enforce instrument≠run≠durable evidence≠decision effect on the four readings; separate H-3 from H-1 as non-exclusive rather than competing; keep any front-half work from silently introducing a progress construct that the frozen evidence ceiling forbids.",
+        "authority_ceiling": "Cannot establish what an arriving player perceives, judges or does; cannot settle owner intent or product tradeoff; cannot make the reversible-intervention call.",
+        "uncertainty": "Whether the prior run's 'surface the personal-inference promise first' finding is still current and runnable against the shipped front door and its word-count ratchet, or has been superseded by the shipped journey layer.",
+        "expected_delta": {
+          "decision": false,
+          "action": false,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "NETA",
+        "expected_contribution": "Product perception peer on exactly the two live product mechanisms: (1) whether a visual claim at high salience outranks a correct textual conclusion rendered last on the import screen, and what observation would discriminate that from an ordering-only concern; (2) whether 'no entry frame' and 'payoff not worth 60 decisions' are separable product mechanisms at all, or one mechanism described twice — and what the smallest reversible product observation separating them would be.",
+        "authority_ceiling": "Cannot close the outcome claim (what a stranger judges worth taking) absent FIELD; cannot certify measurement validity of the detector or the residual thresholds; cannot authorize the build against owner intent.",
+        "uncertainty": "Whether Neta returns a discriminator cheap enough to run before a build, or correctly returns FIELD_STOP with a field requirement — the second outcome is still a material delta because it would refute the default.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": false,
+          "allocation": false,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "SCAFFOLD",
+        "expected_contribution": "Broad synthesis or alternative decompositions of the player path.",
+        "authority_ceiling": "Candidate source only; no authority over product intent, repo fact, runtime state or field outcome; no promotion rights.",
+        "uncertainty": "Low expected value: a prior paired R&D run on a different provider lineage already produced the relevant synthesis, including the single missing-SURFACE finding, and the alternative space here is already bounded to four readings each carrying a stated reversal condition. A scaffold would generate candidates where the live need is discrimination among held candidates; recurrence of the same conclusion would be agreement, not a delta.",
+        "expected_delta": {
+          "decision": false,
+          "action": false,
+          "reversal": false,
+          "evidence": false,
+          "allocation": false,
+          "distinction": false
+        }
+      },
+      {
+        "resource": "OWNER",
+        "expected_contribution": "Resolve what is owner-owned and currently unstated: whether the calibration wait (60 revealed decisions; >=1786 admissible blitz games for the personal residual) is an accepted product constraint or a thing the build must attack — this single ruling largely settles H-1 versus H-2 framing; whether a reversible entry frame is worth trying; what the entry frame may and may not promise; and whether the mentor's 'managed effort toward a user-selected goal' framing is adopted as intent.",
+        "authority_ceiling": "Cannot establish what strangers notice, understand, prefer or judge worth doing; owner preference is not stranger preference; cannot convert the mentor signal into research authority for a correct KPI, and cannot make a prescribed programme work by authorizing it.",
+        "uncertainty": "High proxy-substitution risk in this invocation: 'KPI' and 'goal' can smuggle in a progress number or a rating denominator that the frozen evidence ceiling forbids. The request must be bounded to intent and accepted risk, not to a metric.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": false
+        }
+      },
+      {
+        "resource": "REPO",
+        "expected_contribution": "R1 facts that settle the factual half of H-3 and bound any H-1 build: actual ordering, salience and equal-weighting of the six bucket rates versus the conclusion text on the import screen; the goal note's render condition (record screen, below readings, only once non-empty); whether the front door's word-count ratchet leaves room for a reason-to-act sentence; and whether the structural statement 'an import cannot produce a calibration gap' is encoded anywhere as a reason to act or only as a methodological note.",
+        "authority_ceiling": "Cannot establish that any rendering change alters what a player perceives, judges or does; cannot establish deployed/runtime state; a gate passing is not evidence of comprehension.",
+        "uncertainty": "Whether the H-3 defect is already partially covered by the two existing gates (goal beside a count; stage number without construct) or is a genuinely ungated salience-over-text failure needing its own control.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": false,
+          "evidence": true,
+          "allocation": false,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "ENVIRONMENT",
+        "expected_contribution": "The cheapest observation that can separate H-1 from H-2 without FIELD: deployed runtime behaviour of real arrivals — how many cold players reach the record screen at all, how many record a first decision, the distribution of revealed-decision counts against the MIN_BUCKET_N=30/60 threshold, whether any session ever reached the journey layer, and where import-path players stop. 'Never started' points at the front; 'started and abandoned well short of 60' points at time-to-value.",
+        "authority_ceiling": "Cannot say why anyone stopped; cannot reach R6; drop-off is behaviour, not judgement, and cannot establish that a player would judge a next act worth taking. Silent on the import screen's salience claim.",
+        "uncertainty": "Whether any such instrumentation exists and is currently readable, and whether traffic volume is non-trivial — if arrivals are near zero the observation is uninformative rather than negative, which is pending, not failed.",
+        "expected_delta": {
+          "decision": true,
+          "action": false,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "FIELD",
+        "expected_contribution": "The only authority that can close the live outcome claim ('a player told what the product uniquely does judges the next act worth taking'), and the only way to discharge the standing, never-revalidated debt from n=3 with two users unable to complete the core move. A bounded cold run could also establish whether the core move is still uncompleteable — in which case neither H-1 nor H-2 is the binding constraint and both builds are misallocated.",
+        "authority_ceiling": "Cannot resolve owner intent or product tradeoff; cannot explain unobserved causal mechanism; under any protocol cannot reach CAUSALITY, INTERVENTION or OUTCOME as those are fixed unreachable by the discovery pipeline. Highest cost and highest contamination/reactivity risk of the available resources.",
+        "uncertainty": "Partly premature for H-1 as stated: with no entry frame built, a cold run re-measures a known absence. It is not premature for revalidating the repaired core move, and a paper or prototype frame could make the H-1/H-2 discrimination observable without shipping the build.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": true
+        }
+      }
+    ],
+    "candidate_moves": [
+      {
+        "move": "COLLECT_ENVIRONMENT",
+        "resource": "ENVIRONMENT",
+        "expected_decision_value": "Highest value per unit cost. A funnel reading of real arrivals against the 60-decision threshold separates 'nobody ever begins' (H-1) from 'people begin and abandon before any claim is possible' (H-2) — the exact discrimination the default build presupposes — without paying FIELD, without shipping anything and without contaminating any measured behaviour. A null (too little traffic to read) is pending, not refuting, and costs almost nothing.",
+        "reversibility": "Fully reversible; passive observation of already-deployed state, no product change, no user contact."
+      },
+      {
+        "move": "COLLECT_REPO",
+        "resource": "REPO",
+        "expected_decision_value": "Settles the factual half of H-3 at R1 for near-zero cost: whether the six rates genuinely render at equal salience above the conclusion, and whether existing gates already cover it. Also establishes whether the 'an import cannot produce a calibration gap' statement is already present anywhere as a reason to act, which directly bounds the size of any H-1 build.",
+        "reversibility": "Fully reversible; inspection only."
+      },
+      {
+        "move": "INVOKE_NETA",
+        "resource": "NETA",
+        "expected_decision_value": "High on distinction. The two questions actually at issue are perception questions in Neta's domain: whether visual salience outranks a correct textual conclusion, and whether H-1 and H-2 are two mechanisms or one described twice. A Neta DISCRIMINATE_FIRST or FIELD_STOP with a named field requirement would refute the current default; either outcome changes allocation.",
+        "reversibility": "Fully reversible; peer handoff produces claims, not changes. Neta does not inherit research or field authority by receiving the handoff."
+      },
+      {
+        "move": "USE_EXISTING",
+        "resource": "REPO",
+        "expected_decision_value": "Medium-high and very cheap. If a build proceeds, the honest entry-frame content already exists as an established structural fact — prospective, pre-engine decisions carry a kind of evidence an import structurally cannot supply — requiring no new construct, no progress number, no rating denominator and no detector change, and violating no part of the frozen evidence ceiling. This shrinks H-1 from a programme to a sentence and lowers what must be discriminated before acting.",
+        "reversibility": "Fully reversible; copy-level and gate-checkable, subject to the front door's word-count ratchet which only comes down."
+      },
+      {
+        "move": "WAIT",
+        "resource": "OWNER",
+        "expected_decision_value": "Medium-high. One bounded owner ruling — is the calibration wait an accepted constraint or the thing to attack — largely collapses the H-1/H-2 framing dispute, which is an intent question being carried as if it were an evidence question. Must be bounded to intent and accepted risk; the mentor signal is a signal about a missing user contract, not research authority for a KPI.",
+        "reversibility": "Reversible; an owner ruling can be revisited, but it should be recorded as intent, not converted into evidence that any programme works."
+      },
+      {
+        "move": "COLLECT_FIELD",
+        "resource": "FIELD",
+        "expected_decision_value": "High but partly premature and highest cost. Genuinely warranted for one thing now: revalidating the repaired core move against the standing n=3 failure, since if the core move is still uncompleteable both candidate builds are misallocated. For the H-1/H-2 discrimination it should wait for a prototype or paper frame, otherwise it re-measures a known absence.",
+        "reversibility": "Partially reversible; reactivity and contamination risk, and a small-n run cannot be un-run. Cannot in any case reach OUTCOME or CAUSALITY."
+      },
+      {
+        "move": "BUILD",
+        "resource": "RND",
+        "expected_decision_value": "Currently low relative to cost: H-1 as the default assumes the discrimination this diagnosis says is unbought, and the cheaper moves above can change it. Its value rises sharply and its size shrinks if ENVIRONMENT shows arrivals stopping at the front and USE_EXISTING supplies the content.",
+        "reversibility": "Reversible as scoped (no new progress number, no rating denominator, no detector change), which is the only reason it is admissible as a default at all."
+      },
+      {
+        "move": "USE_SCAFFOLD",
+        "resource": "SCAFFOLD",
+        "expected_decision_value": "Near zero now. The prior paired-lineage run already deposited the relevant synthesis including the single missing-SURFACE finding; the live need is discrimination among four already-bounded readings, not candidate generation. Expect agreement, and agreement is not a delta.",
+        "reversibility": "Fully reversible but non-free in attention; recommend not invoking on this iteration."
+      },
+      {
+        "move": "STOP",
+        "resource": "RND",
+        "expected_decision_value": "H-4 as stated should be partially refuted rather than adopted: FIELD cannot observe a surface that does not exist, so 'only FIELD can move this' is not actionable for the front-half question. H-4 is right about the outcome claim (no build can close it) and wrong about the reversible-intervention claim (OWNER can authorize a reversible frame). Recording that split is itself a distinction worth preserving.",
+        "reversibility": "Fully reversible; a disposition record, not an action."
+      }
+    ],
+    "needs": {
+      "signal_interpretation_ambiguity": true,
+      "multiple_plausible_mechanisms": true,
+      "proxy_substitution_risk": true,
+      "research_to_intervention_transition": true,
+      "broad_reasoning_needed": false,
+      "architecture_alternatives_needed": false,
+      "novel_synthesis_needed": false,
+      "external_research_needed": false,
+      "owner_authority_needed": true,
+      "repo_authority_needed": true,
+      "environment_authority_needed": true,
+      "field_authority_needed": true
+    },
+    "rationale": "The telos is a fit question, not a build question: what process honestly carries a player from an aspiration to a next act they judge worth taking. The stated default (H-1) is a build that presupposes a discrimination nobody has paid for, because H-1 and H-2 differ only in what a stranger does once told what the product uniquely does — an R6 outcome claim owned by FIELD, unreachable by any amount of REPO work, research or copy. Hence external_research_needed is false: the mechanism research is frozen and its own ceiling states CAUSALITY, INTERVENTION and OUTCOME are unreachable by the discovery pipeline under any result and the claim ladder is unchanged by sample size, so more literature cannot move this decision. broad_reasoning_needed, architecture_alternatives_needed and novel_synthesis_needed are false as an ex-ante commitment: the alternative space is already enumerated as four readings each with a reversal condition, and a prior paired run on a different provider lineage already deposited the relevant synthesis and its one missing-SURFACE finding; invoking a scaffold now would most likely reproduce agreement, and agreement is not a delta. If a scaffold invocation later adds a distinction none of the four readings contains, that falsifies this commitment and should be recorded as such. The three cheap authority needs are real and unpaid. ENVIRONMENT is the standout miscalibration: deployed runtime arrival and drop-off against the MIN_BUCKET_N=30/60 threshold is the cheapest admissible observation that can separate 'never begins' from 'begins and abandons', and it has not been consulted while a build is being contemplated. REPO settles H-3's factual half at R1 and should stop H-3 being carried as a rival build at all — it is a representation-versus-reality defect (the visual claim outranking a correct textual conclusion), separable from and non-exclusive with H-1, governed by rules the repository already holds. OWNER settles whether the calibration wait is accepted intent, which is an intent question currently being argued as if it were an evidence question; that invocation carries the sharpest proxy-substitution risk in the task, since 'KPI' and 'goal' can smuggle in a progress number or a rating denominator the evidence ceiling forbids, and the mentor's framing is a signal about a missing user contract, not authority for a correct KPI and not evidence that a prescribed programme works. FIELD is the only resource that can close the outcome claim and carries standing debt (n=3, two unable to complete the core move, repaired, never revalidated, nobody ever observed on the shipped journey layer); it is warranted now for revalidating the core move, and premature for the H-1/H-2 discrimination until there is a frame — even a paper or prototype one — to observe. Finally, the cheapest content move is already held and unrendered: that an import structurally cannot produce a calibration gap, so a prospective pre-engine decision supplies a kind of evidence history cannot. Stating that as a reason to act needs no new construct, no new number and no detector change, which shrinks the candidate build enough that the remaining question becomes whether to observe first, not how much to build. Ex-ante expectation: ENVIRONMENT and REPO change allocation and distinction at low cost; NETA changes the action and the distinction; OWNER changes the decision frame; FIELD is the only path to evidence at the required floor; SCAFFOLD changes nothing on this iteration. The highest remaining uncertainty should end up FIELD-owned, as the success condition requires, rather than being displaced into another build."
+  },
+  "routing": {
+    "resources": [
+      "NETA"
+    ],
+    "fired": {
+      "NETA": [
+        "multiple_plausible_mechanisms",
+        "proxy_substitution_risk",
+        "research_to_intervention_transition",
+        "signal_interpretation_ambiguity"
+      ],
+      "AUTHORITY": [
+        "owner_authority_needed",
+        "repo_authority_needed",
+        "environment_authority_needed",
+        "field_authority_needed"
+      ]
+    },
+    "authority_handoffs": [
+      "ENVIRONMENT",
+      "FIELD",
+      "OWNER",
+      "REPO"
+    ]
+  },
+  "resource_invocations": [
+    {
+      "resource": "RND",
+      "phase": "DIAGNOSE",
+      "request": {
+        "resource": "RND",
+        "phase": "DIAGNOSE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-PLAYER-PATH-001",
+          "telos": {
+            "statement": "Determine the strongest product process Lichess App can honestly implement that carries a player from 'I want to get better at chess' to a next act they judge worth taking, a personally relevant learning process, and an honest account of what has and has not changed.",
+            "success_condition": "A named process survives falsification; it works in every state including the one where no personal pattern is ever found; every progress construct names its own unit and none of them is rating; the highest remaining uncertainty is FIELD rather than REPO or RESEARCH."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The BACK HALF of a learning path is built, gated and shipped: a six-bucket detector (MIN_BUCKET_N=30 inside and outside, so 60 revealed decisions before any claim); a claim carrying its scope and refutation condition; a pre-registered narrowed search after an import (floor 20); drills on claim-matched positions; player-authored learning rules; a spaced retrieval queue with grades derived from the record; transfer tests; refutation and retirement; a journey ledger whose stages are ACCUMULATING, NOTHING_SEPARATED, CANDIDATE, CONTEXT_CHECKED, PRACTISED, PROMPTED_CHECK, WATCHED_IN_PLAY, REFUTED, RETIRED, each carrying its construct, denominator, next act and stated limit; a scalar pointer (record -> detect -> drill -> grade) that now names waiting rule work; and two gates refusing a goal rendered beside a count and a stage number rendered without its construct. 41 gates, each with a positive control that must go red. THE FRONT HALF DOES NOT EXIST. A player arriving cold meets the machinery with nothing having told them what this product uniquely does. The front door explains the ordering (decision before engine) but never says that the product is trying to find something that RECURS SPECIFICALLY IN THEIR DECISIONS, which is the only thing distinguishing it from Chess.com analysis, Lichess analysis, puzzles or Aimchess. There is no entry frame carrying the player's own aspiration. The goal note exists but renders only on the record screen, below the readings, and only once the record holds something. The IMPORT SCREEN is where a player with history first meets a conclusion: it lists six buckets, each with an accuracy rate and its n, at equal salience and high on the screen; the honest conclusion ('the types measured are closer to each other than their own sampling error; there is a lowest number but it does not separate') renders far below, after a ledger and two methodological paragraphs.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement or attribute rating change to the product.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT, NOT ONLY A COPY PROBLEM: 60 revealed decisions before any claim is possible, and the research-grade personal residual needed >= 1786 admissible blitz games. A prior run recorded that the calibration wait is an instrument constraint and not automatically removable friction.",
+              "AN IMPORT CANNOT PRODUCE A CALIBRATION GAP. Old games carry no confidence stated before the engine spoke, so imported evidence is move accuracy only. This is the structural reason prospective decisions contain a kind of evidence history cannot supply, and the product has never said so as a REASON TO ACT.",
+              "OWNERSHIP IS LOAD-BEARING: the decision is committed before the engine reveals anything. No layer may turn the app into an engine-answer feed.",
+              "REPOSITORY LAWS: LAW 1 forbids record readings while a decision is open; LAW 2 permits one primary action per screen; R1 forbids a percentage without its denominator and now forbids a goal rendered in the same element as a count; R3 keeps the engine silent before commit. A ratchet holds the front door's word count and only comes down.",
+              "FIELD STATE: n = 3 cold users, two of whom could not complete the core move. That was repaired and has never been revalidated. Nobody has ever been observed using the shipped journey layer.",
+              "A PRIOR PAIRED R&D RUN on a different provider lineage concluded that the compact five-prompt audit surface should be kept, and layered distinctions used selectively where they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from rating outcome. Its one finding naming a missing SURFACE rather than a missing distinction: surface the personal-inference promise BEFORE the dashboard machinery, using the advancement goal as the entry frame."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "What is the player's path, and where is the binding constraint on it? Four readings are live. H-1: the gap is at the FRONT — the back half is built and nothing tells an arriving player what the product uniquely does before they meet it, so the value that would justify the wait is never offered. H-2: the gap is time-to-value — even a perfect frame cannot make the first session's payoff worth 60 decisions, and the build should target the first session instead. H-3: the gap is the import screen — it is where a player with history first meets a conclusion, and its visual claim (six rates, one visibly lowest) is stronger than its textual one (nothing separated). H-4: nothing should be built; only FIELD can move this.",
+            "current_default": "H-1. Build an entry frame carrying the player's own aspiration and the personal-inference promise, placed before the machinery, plus one next act with its payoff stated. Add no new progress number, no programme, no rating denominator, and no change to the detector.",
+            "reversal_condition": "Evidence that the front is not the binding constraint: that a player told exactly what the product uniquely does still judges the next act not worth taking, which is H-2 and a different build; or that the import screen's visual-over-textual claim is severe enough to outrank the entry frame, which is H-3 and a smaller, cheaper build."
+          },
+          "signals": [
+            "OWNER/FIELD, mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI'. He framed the product as managed effort toward a user-selected goal rather than a mistake-reporting tool, said the customer journey begins from the player's desired improvement and not from the detector, said generic chess mistakes are not interesting and the value becomes interesting when the system moves from statistical error to something personal, and named time-to-value as a blocker. This is a signal about a missing user contract. It is NOT research authority for the correct KPI, and it does not establish that a prescribed programme works.",
+            "REPO: the product already refuses to estimate an unknown distance and already distinguishes 'enough decisions and nothing separated' from 'not enough decisions', calling the former an answer rather than a silence. The question is whether that discipline extends to a path or breaks on one.",
+            "REPO: the import screen's own conclusion is correct and is rendered last. Nothing about it is dishonest in words; the ordering and salience are the whole of the concern.",
+            "REPO: a player can know exactly what to do and rationally decide it is not worth doing. Action clarity, execution ability, expected payoff, effort and continuation are five different things, and no representation collapses them."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 4,
+            "max_parallel_calls": 1
+          }
+        },
+        "instruction": "Diagnose resource↔telos miscalibration, map candidate resource moves, commit ex ante to which decision-state dimensions each assessed resource could change, and return exactly the Calibration Loop v0.2 diagnosis shape."
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "NETA",
+      "phase": "ANALYZE",
+      "request": {
+        "resource": "NETA",
+        "phase": "ANALYZE",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-PLAYER-PATH-001",
+          "telos": {
+            "statement": "Determine the strongest product process Lichess App can honestly implement that carries a player from 'I want to get better at chess' to a next act they judge worth taking, a personally relevant learning process, and an honest account of what has and has not changed.",
+            "success_condition": "A named process survives falsification; it works in every state including the one where no personal pattern is ever found; every progress construct names its own unit and none of them is rating; the highest remaining uncertainty is FIELD rather than REPO or RESEARCH."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The BACK HALF of a learning path is built, gated and shipped: a six-bucket detector (MIN_BUCKET_N=30 inside and outside, so 60 revealed decisions before any claim); a claim carrying its scope and refutation condition; a pre-registered narrowed search after an import (floor 20); drills on claim-matched positions; player-authored learning rules; a spaced retrieval queue with grades derived from the record; transfer tests; refutation and retirement; a journey ledger whose stages are ACCUMULATING, NOTHING_SEPARATED, CANDIDATE, CONTEXT_CHECKED, PRACTISED, PROMPTED_CHECK, WATCHED_IN_PLAY, REFUTED, RETIRED, each carrying its construct, denominator, next act and stated limit; a scalar pointer (record -> detect -> drill -> grade) that now names waiting rule work; and two gates refusing a goal rendered beside a count and a stage number rendered without its construct. 41 gates, each with a positive control that must go red. THE FRONT HALF DOES NOT EXIST. A player arriving cold meets the machinery with nothing having told them what this product uniquely does. The front door explains the ordering (decision before engine) but never says that the product is trying to find something that RECURS SPECIFICALLY IN THEIR DECISIONS, which is the only thing distinguishing it from Chess.com analysis, Lichess analysis, puzzles or Aimchess. There is no entry frame carrying the player's own aspiration. The goal note exists but renders only on the record screen, below the readings, and only once the record holds something. The IMPORT SCREEN is where a player with history first meets a conclusion: it lists six buckets, each with an accuracy rate and its n, at equal salience and high on the screen; the honest conclusion ('the types measured are closer to each other than their own sampling error; there is a lowest number but it does not separate') renders far below, after a ledger and two methodological paragraphs.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement or attribute rating change to the product.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT, NOT ONLY A COPY PROBLEM: 60 revealed decisions before any claim is possible, and the research-grade personal residual needed >= 1786 admissible blitz games. A prior run recorded that the calibration wait is an instrument constraint and not automatically removable friction.",
+              "AN IMPORT CANNOT PRODUCE A CALIBRATION GAP. Old games carry no confidence stated before the engine spoke, so imported evidence is move accuracy only. This is the structural reason prospective decisions contain a kind of evidence history cannot supply, and the product has never said so as a REASON TO ACT.",
+              "OWNERSHIP IS LOAD-BEARING: the decision is committed before the engine reveals anything. No layer may turn the app into an engine-answer feed.",
+              "REPOSITORY LAWS: LAW 1 forbids record readings while a decision is open; LAW 2 permits one primary action per screen; R1 forbids a percentage without its denominator and now forbids a goal rendered in the same element as a count; R3 keeps the engine silent before commit. A ratchet holds the front door's word count and only comes down.",
+              "FIELD STATE: n = 3 cold users, two of whom could not complete the core move. That was repaired and has never been revalidated. Nobody has ever been observed using the shipped journey layer.",
+              "A PRIOR PAIRED R&D RUN on a different provider lineage concluded that the compact five-prompt audit surface should be kept, and layered distinctions used selectively where they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from rating outcome. Its one finding naming a missing SURFACE rather than a missing distinction: surface the personal-inference promise BEFORE the dashboard machinery, using the advancement goal as the entry frame."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "What is the player's path, and where is the binding constraint on it? Four readings are live. H-1: the gap is at the FRONT — the back half is built and nothing tells an arriving player what the product uniquely does before they meet it, so the value that would justify the wait is never offered. H-2: the gap is time-to-value — even a perfect frame cannot make the first session's payoff worth 60 decisions, and the build should target the first session instead. H-3: the gap is the import screen — it is where a player with history first meets a conclusion, and its visual claim (six rates, one visibly lowest) is stronger than its textual one (nothing separated). H-4: nothing should be built; only FIELD can move this.",
+            "current_default": "H-1. Build an entry frame carrying the player's own aspiration and the personal-inference promise, placed before the machinery, plus one next act with its payoff stated. Add no new progress number, no programme, no rating denominator, and no change to the detector.",
+            "reversal_condition": "Evidence that the front is not the binding constraint: that a player told exactly what the product uniquely does still judges the next act not worth taking, which is H-2 and a different build; or that the import screen's visual-over-textual claim is severe enough to outrank the entry frame, which is H-3 and a smaller, cheaper build."
+          },
+          "signals": [
+            "OWNER/FIELD, mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI'. He framed the product as managed effort toward a user-selected goal rather than a mistake-reporting tool, said the customer journey begins from the player's desired improvement and not from the detector, said generic chess mistakes are not interesting and the value becomes interesting when the system moves from statistical error to something personal, and named time-to-value as a blocker. This is a signal about a missing user contract. It is NOT research authority for the correct KPI, and it does not establish that a prescribed programme works.",
+            "REPO: the product already refuses to estimate an unknown distance and already distinguishes 'enough decisions and nothing separated' from 'not enough decisions', calling the former an answer rather than a silence. The question is whether that discipline extends to a path or breaks on one.",
+            "REPO: the import screen's own conclusion is correct and is rendered last. Nothing about it is dishonest in words; the ordering and salience are the whole of the concern.",
+            "REPO: a player can know exactly what to do and rationally decide it is not worth doing. Action clarity, execution ability, expected payoff, effort and continuation are five different things, and no representation collapses them."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 4,
+            "max_parallel_calls": 1
+          }
+        },
+        "requested_focus": [
+          "multiple_plausible_mechanisms",
+          "proxy_substitution_risk",
+          "research_to_intervention_transition",
+          "signal_interpretation_ambiguity"
+        ],
+        "independence_rule": "Analyze the task independently. Do not infer another resource's conclusion and do not turn agreement into independent evidence.",
+        "prompt_ref": "prompts/SYSTEM.md",
+        "role_boundary": "Challenge framing, proxy substitution, mechanism collapse and premature intervention. Do not decide external research validity or architecture doctrine."
+      },
+      "expected_delta": {
+        "decision": true,
+        "action": true,
+        "reversal": true,
+        "evidence": false,
+        "allocation": false,
+        "distinction": true
+      },
+      "observed_delta": {
+        "decision": "The default build's content was refuted rather than confirmed: H-1 cannot ship with the personal-inference promise or an unexamined aspiration frame; H-3 is reclassified from competing cheaper build to already-supported defect eligible for a gate now; H-4 is partially refuted rather than adopted; H-1 and H-2 are held at DISCRIMINATE_FIRST.",
+        "action": "The next act changed from build-the-frame to three separable acts with different authorities and no shared wait: a bounded REPO check of the post-commit belief-versus-board surface and the import-screen ordering, a gate plus positive control for the import-screen contradiction, and one field observation of three cold users to first commit capturing an unprompted account of what the product is for before they touch anything.",
+        "reversal": "Added reversal conditions the diagnosis did not hold: if the post-commit distance is already surfaced, H-2's premise is weaker than stated and the front-half gap is naming an existing payoff rather than manufacturing one; if an entry frame renders a rating-shaped aspiration as or beside a denominator, it violates the success condition regardless of how well it reads; and the field observation is invalid if it records agreement with a proposed frame rather than an unprompted utterance, since agreement is not confirmation.",
+        "evidence": null,
+        "allocation": "Reordered which authority gets paid and in what order: H-3 moves off the field-dependent queue entirely to REPO plus OWNER, H-1 loses its first-position claim on build budget, and one field observation is argued to be worth paying now because it simultaneously discharges the never-revalidated n=3 core-move failure and tests H-1's premise, against the diagnosis's position that FIELD was premature for the H-1/H-2 discrimination.",
+        "distinction": "Separated an outcome-shaped promise from an evidence-type statement; separated OBSERVATION from PERCEPTUAL INFERENCE from BEHAVIORAL CLAIM on the same screen; separated a hypothesis's evidence state from its rank in the default; separated the three live readings inside the raw mentor signal (missing user contract, missing visible progress unit, unacceptable cost-to-first-payoff) and showed the default resolves to the first and then translates it again into placement and copy; separated lineage resemblance from corroboration."
+      },
+      "material": true,
+      "result": {
+        "resource": "NETA",
+        "summary": "The presenting decision is framed as a choice among four locations for one binding constraint, but the four readings are not competitors at the same level and not resolvable by the same authority, so choosing among them as stated is a mechanism collapse. RAW SIGNAL to preserve verbatim: 'you built feedback, you have not built a KPI'. That phrase carries at least three live mechanisms and must not be allowed to equal one: (a) a missing user contract stating what the product is trying to do for this person, (b) a missing visible unit of progress, (c) an unacceptable cost-to-first-payoff. The current default resolves it to (a) and then converts it further into a placement-and-copy intervention. That is two translations away from the signal, and reading (b) is the dangerous one because the repository already forbids a goal rendered beside a count and the telos forbids rating as a progress unit. Separating the readings: H-1 is an ORIENTATION and PAYOFF claim about what is offered before the machinery, currently at OWNER_SIGNAL only; H-2 is an ACCUMULATION claim about cost over 60 decisions, currently FIELD_REQUIRED and partly INSTRUMENT FRICTION that must not be removed silently; H-3 is a PERCEPTION and TRUST defect on the import screen, and it is the only one of the four whose defining observation is already relayed as an established repository fact, namely that six accuracy rates with their n render at equal salience high on the screen while the non-separation conclusion renders below a ledger and two paragraphs. Ranking H-1 first therefore places the least-evidenced reading above the best-evidenced one. H-3 is also not merely a smaller build: it is the place where the product's own stated discipline, the discipline that distinguishes 'enough decisions and nothing separated' from 'not enough decisions', already breaks on a surface. A set of rates whose differences lie inside their own sampling error, rendered as an ordered list above the sentence denying the ordering, makes a visual claim the text refuses. That is the same family the existing gates already legislate: percentage without denominator, goal beside count, stage number without construct. It is REPO-observable and OWNER-decidable, needs no FIELD to establish the contradiction, and is expressible as one more gate with a positive control. Note the level boundary: 'the ordering renders above the denial' is OBSERVATION; 'the eye has little basis to reject the ranking' is PERCEPTUAL INFERENCE; 'players misread it' is a BEHAVIORAL CLAIM requiring FIELD at R6 and must not be asserted. The largest hazard in the default is proxy substitution inside the proposed frame itself. 'The personal-inference promise' is outcome-shaped: it promises that something recurring specifically in this player's decisions will be found. The instrument cannot guarantee that under any sample size, and the success condition explicitly requires the process to work in the state where no personal pattern is ever found. An entry frame that promises personal inference therefore sells an OUTCOME claim that is unreachable by the discovery pipeline, and it does so on the one screen a cold player meets first. The honest and fully permitted version of the same frame is an exchange rather than a promise, and it is already sitting unused in the constraints: an import cannot produce a calibration gap, because old games carry no confidence stated before the engine spoke. That is a REPO-true statement about a kind of evidence, not about a result, it is the actual separation from Chess.com analysis, Lichess analysis, puzzles and Aimchess, and it has never been said as a reason to act. Framed as evidence type rather than as future finding, the frame needs no FIELD permission to be honest; framed as personal inference, it needs R6 it cannot have. Second hazard in the default: 'an entry frame carrying the player's own aspiration'. A player's stated aspiration in chess is overwhelmingly rating-shaped. The success condition requires every progress construct to name its own unit and none of them to be rating. So the frame has an unresolved structural collision, namely where a rating-shaped aspiration is rendered without becoming a denominator, and the default does not name it. If that question is not answered before the build, the aspiration frame is the most likely route by which rating re-enters as the silent KPI, which is the exact substitution the mentor signal will be read as endorsing. On the transition from signal to intervention: the mentor is OWNER/FIELD flavoured and is explicitly not research authority for the correct KPI, and the frozen mechanism research puts CAUSALITY, INTERVENTION and OUTCOME out of reach. A front-half build is therefore permissible only as BUILD_REVERSIBLE under OWNER intent, with no surface asserting that the frame causes continuation, retention or a next act judged worth taking. That last proposition is H-2's claim, sits at FIELD and R6, and must be DENY for assertion regardless of how well the frame reads. One further premise in the four-way split is untested and cheap to test: H-2 assumes the first session has no payoff because 60 revealed decisions precede any claim. But a single committed decision already produces, at n equals one and with no claim attached, the distance between what the player stated they believed and what was there. Whether that is currently surfaced after commit is a REPO question answerable without field work, and the answer splits H-1 from H-2 directly. If it is surfaced, H-2's premise is weaker than stated and the front-half gap is about naming an existing payoff rather than manufacturing a new one; if it is not surfaced, the cheapest intervention is not an entry frame at all. Any such surface must stay inside the existing laws: silent before commit, no record readings while a decision is open, and framed as belief versus board rather than as the engine's answer, or ownership stops being load-bearing. The condition that outranks all four readings is the field state itself. Three cold users, two of whom could not complete the core move, repaired and never revalidated, and nobody has ever been observed using the shipped journey layer. An entry frame delivers a contract to a screen whose completability is currently unestablished. One field observation answers both questions at once and is the single discriminator worth paying for now: three cold users, no coaching, watched to the first commit, with two things recorded, whether the core move completes after the repair, and, before they touch anything, what they say the product is for in their own words. That second record is the only admissible test of H-1's premise, and it must be an unprompted utterance rather than agreement with a stated frame, because agreement is not confirmation and does not create the discrimination the product exists to produce. Recommended disposition: DISCRIMINATE_FIRST on H-1 and H-2, which remain OWNER_SIGNAL and FIELD_REQUIRED; treat H-3 not as a competing hypothesis but as an already-supported internal-consistency defect eligible for a gate plus positive control under REPO and OWNER without waiting on the field observation; and reject H-4 as stated, because at least one material claim, the contradiction between the import screen's visual and textual claims, does not require FIELD to establish.",
+        "unique_delta": "Five contributions the framing as given does not contain. First, the four hypotheses are re-typed rather than ranked: H-1 and H-2 are OWNER_SIGNAL and FIELD_REQUIRED, H-3 rests on a relayed repository observation, so the default promotes the least-evidenced reading and demotes the best-evidenced one, and H-3 stops being a cheaper alternative and becomes a discovered inconsistency with laws the product already enforces, resolvable at REPO plus OWNER with a gate and positive control and no field debt. Second, the proxy substitution is located inside the proposed intervention rather than elsewhere: 'the personal-inference promise' is outcome-shaped and unreachable under the stated evidence ceiling, while the fully permitted and currently unused substitute is the evidence-type statement that an import cannot produce a calibration gap, which separates the product from every named competitor without predicting any result. Third, a collision the default hides: a frame carrying the player's own aspiration imports a rating-shaped goal into a system whose success condition forbids rating as a progress unit, making the aspiration frame the most likely route by which the mentor's word KPI becomes a literal denominator. Fourth, a REPO-level discriminator that splits H-1 from H-2 without field work, namely whether the post-commit single decision already exposes the stated-belief-versus-board distance at n equals one, which tests H-2's no-first-session-payoff premise directly and is constrained by the existing silent-before-commit and no-readings-while-open laws. Fifth, an independence flag rather than a conclusion: the current default is close to a prior paired run's finding on a different provider lineage, and under the shared kernel that resemblance is not triangulation, so the default should be able to justify itself from the present observables alone. Added to these, the one discriminator recommended, three cold users watched to first commit with the repaired core move revalidated and their unprompted account of what the product is for recorded before they touch anything, is chosen because it simultaneously closes the unrevalidated n equals 3 failure and tests H-1's premise, and because it must capture an unprompted utterance rather than agreement with a proposed frame.",
+        "evidence_refs": [
+          "docs/SHARED_EPISTEMIC_KERNEL.md",
+          "docs/REALITY_AUTHORITY_PERMISSION.md",
+          "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+          "docs/TELOS.md",
+          "prompts/SYSTEM.md",
+          "task.current_state.summary (back half built and gated; front half absent; import screen lists six buckets with accuracy and n at equal salience high on screen, honest non-separation conclusion rendered far below after a ledger and two methodological paragraphs; goal note renders only on the record screen below the readings)",
+          "task.current_state.known_constraints[0] EVIDENCE CEILING (CAUSALITY/INTERVENTION/OUTCOME unreachable; no surface may promise improvement)",
+          "task.current_state.known_constraints[1] TIME TO VALUE IS AN INSTRUMENT CONSTRAINT (60 revealed decisions; >=1786 admissible blitz games; calibration wait not automatically removable friction)",
+          "task.current_state.known_constraints[2] AN IMPORT CANNOT PRODUCE A CALIBRATION GAP (never stated as a reason to act)",
+          "task.current_state.known_constraints[3] OWNERSHIP IS LOAD-BEARING (no engine-answer feed)",
+          "task.current_state.known_constraints[4] REPOSITORY LAWS (LAW 1, LAW 2, R1 percentage/denominator and goal-beside-count, R3 engine silent before commit, front-door word ratchet)",
+          "task.current_state.known_constraints[5] FIELD STATE (n = 3 cold users, two could not complete the core move, repaired, never revalidated; shipped journey layer never observed)",
+          "task.current_state.known_constraints[6] PRIOR PAIRED R&D RUN on a different provider lineage recommending the personal-inference promise before the dashboard machinery with the advancement goal as entry frame",
+          "task.signals[0] OWNER/FIELD mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI' (explicitly not research authority for the correct KPI)",
+          "task.signals[1] REPO: product refuses to estimate an unknown distance and distinguishes 'enough decisions and nothing separated' from 'not enough decisions'",
+          "task.signals[2] REPO: the import screen's own conclusion is correct and rendered last; ordering and salience are the whole concern",
+          "task.signals[3] REPO: action clarity, execution ability, expected payoff, effort and continuation are five different things and no representation collapses them",
+          "task.decision_blocked.statement (H-1, H-2, H-3, H-4)",
+          "task.decision_blocked.current_default (entry frame with personal-inference promise and player aspiration)",
+          "task.decision_blocked.reversal_condition",
+          "task.telos.statement and task.telos.success_condition (every progress construct names its own unit and none is rating; must work in the state where no personal pattern is found; highest remaining uncertainty should be FIELD)"
+        ],
+        "limitations": [
+          "No repository, screenshot, DOM, geometry or deployed environment was inspected in this call. Every statement about the import screen, the record screen, the goal note, the gates and the existing laws is relayed text, so those observations are accepted as reported and not independently REPRODUCED; if the relayed description of salience and ordering is inaccurate, the H-3 finding weakens accordingly.",
+          "Whether the post-commit single-decision belief-versus-board distance is currently surfaced is asserted here as an open REPO question, not an established absence. It must be checked in code before it is used to weaken H-2's premise.",
+          "Neta does not resolve external research validity. The frozen mechanism research, the MIN_BUCKET_N=30 threshold, the >=1786 admissible-games figure, the six-bucket construct and the sampling-error claim underlying 'the types are closer to each other than their own sampling error' are taken as given and are RND authority, not Neta's.",
+          "Neta does not decide architecture doctrine, gate design standards, or whether an additional gate is warranted as an engineering matter; only that the visual-versus-textual contradiction is the same family the existing gates already legislate.",
+          "No FIELD evidence exists here. Nothing in this analysis establishes what an arriving player notices, understands, prefers or does, including whether an entry frame would change continuation. Assertions of that kind remain DENY below FIELD/R6.",
+          "Whether the mentor's framing of managed effort toward a user-selected goal is the right product contract is OWNER authority. Neta constrains how that framing may be rendered without importing rating as a denominator, but does not choose the contract.",
+          "Prioritisation and budget are not settled here. The recommendation separates what needs no field wait from what does, but the owner decides whether to spend the single field observation now and in what order to take H-3 and H-1.",
+          "The seven-lens decomposition used to separate the four hypotheses is a working decomposition, not a validated exhaustive taxonomy, so an active mechanism outside it would not be surfaced by this analysis.",
+          "The resemblance between the current default and the prior paired run on a different provider lineage is flagged as non-independent; this analysis cannot determine whether the default was derived from that finding or arrived at separately."
+        ],
+        "_adapter_meta": {
+          "adapter": "claude_cli_adapter",
+          "resource": "NETA",
+          "transport": "claude CLI --print",
+          "provider": "anthropic",
+          "requested_model": "opus",
+          "served_model": "claude-opus-5",
+          "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+          "uuid": "ecc0bb62-bbcb-46ce-9245-8b0a0acbc92a",
+          "num_turns": 1,
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.40541550000000004,
+          "context_delivery": {
+            "requested": 4,
+            "delivered": 4,
+            "manifest": [
+              "- `docs/SHARED_EPISTEMIC_KERNEL.md` delivered (6557 bytes, whole)",
+              "- `docs/REALITY_AUTHORITY_PERMISSION.md` delivered (6554 bytes, whole)",
+              "- `docs/AGENT_AUTHORITY_BOUNDARIES.md` delivered (5999 bytes, whole)",
+              "- `docs/TELOS.md` delivered (4896 bytes, whole)"
+            ]
+          },
+          "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+          "phase": "ANALYZE"
+        }
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "RND",
+      "phase": "SYNTHESIZE",
+      "request": {
+        "resource": "RND",
+        "phase": "SYNTHESIZE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-PLAYER-PATH-001",
+          "telos": {
+            "statement": "Determine the strongest product process Lichess App can honestly implement that carries a player from 'I want to get better at chess' to a next act they judge worth taking, a personally relevant learning process, and an honest account of what has and has not changed.",
+            "success_condition": "A named process survives falsification; it works in every state including the one where no personal pattern is ever found; every progress construct names its own unit and none of them is rating; the highest remaining uncertainty is FIELD rather than REPO or RESEARCH."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The BACK HALF of a learning path is built, gated and shipped: a six-bucket detector (MIN_BUCKET_N=30 inside and outside, so 60 revealed decisions before any claim); a claim carrying its scope and refutation condition; a pre-registered narrowed search after an import (floor 20); drills on claim-matched positions; player-authored learning rules; a spaced retrieval queue with grades derived from the record; transfer tests; refutation and retirement; a journey ledger whose stages are ACCUMULATING, NOTHING_SEPARATED, CANDIDATE, CONTEXT_CHECKED, PRACTISED, PROMPTED_CHECK, WATCHED_IN_PLAY, REFUTED, RETIRED, each carrying its construct, denominator, next act and stated limit; a scalar pointer (record -> detect -> drill -> grade) that now names waiting rule work; and two gates refusing a goal rendered beside a count and a stage number rendered without its construct. 41 gates, each with a positive control that must go red. THE FRONT HALF DOES NOT EXIST. A player arriving cold meets the machinery with nothing having told them what this product uniquely does. The front door explains the ordering (decision before engine) but never says that the product is trying to find something that RECURS SPECIFICALLY IN THEIR DECISIONS, which is the only thing distinguishing it from Chess.com analysis, Lichess analysis, puzzles or Aimchess. There is no entry frame carrying the player's own aspiration. The goal note exists but renders only on the record screen, below the readings, and only once the record holds something. The IMPORT SCREEN is where a player with history first meets a conclusion: it lists six buckets, each with an accuracy rate and its n, at equal salience and high on the screen; the honest conclusion ('the types measured are closer to each other than their own sampling error; there is a lowest number but it does not separate') renders far below, after a ledger and two methodological paragraphs.",
+            "known_constraints": [
+              "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement or attribute rating change to the product.",
+              "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT, NOT ONLY A COPY PROBLEM: 60 revealed decisions before any claim is possible, and the research-grade personal residual needed >= 1786 admissible blitz games. A prior run recorded that the calibration wait is an instrument constraint and not automatically removable friction.",
+              "AN IMPORT CANNOT PRODUCE A CALIBRATION GAP. Old games carry no confidence stated before the engine spoke, so imported evidence is move accuracy only. This is the structural reason prospective decisions contain a kind of evidence history cannot supply, and the product has never said so as a REASON TO ACT.",
+              "OWNERSHIP IS LOAD-BEARING: the decision is committed before the engine reveals anything. No layer may turn the app into an engine-answer feed.",
+              "REPOSITORY LAWS: LAW 1 forbids record readings while a decision is open; LAW 2 permits one primary action per screen; R1 forbids a percentage without its denominator and now forbids a goal rendered in the same element as a count; R3 keeps the engine silent before commit. A ratchet holds the front door's word count and only comes down.",
+              "FIELD STATE: n = 3 cold users, two of whom could not complete the core move. That was repaired and has never been revalidated. Nobody has ever been observed using the shipped journey layer.",
+              "A PRIOR PAIRED R&D RUN on a different provider lineage concluded that the compact five-prompt audit surface should be kept, and layered distinctions used selectively where they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from rating outcome. Its one finding naming a missing SURFACE rather than a missing distinction: surface the personal-inference promise BEFORE the dashboard machinery, using the advancement goal as the entry frame."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "SCAFFOLD",
+              "OWNER",
+              "REPO",
+              "ENVIRONMENT",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "What is the player's path, and where is the binding constraint on it? Four readings are live. H-1: the gap is at the FRONT — the back half is built and nothing tells an arriving player what the product uniquely does before they meet it, so the value that would justify the wait is never offered. H-2: the gap is time-to-value — even a perfect frame cannot make the first session's payoff worth 60 decisions, and the build should target the first session instead. H-3: the gap is the import screen — it is where a player with history first meets a conclusion, and its visual claim (six rates, one visibly lowest) is stronger than its textual one (nothing separated). H-4: nothing should be built; only FIELD can move this.",
+            "current_default": "H-1. Build an entry frame carrying the player's own aspiration and the personal-inference promise, placed before the machinery, plus one next act with its payoff stated. Add no new progress number, no programme, no rating denominator, and no change to the detector.",
+            "reversal_condition": "Evidence that the front is not the binding constraint: that a player told exactly what the product uniquely does still judges the next act not worth taking, which is H-2 and a different build; or that the import screen's visual-over-textual claim is severe enough to outrank the entry frame, which is H-3 and a smaller, cheaper build."
+          },
+          "signals": [
+            "OWNER/FIELD, mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI'. He framed the product as managed effort toward a user-selected goal rather than a mistake-reporting tool, said the customer journey begins from the player's desired improvement and not from the detector, said generic chess mistakes are not interesting and the value becomes interesting when the system moves from statistical error to something personal, and named time-to-value as a blocker. This is a signal about a missing user contract. It is NOT research authority for the correct KPI, and it does not establish that a prescribed programme works.",
+            "REPO: the product already refuses to estimate an unknown distance and already distinguishes 'enough decisions and nothing separated' from 'not enough decisions', calling the former an answer rather than a silence. The question is whether that discipline extends to a path or breaks on one.",
+            "REPO: the import screen's own conclusion is correct and is rendered last. Nothing about it is dishonest in words; the ordering and salience are the whole of the concern.",
+            "REPO: a player can know exactly what to do and rationally decide it is not worth doing. Action clarity, execution ability, expected payoff, effort and continuation are five different things, and no representation collapses them."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "SCAFFOLD",
+            "OWNER",
+            "REPO",
+            "ENVIRONMENT",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/REALITY_AUTHORITY_PERMISSION.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/TELOS.md"
+          ],
+          "budget": {
+            "max_resource_calls": 4,
+            "max_parallel_calls": 1
+          }
+        },
+        "diagnosis": {
+          "material_question": "Which of the four live readings (H-1 front entry frame, H-2 time-to-value, H-3 import-screen salience, H-4 build nothing) is the binding constraint on a cold player's path — and can that discrimination be bought below FIELD, given that the claim actually at stake ('a player judges the next act worth taking') is a FIELD/R6 outcome claim that no amount of BUILD or RESEARCH can close?",
+          "bottleneck": "Wrong authority is about to be paid. The default move (H-1: build an entry frame) presupposes a discrimination that no currently held evidence supports: H-1 and H-2 differ only in what a stranger does after being told what the product uniquely does, which is FIELD/R6, while the system's last field state is n=3 with two users unable to complete the core move, repaired and never revalidated, and nobody ever observed on the shipped journey layer. Two cheaper mismatches sit underneath: (a) H-3 is being treated as a competing build when it is a REPO-resolvable representation defect — the import screen's visual claim (six rates, one visibly lowest) outranks its correct textual conclusion, which is an ordering/salience fact already governed by R1 and the existing gates, and is separable from and non-exclusive with H-1; (b) the strongest honest entry-frame content already exists as an established structural fact — an import cannot produce a calibration gap, so prospective decisions carry a kind of evidence history cannot supply — and has never been rendered as a reason to act, meaning the candidate build may need no new construct, no new number and no detector change at all. There is also an unpriced observation: runtime arrival/drop-off in the deployed product could separate 'never started' from 'started and abandoned' without touching FIELD, and it has not been consulted.",
+          "resource_assessment": [
+            {
+              "resource": "RND",
+              "expected_contribution": "Recover and dispose of the prior paired-lineage run's conclusion (keep the compact surface; the one missing-SURFACE finding already names the personal-inference promise before the machinery); enforce instrument≠run≠durable evidence≠decision effect on the four readings; separate H-3 from H-1 as non-exclusive rather than competing; keep any front-half work from silently introducing a progress construct that the frozen evidence ceiling forbids.",
+              "authority_ceiling": "Cannot establish what an arriving player perceives, judges or does; cannot settle owner intent or product tradeoff; cannot make the reversible-intervention call.",
+              "uncertainty": "Whether the prior run's 'surface the personal-inference promise first' finding is still current and runnable against the shipped front door and its word-count ratchet, or has been superseded by the shipped journey layer.",
+              "expected_delta": {
+                "decision": false,
+                "action": false,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "NETA",
+              "expected_contribution": "Product perception peer on exactly the two live product mechanisms: (1) whether a visual claim at high salience outranks a correct textual conclusion rendered last on the import screen, and what observation would discriminate that from an ordering-only concern; (2) whether 'no entry frame' and 'payoff not worth 60 decisions' are separable product mechanisms at all, or one mechanism described twice — and what the smallest reversible product observation separating them would be.",
+              "authority_ceiling": "Cannot close the outcome claim (what a stranger judges worth taking) absent FIELD; cannot certify measurement validity of the detector or the residual thresholds; cannot authorize the build against owner intent.",
+              "uncertainty": "Whether Neta returns a discriminator cheap enough to run before a build, or correctly returns FIELD_STOP with a field requirement — the second outcome is still a material delta because it would refute the default.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": false,
+                "allocation": false,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "SCAFFOLD",
+              "expected_contribution": "Broad synthesis or alternative decompositions of the player path.",
+              "authority_ceiling": "Candidate source only; no authority over product intent, repo fact, runtime state or field outcome; no promotion rights.",
+              "uncertainty": "Low expected value: a prior paired R&D run on a different provider lineage already produced the relevant synthesis, including the single missing-SURFACE finding, and the alternative space here is already bounded to four readings each carrying a stated reversal condition. A scaffold would generate candidates where the live need is discrimination among held candidates; recurrence of the same conclusion would be agreement, not a delta.",
+              "expected_delta": {
+                "decision": false,
+                "action": false,
+                "reversal": false,
+                "evidence": false,
+                "allocation": false,
+                "distinction": false
+              }
+            },
+            {
+              "resource": "OWNER",
+              "expected_contribution": "Resolve what is owner-owned and currently unstated: whether the calibration wait (60 revealed decisions; >=1786 admissible blitz games for the personal residual) is an accepted product constraint or a thing the build must attack — this single ruling largely settles H-1 versus H-2 framing; whether a reversible entry frame is worth trying; what the entry frame may and may not promise; and whether the mentor's 'managed effort toward a user-selected goal' framing is adopted as intent.",
+              "authority_ceiling": "Cannot establish what strangers notice, understand, prefer or judge worth doing; owner preference is not stranger preference; cannot convert the mentor signal into research authority for a correct KPI, and cannot make a prescribed programme work by authorizing it.",
+              "uncertainty": "High proxy-substitution risk in this invocation: 'KPI' and 'goal' can smuggle in a progress number or a rating denominator that the frozen evidence ceiling forbids. The request must be bounded to intent and accepted risk, not to a metric.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": false
+              }
+            },
+            {
+              "resource": "REPO",
+              "expected_contribution": "R1 facts that settle the factual half of H-3 and bound any H-1 build: actual ordering, salience and equal-weighting of the six bucket rates versus the conclusion text on the import screen; the goal note's render condition (record screen, below readings, only once non-empty); whether the front door's word-count ratchet leaves room for a reason-to-act sentence; and whether the structural statement 'an import cannot produce a calibration gap' is encoded anywhere as a reason to act or only as a methodological note.",
+              "authority_ceiling": "Cannot establish that any rendering change alters what a player perceives, judges or does; cannot establish deployed/runtime state; a gate passing is not evidence of comprehension.",
+              "uncertainty": "Whether the H-3 defect is already partially covered by the two existing gates (goal beside a count; stage number without construct) or is a genuinely ungated salience-over-text failure needing its own control.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": false,
+                "evidence": true,
+                "allocation": false,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "ENVIRONMENT",
+              "expected_contribution": "The cheapest observation that can separate H-1 from H-2 without FIELD: deployed runtime behaviour of real arrivals — how many cold players reach the record screen at all, how many record a first decision, the distribution of revealed-decision counts against the MIN_BUCKET_N=30/60 threshold, whether any session ever reached the journey layer, and where import-path players stop. 'Never started' points at the front; 'started and abandoned well short of 60' points at time-to-value.",
+              "authority_ceiling": "Cannot say why anyone stopped; cannot reach R6; drop-off is behaviour, not judgement, and cannot establish that a player would judge a next act worth taking. Silent on the import screen's salience claim.",
+              "uncertainty": "Whether any such instrumentation exists and is currently readable, and whether traffic volume is non-trivial — if arrivals are near zero the observation is uninformative rather than negative, which is pending, not failed.",
+              "expected_delta": {
+                "decision": true,
+                "action": false,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "FIELD",
+              "expected_contribution": "The only authority that can close the live outcome claim ('a player told what the product uniquely does judges the next act worth taking'), and the only way to discharge the standing, never-revalidated debt from n=3 with two users unable to complete the core move. A bounded cold run could also establish whether the core move is still uncompleteable — in which case neither H-1 nor H-2 is the binding constraint and both builds are misallocated.",
+              "authority_ceiling": "Cannot resolve owner intent or product tradeoff; cannot explain unobserved causal mechanism; under any protocol cannot reach CAUSALITY, INTERVENTION or OUTCOME as those are fixed unreachable by the discovery pipeline. Highest cost and highest contamination/reactivity risk of the available resources.",
+              "uncertainty": "Partly premature for H-1 as stated: with no entry frame built, a cold run re-measures a known absence. It is not premature for revalidating the repaired core move, and a paper or prototype frame could make the H-1/H-2 discrimination observable without shipping the build.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": true
+              }
+            }
+          ],
+          "candidate_moves": [
+            {
+              "move": "COLLECT_ENVIRONMENT",
+              "resource": "ENVIRONMENT",
+              "expected_decision_value": "Highest value per unit cost. A funnel reading of real arrivals against the 60-decision threshold separates 'nobody ever begins' (H-1) from 'people begin and abandon before any claim is possible' (H-2) — the exact discrimination the default build presupposes — without paying FIELD, without shipping anything and without contaminating any measured behaviour. A null (too little traffic to read) is pending, not refuting, and costs almost nothing.",
+              "reversibility": "Fully reversible; passive observation of already-deployed state, no product change, no user contact."
+            },
+            {
+              "move": "COLLECT_REPO",
+              "resource": "REPO",
+              "expected_decision_value": "Settles the factual half of H-3 at R1 for near-zero cost: whether the six rates genuinely render at equal salience above the conclusion, and whether existing gates already cover it. Also establishes whether the 'an import cannot produce a calibration gap' statement is already present anywhere as a reason to act, which directly bounds the size of any H-1 build.",
+              "reversibility": "Fully reversible; inspection only."
+            },
+            {
+              "move": "INVOKE_NETA",
+              "resource": "NETA",
+              "expected_decision_value": "High on distinction. The two questions actually at issue are perception questions in Neta's domain: whether visual salience outranks a correct textual conclusion, and whether H-1 and H-2 are two mechanisms or one described twice. A Neta DISCRIMINATE_FIRST or FIELD_STOP with a named field requirement would refute the current default; either outcome changes allocation.",
+              "reversibility": "Fully reversible; peer handoff produces claims, not changes. Neta does not inherit research or field authority by receiving the handoff."
+            },
+            {
+              "move": "USE_EXISTING",
+              "resource": "REPO",
+              "expected_decision_value": "Medium-high and very cheap. If a build proceeds, the honest entry-frame content already exists as an established structural fact — prospective, pre-engine decisions carry a kind of evidence an import structurally cannot supply — requiring no new construct, no progress number, no rating denominator and no detector change, and violating no part of the frozen evidence ceiling. This shrinks H-1 from a programme to a sentence and lowers what must be discriminated before acting.",
+              "reversibility": "Fully reversible; copy-level and gate-checkable, subject to the front door's word-count ratchet which only comes down."
+            },
+            {
+              "move": "WAIT",
+              "resource": "OWNER",
+              "expected_decision_value": "Medium-high. One bounded owner ruling — is the calibration wait an accepted constraint or the thing to attack — largely collapses the H-1/H-2 framing dispute, which is an intent question being carried as if it were an evidence question. Must be bounded to intent and accepted risk; the mentor signal is a signal about a missing user contract, not research authority for a KPI.",
+              "reversibility": "Reversible; an owner ruling can be revisited, but it should be recorded as intent, not converted into evidence that any programme works."
+            },
+            {
+              "move": "COLLECT_FIELD",
+              "resource": "FIELD",
+              "expected_decision_value": "High but partly premature and highest cost. Genuinely warranted for one thing now: revalidating the repaired core move against the standing n=3 failure, since if the core move is still uncompleteable both candidate builds are misallocated. For the H-1/H-2 discrimination it should wait for a prototype or paper frame, otherwise it re-measures a known absence.",
+              "reversibility": "Partially reversible; reactivity and contamination risk, and a small-n run cannot be un-run. Cannot in any case reach OUTCOME or CAUSALITY."
+            },
+            {
+              "move": "BUILD",
+              "resource": "RND",
+              "expected_decision_value": "Currently low relative to cost: H-1 as the default assumes the discrimination this diagnosis says is unbought, and the cheaper moves above can change it. Its value rises sharply and its size shrinks if ENVIRONMENT shows arrivals stopping at the front and USE_EXISTING supplies the content.",
+              "reversibility": "Reversible as scoped (no new progress number, no rating denominator, no detector change), which is the only reason it is admissible as a default at all."
+            },
+            {
+              "move": "USE_SCAFFOLD",
+              "resource": "SCAFFOLD",
+              "expected_decision_value": "Near zero now. The prior paired-lineage run already deposited the relevant synthesis including the single missing-SURFACE finding; the live need is discrimination among four already-bounded readings, not candidate generation. Expect agreement, and agreement is not a delta.",
+              "reversibility": "Fully reversible but non-free in attention; recommend not invoking on this iteration."
+            },
+            {
+              "move": "STOP",
+              "resource": "RND",
+              "expected_decision_value": "H-4 as stated should be partially refuted rather than adopted: FIELD cannot observe a surface that does not exist, so 'only FIELD can move this' is not actionable for the front-half question. H-4 is right about the outcome claim (no build can close it) and wrong about the reversible-intervention claim (OWNER can authorize a reversible frame). Recording that split is itself a distinction worth preserving.",
+              "reversibility": "Fully reversible; a disposition record, not an action."
+            }
+          ],
+          "needs": {
+            "signal_interpretation_ambiguity": true,
+            "multiple_plausible_mechanisms": true,
+            "proxy_substitution_risk": true,
+            "research_to_intervention_transition": true,
+            "broad_reasoning_needed": false,
+            "architecture_alternatives_needed": false,
+            "novel_synthesis_needed": false,
+            "external_research_needed": false,
+            "owner_authority_needed": true,
+            "repo_authority_needed": true,
+            "environment_authority_needed": true,
+            "field_authority_needed": true
+          },
+          "rationale": "The telos is a fit question, not a build question: what process honestly carries a player from an aspiration to a next act they judge worth taking. The stated default (H-1) is a build that presupposes a discrimination nobody has paid for, because H-1 and H-2 differ only in what a stranger does once told what the product uniquely does — an R6 outcome claim owned by FIELD, unreachable by any amount of REPO work, research or copy. Hence external_research_needed is false: the mechanism research is frozen and its own ceiling states CAUSALITY, INTERVENTION and OUTCOME are unreachable by the discovery pipeline under any result and the claim ladder is unchanged by sample size, so more literature cannot move this decision. broad_reasoning_needed, architecture_alternatives_needed and novel_synthesis_needed are false as an ex-ante commitment: the alternative space is already enumerated as four readings each with a reversal condition, and a prior paired run on a different provider lineage already deposited the relevant synthesis and its one missing-SURFACE finding; invoking a scaffold now would most likely reproduce agreement, and agreement is not a delta. If a scaffold invocation later adds a distinction none of the four readings contains, that falsifies this commitment and should be recorded as such. The three cheap authority needs are real and unpaid. ENVIRONMENT is the standout miscalibration: deployed runtime arrival and drop-off against the MIN_BUCKET_N=30/60 threshold is the cheapest admissible observation that can separate 'never begins' from 'begins and abandons', and it has not been consulted while a build is being contemplated. REPO settles H-3's factual half at R1 and should stop H-3 being carried as a rival build at all — it is a representation-versus-reality defect (the visual claim outranking a correct textual conclusion), separable from and non-exclusive with H-1, governed by rules the repository already holds. OWNER settles whether the calibration wait is accepted intent, which is an intent question currently being argued as if it were an evidence question; that invocation carries the sharpest proxy-substitution risk in the task, since 'KPI' and 'goal' can smuggle in a progress number or a rating denominator the evidence ceiling forbids, and the mentor's framing is a signal about a missing user contract, not authority for a correct KPI and not evidence that a prescribed programme works. FIELD is the only resource that can close the outcome claim and carries standing debt (n=3, two unable to complete the core move, repaired, never revalidated, nobody ever observed on the shipped journey layer); it is warranted now for revalidating the core move, and premature for the H-1/H-2 discrimination until there is a frame — even a paper or prototype one — to observe. Finally, the cheapest content move is already held and unrendered: that an import structurally cannot produce a calibration gap, so a prospective pre-engine decision supplies a kind of evidence history cannot. Stating that as a reason to act needs no new construct, no new number and no detector change, which shrinks the candidate build enough that the remaining question becomes whether to observe first, not how much to build. Ex-ante expectation: ENVIRONMENT and REPO change allocation and distinction at low cost; NETA changes the action and the distinction; OWNER changes the decision frame; FIELD is the only path to evidence at the required floor; SCAFFOLD changes nothing on this iteration. The highest remaining uncertainty should end up FIELD-owned, as the success condition requires, rather than being displaced into another build."
+        },
+        "routing": {
+          "resources": [
+            "NETA"
+          ],
+          "fired": {
+            "NETA": [
+              "multiple_plausible_mechanisms",
+              "proxy_substitution_risk",
+              "research_to_intervention_transition",
+              "signal_interpretation_ambiguity"
+            ],
+            "AUTHORITY": [
+              "owner_authority_needed",
+              "repo_authority_needed",
+              "environment_authority_needed",
+              "field_authority_needed"
+            ]
+          },
+          "authority_handoffs": [
+            "ENVIRONMENT",
+            "FIELD",
+            "OWNER",
+            "REPO"
+          ]
+        },
+        "resource_results": [
+          {
+            "resource": "NETA",
+            "summary": "The presenting decision is framed as a choice among four locations for one binding constraint, but the four readings are not competitors at the same level and not resolvable by the same authority, so choosing among them as stated is a mechanism collapse. RAW SIGNAL to preserve verbatim: 'you built feedback, you have not built a KPI'. That phrase carries at least three live mechanisms and must not be allowed to equal one: (a) a missing user contract stating what the product is trying to do for this person, (b) a missing visible unit of progress, (c) an unacceptable cost-to-first-payoff. The current default resolves it to (a) and then converts it further into a placement-and-copy intervention. That is two translations away from the signal, and reading (b) is the dangerous one because the repository already forbids a goal rendered beside a count and the telos forbids rating as a progress unit. Separating the readings: H-1 is an ORIENTATION and PAYOFF claim about what is offered before the machinery, currently at OWNER_SIGNAL only; H-2 is an ACCUMULATION claim about cost over 60 decisions, currently FIELD_REQUIRED and partly INSTRUMENT FRICTION that must not be removed silently; H-3 is a PERCEPTION and TRUST defect on the import screen, and it is the only one of the four whose defining observation is already relayed as an established repository fact, namely that six accuracy rates with their n render at equal salience high on the screen while the non-separation conclusion renders below a ledger and two paragraphs. Ranking H-1 first therefore places the least-evidenced reading above the best-evidenced one. H-3 is also not merely a smaller build: it is the place where the product's own stated discipline, the discipline that distinguishes 'enough decisions and nothing separated' from 'not enough decisions', already breaks on a surface. A set of rates whose differences lie inside their own sampling error, rendered as an ordered list above the sentence denying the ordering, makes a visual claim the text refuses. That is the same family the existing gates already legislate: percentage without denominator, goal beside count, stage number without construct. It is REPO-observable and OWNER-decidable, needs no FIELD to establish the contradiction, and is expressible as one more gate with a positive control. Note the level boundary: 'the ordering renders above the denial' is OBSERVATION; 'the eye has little basis to reject the ranking' is PERCEPTUAL INFERENCE; 'players misread it' is a BEHAVIORAL CLAIM requiring FIELD at R6 and must not be asserted. The largest hazard in the default is proxy substitution inside the proposed frame itself. 'The personal-inference promise' is outcome-shaped: it promises that something recurring specifically in this player's decisions will be found. The instrument cannot guarantee that under any sample size, and the success condition explicitly requires the process to work in the state where no personal pattern is ever found. An entry frame that promises personal inference therefore sells an OUTCOME claim that is unreachable by the discovery pipeline, and it does so on the one screen a cold player meets first. The honest and fully permitted version of the same frame is an exchange rather than a promise, and it is already sitting unused in the constraints: an import cannot produce a calibration gap, because old games carry no confidence stated before the engine spoke. That is a REPO-true statement about a kind of evidence, not about a result, it is the actual separation from Chess.com analysis, Lichess analysis, puzzles and Aimchess, and it has never been said as a reason to act. Framed as evidence type rather than as future finding, the frame needs no FIELD permission to be honest; framed as personal inference, it needs R6 it cannot have. Second hazard in the default: 'an entry frame carrying the player's own aspiration'. A player's stated aspiration in chess is overwhelmingly rating-shaped. The success condition requires every progress construct to name its own unit and none of them to be rating. So the frame has an unresolved structural collision, namely where a rating-shaped aspiration is rendered without becoming a denominator, and the default does not name it. If that question is not answered before the build, the aspiration frame is the most likely route by which rating re-enters as the silent KPI, which is the exact substitution the mentor signal will be read as endorsing. On the transition from signal to intervention: the mentor is OWNER/FIELD flavoured and is explicitly not research authority for the correct KPI, and the frozen mechanism research puts CAUSALITY, INTERVENTION and OUTCOME out of reach. A front-half build is therefore permissible only as BUILD_REVERSIBLE under OWNER intent, with no surface asserting that the frame causes continuation, retention or a next act judged worth taking. That last proposition is H-2's claim, sits at FIELD and R6, and must be DENY for assertion regardless of how well the frame reads. One further premise in the four-way split is untested and cheap to test: H-2 assumes the first session has no payoff because 60 revealed decisions precede any claim. But a single committed decision already produces, at n equals one and with no claim attached, the distance between what the player stated they believed and what was there. Whether that is currently surfaced after commit is a REPO question answerable without field work, and the answer splits H-1 from H-2 directly. If it is surfaced, H-2's premise is weaker than stated and the front-half gap is about naming an existing payoff rather than manufacturing a new one; if it is not surfaced, the cheapest intervention is not an entry frame at all. Any such surface must stay inside the existing laws: silent before commit, no record readings while a decision is open, and framed as belief versus board rather than as the engine's answer, or ownership stops being load-bearing. The condition that outranks all four readings is the field state itself. Three cold users, two of whom could not complete the core move, repaired and never revalidated, and nobody has ever been observed using the shipped journey layer. An entry frame delivers a contract to a screen whose completability is currently unestablished. One field observation answers both questions at once and is the single discriminator worth paying for now: three cold users, no coaching, watched to the first commit, with two things recorded, whether the core move completes after the repair, and, before they touch anything, what they say the product is for in their own words. That second record is the only admissible test of H-1's premise, and it must be an unprompted utterance rather than agreement with a stated frame, because agreement is not confirmation and does not create the discrimination the product exists to produce. Recommended disposition: DISCRIMINATE_FIRST on H-1 and H-2, which remain OWNER_SIGNAL and FIELD_REQUIRED; treat H-3 not as a competing hypothesis but as an already-supported internal-consistency defect eligible for a gate plus positive control under REPO and OWNER without waiting on the field observation; and reject H-4 as stated, because at least one material claim, the contradiction between the import screen's visual and textual claims, does not require FIELD to establish.",
+            "unique_delta": "Five contributions the framing as given does not contain. First, the four hypotheses are re-typed rather than ranked: H-1 and H-2 are OWNER_SIGNAL and FIELD_REQUIRED, H-3 rests on a relayed repository observation, so the default promotes the least-evidenced reading and demotes the best-evidenced one, and H-3 stops being a cheaper alternative and becomes a discovered inconsistency with laws the product already enforces, resolvable at REPO plus OWNER with a gate and positive control and no field debt. Second, the proxy substitution is located inside the proposed intervention rather than elsewhere: 'the personal-inference promise' is outcome-shaped and unreachable under the stated evidence ceiling, while the fully permitted and currently unused substitute is the evidence-type statement that an import cannot produce a calibration gap, which separates the product from every named competitor without predicting any result. Third, a collision the default hides: a frame carrying the player's own aspiration imports a rating-shaped goal into a system whose success condition forbids rating as a progress unit, making the aspiration frame the most likely route by which the mentor's word KPI becomes a literal denominator. Fourth, a REPO-level discriminator that splits H-1 from H-2 without field work, namely whether the post-commit single decision already exposes the stated-belief-versus-board distance at n equals one, which tests H-2's no-first-session-payoff premise directly and is constrained by the existing silent-before-commit and no-readings-while-open laws. Fifth, an independence flag rather than a conclusion: the current default is close to a prior paired run's finding on a different provider lineage, and under the shared kernel that resemblance is not triangulation, so the default should be able to justify itself from the present observables alone. Added to these, the one discriminator recommended, three cold users watched to first commit with the repaired core move revalidated and their unprompted account of what the product is for recorded before they touch anything, is chosen because it simultaneously closes the unrevalidated n equals 3 failure and tests H-1's premise, and because it must capture an unprompted utterance rather than agreement with a proposed frame.",
+            "evidence_refs": [
+              "docs/SHARED_EPISTEMIC_KERNEL.md",
+              "docs/REALITY_AUTHORITY_PERMISSION.md",
+              "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+              "docs/TELOS.md",
+              "prompts/SYSTEM.md",
+              "task.current_state.summary (back half built and gated; front half absent; import screen lists six buckets with accuracy and n at equal salience high on screen, honest non-separation conclusion rendered far below after a ledger and two methodological paragraphs; goal note renders only on the record screen below the readings)",
+              "task.current_state.known_constraints[0] EVIDENCE CEILING (CAUSALITY/INTERVENTION/OUTCOME unreachable; no surface may promise improvement)",
+              "task.current_state.known_constraints[1] TIME TO VALUE IS AN INSTRUMENT CONSTRAINT (60 revealed decisions; >=1786 admissible blitz games; calibration wait not automatically removable friction)",
+              "task.current_state.known_constraints[2] AN IMPORT CANNOT PRODUCE A CALIBRATION GAP (never stated as a reason to act)",
+              "task.current_state.known_constraints[3] OWNERSHIP IS LOAD-BEARING (no engine-answer feed)",
+              "task.current_state.known_constraints[4] REPOSITORY LAWS (LAW 1, LAW 2, R1 percentage/denominator and goal-beside-count, R3 engine silent before commit, front-door word ratchet)",
+              "task.current_state.known_constraints[5] FIELD STATE (n = 3 cold users, two could not complete the core move, repaired, never revalidated; shipped journey layer never observed)",
+              "task.current_state.known_constraints[6] PRIOR PAIRED R&D RUN on a different provider lineage recommending the personal-inference promise before the dashboard machinery with the advancement goal as entry frame",
+              "task.signals[0] OWNER/FIELD mentor Nicolas Bandurek: 'you built feedback, you have not built a KPI' (explicitly not research authority for the correct KPI)",
+              "task.signals[1] REPO: product refuses to estimate an unknown distance and distinguishes 'enough decisions and nothing separated' from 'not enough decisions'",
+              "task.signals[2] REPO: the import screen's own conclusion is correct and rendered last; ordering and salience are the whole concern",
+              "task.signals[3] REPO: action clarity, execution ability, expected payoff, effort and continuation are five different things and no representation collapses them",
+              "task.decision_blocked.statement (H-1, H-2, H-3, H-4)",
+              "task.decision_blocked.current_default (entry frame with personal-inference promise and player aspiration)",
+              "task.decision_blocked.reversal_condition",
+              "task.telos.statement and task.telos.success_condition (every progress construct names its own unit and none is rating; must work in the state where no personal pattern is found; highest remaining uncertainty should be FIELD)"
+            ],
+            "limitations": [
+              "No repository, screenshot, DOM, geometry or deployed environment was inspected in this call. Every statement about the import screen, the record screen, the goal note, the gates and the existing laws is relayed text, so those observations are accepted as reported and not independently REPRODUCED; if the relayed description of salience and ordering is inaccurate, the H-3 finding weakens accordingly.",
+              "Whether the post-commit single-decision belief-versus-board distance is currently surfaced is asserted here as an open REPO question, not an established absence. It must be checked in code before it is used to weaken H-2's premise.",
+              "Neta does not resolve external research validity. The frozen mechanism research, the MIN_BUCKET_N=30 threshold, the >=1786 admissible-games figure, the six-bucket construct and the sampling-error claim underlying 'the types are closer to each other than their own sampling error' are taken as given and are RND authority, not Neta's.",
+              "Neta does not decide architecture doctrine, gate design standards, or whether an additional gate is warranted as an engineering matter; only that the visual-versus-textual contradiction is the same family the existing gates already legislate.",
+              "No FIELD evidence exists here. Nothing in this analysis establishes what an arriving player notices, understands, prefers or does, including whether an entry frame would change continuation. Assertions of that kind remain DENY below FIELD/R6.",
+              "Whether the mentor's framing of managed effort toward a user-selected goal is the right product contract is OWNER authority. Neta constrains how that framing may be rendered without importing rating as a denominator, but does not choose the contract.",
+              "Prioritisation and budget are not settled here. The recommendation separates what needs no field wait from what does, but the owner decides whether to spend the single field observation now and in what order to take H-3 and H-1.",
+              "The seven-lens decomposition used to separate the four hypotheses is a working decomposition, not a validated exhaustive taxonomy, so an active mechanism outside it would not be surfaced by this analysis.",
+              "The resemblance between the current default and the prior paired run on a different provider lineage is flagged as non-independent; this analysis cannot determine whether the default was derived from that finding or arrived at separately."
+            ],
+            "_adapter_meta": {
+              "adapter": "claude_cli_adapter",
+              "resource": "NETA",
+              "transport": "claude CLI --print",
+              "provider": "anthropic",
+              "requested_model": "opus",
+              "served_model": "claude-opus-5",
+              "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+              "uuid": "ecc0bb62-bbcb-46ce-9245-8b0a0acbc92a",
+              "num_turns": 1,
+              "stop_reason": "end_turn",
+              "total_cost_usd": 0.40541550000000004,
+              "context_delivery": {
+                "requested": 4,
+                "delivered": 4,
+                "manifest": [
+                  "- `docs/SHARED_EPISTEMIC_KERNEL.md` delivered (6557 bytes, whole)",
+                  "- `docs/REALITY_AUTHORITY_PERMISSION.md` delivered (6554 bytes, whole)",
+                  "- `docs/AGENT_AUTHORITY_BOUNDARIES.md` delivered (5999 bytes, whole)",
+                  "- `docs/TELOS.md` delivered (4896 bytes, whole)"
+                ]
+              },
+              "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+              "phase": "ANALYZE"
+            }
+          }
+        ],
+        "instruction": "Compare resource deltas against the ex-ante expected_delta commitments, update the blocked decision, choose the cheapest next calibration move, and record what the system learned about future resource allocation. For each invoked resource, report observed_delta by decision/action/reversal/evidence/allocation/distinction. Do not average disagreements away."
+      },
+      "state": "COMPLETE"
+    }
+  ],
+  "synthesis": {
+    "decision_before": "Default H-1: build a front entry frame carrying the player's own aspiration and the personal-inference promise, placed before the machinery, with one next act and its payoff stated; no new progress number, no programme, no rating denominator, no detector change. Diagnosis held ENVIRONMENT (deployed arrival/drop-off against the 30/60 threshold) as the cheapest unpaid observation that could separate H-1 from H-2 before any build, with REPO second, OWNER bounded to intent, FIELD warranted only for revalidating the repaired core move, and SCAFFOLD not worth invoking.",
+    "decision_after": "H-1 as specified is not buildable in its stated content. Its central payload, the personal-inference promise, is outcome-shaped: it promises that something recurring specifically in this player's decisions will be found, which the frozen evidence ceiling places out of reach under any sample size, and the telos success condition explicitly requires the process to work in the state where no personal pattern is ever found. Its second component, an entry frame carrying the player's own aspiration, carries an unnamed structural collision, because a chess player's stated aspiration is overwhelmingly rating-shaped while the success condition forbids rating as a progress unit, making the aspiration frame the most likely route by which the mentor's word KPI re-enters as a literal denominator. The permitted substitute already exists unrendered and needs no FIELD permission: an import cannot produce a calibration gap, because old games carry no confidence stated before the engine spoke, which is a statement about a kind of evidence rather than a prediction of a result and is the actual separation from Chess.com, Lichess analysis, puzzles and Aimchess. Separately, H-3 leaves the four-way race: it is not a cheaper competing build but an already-supported internal-consistency defect of the same family the repository's existing gates legislate, non-exclusive with H-1, resolvable at REPO plus OWNER with a gate and a positive control and no field debt, and it is the only one of the four whose defining observation is already reported as established. H-1 and H-2 remain DISCRIMINATE_FIRST at OWNER_SIGNAL and FIELD_REQUIRED. H-4 is partially refuted as stated, since the import screen's visual-versus-textual contradiction does not require FIELD to establish. The outcome claim proper, that a player told what the product uniquely does judges the next act worth taking, stays DENY below FIELD/R6 and no build closes it. One unpriced premise was exposed: H-2 assumes the first session has no payoff, but a single committed decision already yields, at n=1 and with no claim attached, the distance between stated belief and board; whether that is currently surfaced after commit is REPO-answerable and splits H-1 from H-2 without field work.",
+    "next_move": "COLLECT_REPO, one bounded inspection, before any build and before ENVIRONMENT. Three questions, all R1, all currently relayed rather than observed: (a) whether the post-commit single decision already surfaces the stated-belief-versus-board distance at n=1, which directly tests H-2's no-first-session-payoff premise and is constrained by LAW 1 and R3; (b) the actual ordering, salience and equal-weighting of the six bucket rates against the non-separation conclusion on the import screen, on which the entire promotion of H-3 rests and which no one in this run has verified; (c) whether the structural statement that an import cannot produce a calibration gap is encoded anywhere as a reason to act or only as a methodological note, which bounds the size of any front-half build to a sentence. REPO precedes ENVIRONMENT because Neta's strongest finding is load-bearing on text it self-flagged as uninspected, so verification is now cheaper and more decision-changing than the funnel read; the ENVIRONMENT funnel remains the next observation after it, and the single field observation, three cold users watched to first commit with the repaired core move revalidated and their unprompted account of what the product is for recorded before they touch anything, remains the only discriminator that closes standing field debt and tests H-1's premise together. Do not build the entry frame with the personal-inference promise in it under any of these outcomes.",
+    "resource_deltas": [
+      {
+        "resource": "NETA",
+        "material": true,
+        "unique_delta": "Located the proxy substitution inside the proposed intervention rather than in a downstream authority invocation: the personal-inference promise is an OUTCOME claim unreachable by the discovery pipeline, sold on the first screen a cold player meets, and its fully permitted substitute, the evidence-type statement that an import cannot produce a calibration gap, is already held and unused. Named a collision the default hides, that a rating-shaped player aspiration rendered as an entry frame is the most likely route by which rating returns as a silent denominator against the success condition. Re-typed the four hypotheses by evidence state rather than ranking them, showing the default promotes the least-evidenced reading (OWNER_SIGNAL) above the best-evidenced one, and removed H-3 from the race as an already-supported defect of the same family as the existing percentage-without-denominator, goal-beside-count and stage-number-without-construct gates. Supplied a three-level ladder on the import screen that the framing collapses: the ordering renders above the denial is OBSERVATION, the eye has little basis to reject the ranking is PERCEPTUAL INFERENCE, players misread it is a BEHAVIORAL CLAIM requiring R6. Exposed an untested premise in H-2 answerable at REPO without field work. Flagged that the current default closely resembles a prior paired run on a different provider lineage and that under the shared kernel this resemblance is not triangulation, so the default must justify itself from present observables alone.",
+        "observed_delta": {
+          "decision": "The default build's content was refuted rather than confirmed: H-1 cannot ship with the personal-inference promise or an unexamined aspiration frame; H-3 is reclassified from competing cheaper build to already-supported defect eligible for a gate now; H-4 is partially refuted rather than adopted; H-1 and H-2 are held at DISCRIMINATE_FIRST.",
+          "action": "The next act changed from build-the-frame to three separable acts with different authorities and no shared wait: a bounded REPO check of the post-commit belief-versus-board surface and the import-screen ordering, a gate plus positive control for the import-screen contradiction, and one field observation of three cold users to first commit capturing an unprompted account of what the product is for before they touch anything.",
+          "reversal": "Added reversal conditions the diagnosis did not hold: if the post-commit distance is already surfaced, H-2's premise is weaker than stated and the front-half gap is naming an existing payoff rather than manufacturing one; if an entry frame renders a rating-shaped aspiration as or beside a denominator, it violates the success condition regardless of how well it reads; and the field observation is invalid if it records agreement with a proposed frame rather than an unprompted utterance, since agreement is not confirmation.",
+          "evidence": null,
+          "allocation": "Reordered which authority gets paid and in what order: H-3 moves off the field-dependent queue entirely to REPO plus OWNER, H-1 loses its first-position claim on build budget, and one field observation is argued to be worth paying now because it simultaneously discharges the never-revalidated n=3 core-move failure and tests H-1's premise, against the diagnosis's position that FIELD was premature for the H-1/H-2 discrimination.",
+          "distinction": "Separated an outcome-shaped promise from an evidence-type statement; separated OBSERVATION from PERCEPTUAL INFERENCE from BEHAVIORAL CLAIM on the same screen; separated a hypothesis's evidence state from its rank in the default; separated the three live readings inside the raw mentor signal (missing user contract, missing visible progress unit, unacceptable cost-to-first-payoff) and showed the default resolves to the first and then translates it again into placement and copy; separated lineage resemblance from corroboration."
+        }
+      }
+    ],
+    "learning_records": [
+      {
+        "record": "NETA delivered on decision, action, reversal and distinction as predicted, and returned null on evidence exactly as predicted, confirming that a peer reasoning resource cannot move the evidence dimension. Only REPO, ENVIRONMENT and FIELD can. Future routing should never expect an evidence delta from a peer invocation and should not count its absence as underperformance.",
+        "expected_vs_observed": "match"
+      },
+      {
+        "record": "Allocation was pre-committed as false for NETA and observed true. NETA's value was not confined to discriminating competing mechanisms; it re-typed the hypothesis set by evidence state and thereby changed which authority gets paid first and which hypothesis leaves the race. Route to NETA when a set of candidate readings is being ranked or when a build's own content may contain a claim it cannot support, not only when mechanisms compete.",
+        "expected_vs_observed": "mismatch, in NETA's favour"
+      },
+      {
+        "record": "Proxy-substitution risk was correctly predicted as live but mislocated. The diagnosis placed it in the prospective OWNER invocation, where KPI and goal could smuggle in a progress number. NETA found it already present inside the default build itself, in the personal-inference promise and in the rating-shaped aspiration frame. Lesson: check the proposed intervention's own content for the forbidden claim before checking the authority about to be invoked.",
+        "expected_vs_observed": "mismatch in location, not in presence"
+      },
+      {
+        "record": "Unresolved conflict, preserved rather than averaged. The diagnosis holds FIELD premature for the H-1/H-2 discrimination because a cold run with no frame built re-measures a known absence. NETA holds that one field observation is the single discriminator worth paying now, because the same three users simultaneously revalidate the repaired core move and, through an unprompted account of what the product is for, test H-1's premise without needing a frame to exist. Classification: DECISION_CONFLICT over sequencing and budget, not EVIDENCE_CONFLICT. Both agree the observation is eventually required and that it cannot reach the outcome claim. The ordering is OWNER-owned and is not resolved here.",
+        "expected_vs_observed": "unresolved"
+      },
+      {
+        "record": "Authority ceiling, explicit. The live outcome claim, that a player told what the product uniquely does judges the next act worth taking, is FIELD at R6 and is DENY for assertion under every result of REPO, ENVIRONMENT, RESEARCH or any amount of build. The frozen mechanism research independently fixes CAUSALITY, INTERVENTION and OUTCOME as unreachable by the discovery pipeline, so external_research_needed being false was correct and should not be revisited on this task. A front-half build is admissible only as BUILD_REVERSIBLE under OWNER intent with no surface asserting that the frame causes continuation. The telos success condition requiring the highest remaining uncertainty to be FIELD rather than REPO or RESEARCH is currently satisfied by this state.",
+        "expected_vs_observed": "match"
+      },
+      {
+        "record": "Sequencing correction rather than conflict. The diagnosis named ENVIRONMENT the standout unpaid observation, which stands. But NETA's strongest finding, the promotion of H-3 to an already-supported defect, rests entirely on relayed text about the import screen that nobody in this run inspected, and NETA flagged this itself. Verification of a relayed fact that has become load-bearing for two findings is now cheaper and more decision-changing than the funnel read. Lesson: when a peer output converts relayed description into a supported finding, verifying the description moves ahead of previously ranked observations in the queue.",
+        "expected_vs_observed": "revision"
+      },
+      {
+        "record": "Independence, twice. NETA was served by the same model lineage as this synthesis, so its concurrence with any part of the diagnosis is role-conditioned execution and not triangulation; only its disagreements and the distinctions absent from the diagnosis are load-bearing here, and that is what this record counts. Separately, NETA flagged that the current default closely resembles a prior paired run's finding on a different provider lineage, and that resemblance is likewise not corroboration under the kernel. Neither resemblance may be cited as support for the entry frame.",
+        "expected_vs_observed": "match"
+      },
+      {
+        "record": "SCAFFOLD was pre-committed as zero expected delta and was not invoked, so the commitment is untested rather than validated. Record it as NOT_RUN, not as confirmed. It remains falsifiable on a later iteration where a scaffold surfaces a distinction absent from the enumerated readings; note that on this iteration a peer invocation, not a scaffold, supplied five such distinctions, which is weak evidence that the alternative space was less bounded than the diagnosis asserted.",
+        "expected_vs_observed": "pending"
+      },
+      {
+        "record": "Three of four authority handoffs named in the diagnosis remain unpaid: REPO, ENVIRONMENT and OWNER. Two resource calls remain in budget. The cost of the eventual entry frame has fallen, since the permitted content is one already-held structural sentence requiring no new construct, no progress number, no rating denominator and no detector change; the question genuinely remaining is whether to observe before writing it, not how much to build.",
+        "expected_vs_observed": "match"
+      }
+    ],
+    "stop_or_continue": "CONTINUE",
+    "routing_amendment_proposed": null
+  },
+  "final_state": "COMPLETE",
+  "failure": null
+}

@@ -39,6 +39,7 @@ import {
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
 import {
+  findFindingsBelowTheirNumbers,
   findGoalBesideACount,
   findGoalReadOutsideItsOwner,
   findStageCountReadOutsideTheLedger,
@@ -231,6 +232,12 @@ const unreachedMembers = (roots: string[]): GateResult => {
     "every member of the journey family is called or rendered by a product file",
   );
 };
+
+const findingsBelowTheirNumbers = (roots: string[]) =>
+  fromFindings(
+    findFindingsBelowTheirNumbers(roots),
+    "every reading list is introduced by its own finding, in a finding's register",
+  );
 
 const goalReadOutsideItsOwner = (roots: string[]) =>
   fromFindings(
@@ -939,6 +946,14 @@ export const GATES: Gate[] = [
    * render each thing. These are the containment checks that stop a second file from rendering it
    * at all -- which is how both probes got past the originals without matching a single token.
    */
+  {
+    id: "GATE-FINDING-OUTRANKS-ITS-NUMBERS",
+    rule: "R1",
+    description:
+      "A panel's finding renders before the readings it is about, and never in the provenance register.",
+    run: () => findingsBelowTheirNumbers(["client/src"]),
+    positiveControl: () => findingsBelowTheirNumbers([JOURNEY_FIXTURES]),
+  },
   {
     id: "GATE-GOAL-CONTAINED",
     rule: "R1",

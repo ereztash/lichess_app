@@ -174,6 +174,29 @@ function loadable(fen: string): boolean {
   }
 }
 
+/**
+ * What recording a live decision adds that an imported game cannot, said as a reason to act.
+ *
+ * THE SENTENCE EXISTED TWICE AND WAS A CAVEAT BOTH TIMES. `bucket-absent-note` says the calibration
+ * column is empty in every row; `review-caveat` says it will stay empty until decisions are
+ * recorded. Both are true, both are framed as limitations of what the player just did, and neither
+ * says the thing that makes them interesting: an old game carries no confidence stated before the
+ * engine spoke, so no amount of history can produce this kind of evidence, and one live decision
+ * can.
+ *
+ * IT IS AN EVIDENCE-TYPE CLAIM AND NOT AN OUTCOME CLAIM, which is the whole reason it may be said
+ * at all. It promises nothing about what will be found, holds on the first decision and on the
+ * thousandth, and stays true in the state where no personal pattern is ever found. A promise that
+ * something recurring WILL be found in this player would be an OUTCOME claim, and the frozen
+ * research states that rung is unreachable by this pipeline under any result.
+ *
+ * The reveal already says the same thing about a single decision, in `EVIDENCE_LABEL.process`.
+ * This is that fact at the import's scale, and the two are deliberately worded alike.
+ */
+export const LIVE_DECISION_ADDS =
+  "החלטה שתרשמו מוסיפה מה שהמשחקים האלה לא מחזיקים: ביטחון שהצהרתם לפני שהמנוע דיבר. " +
+  "משחק שכבר שוחק לא יכול לייצר את זה, בשום כמות.";
+
 export interface ImportedBucketReading {
   /** From BUCKETINGS. */
   key: string;

@@ -649,6 +649,10 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         )}
 
         <h4 className="dash-title">לפי סוג ההחלטה</h4>
+
+        {/* The finding before the rows. See `BucketFinding` for which separation it is about. */}
+        <BucketFinding buckets={buckets} />
+
         <ul className="bucket-list">
           {buckets.map((b) => (
             <li key={b.key} className={b.measurable ? "" : "unmeasurable"}>
@@ -795,6 +799,48 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         <CounterfactualPanel reading={reading.counterfactual} />
       </details>
     </section>
+  );
+}
+
+/**
+ * How many of the readable types stand apart from everyone else's, said before the rows.
+ *
+ * ADDED BECAUSE A GATE WRITTEN FOR ANOTHER PANEL FOUND THE SAME SHAPE HERE. Six signed gaps in a
+ * column pull a reader toward "so that one is my weakness" whatever each row says about itself,
+ * and this list had a heading and no conclusion at all.
+ *
+ * IT IS A DIFFERENT SEPARATION FROM THE IMPORT PANEL'S, and the wording says which. There the
+ * question is whether one of the player's own types stands apart from their others; here each row
+ * carries `versusPopulation`, which is whether this player's rate in a type stands apart from
+ * everyone else's in the same type. Summarising the second in the first's words would be a
+ * construct collision of exactly the kind the rows themselves are careful about.
+ *
+ * ONLY THE COMPARABLE ROWS ARE IN THE DENOMINATOR. A type under the floor has no rate to compare,
+ * and counting it would make the fraction a statement about how much the player has played rather
+ * than about what was found.
+ */
+function BucketFinding({ buckets }: { buckets: RecordReading["buckets"] }) {
+  const comparable = buckets.filter((b) => b.measurable && b.versusPopulation !== null);
+  if (comparable.length === 0) {
+    return (
+      <p className="bucket-finding">
+        אף סוג עוד לא נקרא מול האוכלוסייה: לכך צריך {MIN_BUCKET_N} החלטות בסוג.
+      </p>
+    );
+  }
+  const separated = comparable.filter((b) => b.versusPopulation !== null && b.versusPopulation.separated);
+  if (separated.length === 0) {
+    return (
+      <p className="bucket-finding">
+        אף אחד מ־{comparable.length} הסוגים שנקראו לא נבדל מהאוכלוסייה. ההפרשים למטה קטנים מטעות
+        הדגימה שלהם, ולכן הנמוך שבהם אינו ממצא.
+      </p>
+    );
+  }
+  return (
+    <p className="bucket-finding">
+      {separated.length} מתוך {comparable.length} הסוגים שנקראו נבדלו מהאוכלוסייה. השאר לא.
+    </p>
   );
 }
 

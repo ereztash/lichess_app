@@ -841,9 +841,40 @@ const INDEX = `${ROOT}/index.html`;
  * module now takes a structural type of the two fields a due-count reads and imports nothing.
  *
  * 770 LEAVES 0.9 kB. The entry ceilings are untouched at 677 and 212, with 0.3 kB and 0.1 kB.
+ *
+ * ---
+ *
+ * 677 -> 678 and 770 -> 771: the import panel's finding moved above the numbers it denies. The
+ * gzip ceiling did not fire and keeps its number.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              676.7      211.9       769.1
+ *     + the finding above its working      677.4      212.0       770.1   +0.7 / +0.1 / +1.0
+ *     + the scope floor the import lost     677.4      212.0       770.2   +0.0 / +0.0 / +0.1
+ *
+ * THE GZIP CEILING HAS NO HEADROOM LEFT AND THAT IS SAID HERE RATHER THAN DISCOVERED LATER. 212.0
+ * against 212 passes and the next tenth of a kilobyte in the entry does not. The reading stays at
+ * 212 because nothing in this change earned a raise: the doctrine is that a ceiling moves only when
+ * a named move is attributed to it, and `ok` at the line is not an attribution.
+ *
+ * WHAT IT BOUGHT, measured rather than argued. On a 390x844 phone the six bucket rates laid out at
+ * y=1363 through y=1698 in the largest type on the panel, and the sentence saying they do not
+ * separate rendered at the bottom through `NotMeasured`, which is `.value-provenance`: the small
+ * grey register reserved for where a number came from. The finding was smaller and greyer than
+ * every number it was about, ~800px below them, after a rule that reads as the end of the content.
+ * The 0.7 kB is that sentence moving, plus the evidence-type reason to act that the not-separable
+ * state previously had no room for.
+ *
+ * THREE ATTEMPTS TO AVOID THIS RAISE FAILED AND ARE RECORDED SO NOBODY REPEATS THEM. Lazy-loading
+ * `ImportDiagnosticPanel` from `Record.tsx` cost 0.3 kB and saved nothing, because `Home.tsx`
+ * imports `SavedReadingOverlay` from the same module and holds it in the entry. Lazy-loading that
+ * too cost another 0.2 kB and still saved nothing. Each `lazyChunk` wrapper has weight, and three
+ * wrappers around a module that something else keeps resident is pure cost. Both were reverted.
+ *
+ * 678 AND 771 LEAVE 0.6 kB AND 0.9 kB.
  */
 
-const ENTRY_RAW_KB = 677;
+const ENTRY_RAW_KB = 678;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 212;
@@ -1032,7 +1063,7 @@ const ENTRY_GZIP_KB = 212;
  * number that ships is 778, and it leaves 0.5 kB.
  */
 
-const INITIAL_RAW_KB = 770;
+const INITIAL_RAW_KB = 771;
 
 interface Asset {
   name: string;

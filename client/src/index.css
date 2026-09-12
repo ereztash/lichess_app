@@ -948,10 +948,29 @@ button:not(:disabled) {
  * Stating an invariant once is not the same as hiding it -- the note is the first thing above
  * the table and it says "in every row" in as many words.
  */
-.import-diagnostic .bucket-list li,
-.import-diagnostic .bucket-list li.unmeasurable {
+.import-diagnostic .bucket-list li {
   grid-template-columns: minmax(0, 1fr) auto;
   row-gap: var(--s1);
+}
+/*
+ * THE FLOOR THE DASHBOARD ALREADY WON, LOST AGAIN BY A MORE SPECIFIC SELECTOR.
+ *
+ * `.bucket-list li.unmeasurable` above gives the scope `minmax(7.5rem, auto)` precisely because
+ * `minmax(0, 1fr) auto` sizes the value track from its content and lets the label shrink to
+ * nothing. This block listed `li.unmeasurable` alongside `li` and handed the shape straight back:
+ * one selector more specific, same two tracks, same collapse, on the panel whose reasons are the
+ * LONGEST on either screen -- "אי אפשר למדוד" plus a count and a floor.
+ *
+ * Measured at 390px before this rule: "החלטות אחרי יותר משתי דקות" laid out 74px wide, under the
+ * 90px floor `tests/layout/bucket-row.layout.test.tsx` holds the dashboard to. Nothing was red,
+ * because that file measures `RecordDashboard` and this is the other consumer of the same CSS.
+ * `tests/layout/import-row.layout.test.tsx` now measures this one.
+ *
+ * The row keeps its two columns; only the order and the floor come back, which is the whole fix
+ * the dashboard's comment describes.
+ */
+.import-diagnostic .bucket-list li.unmeasurable {
+  grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr);
 }
 /*
  * Provenance, shown only on a reading reopened from storage. Quiet by design: it is the source
@@ -1051,6 +1070,34 @@ button:not(:disabled) {
 .bucket-absent-note strong {
   color: var(--ink);
   font-weight: 700;
+}
+/* ── The import panel's finding, and why it is typed like a finding ──────────────────────────
+   It used to render through `NotMeasured`, which is `.value-provenance`: the small grey register
+   this codebase reserves for where a number came from. So the sentence saying the numbers do not
+   separate was smaller and greyer than the numbers, and ~800px below them on a phone. A finding
+   is not provenance. It sits at the panel's heading size, above the working. */
+.import-finding {
+  margin: 0 0 var(--s4);
+  padding-block-end: var(--s3);
+  border-block-end: 1px solid var(--hairline);
+  font-size: var(--panel-title);
+  line-height: 1.4;
+}
+/* The conclusion carries the weight; the reason to act is body text under it, not a footnote.
+   `--panel-body` is the floor for anything that is a sentence, and this is two sentences. */
+.import-finding__next {
+  display: block;
+  margin-block-start: var(--s2);
+  font-size: var(--panel-body);
+  line-height: 1.5;
+  color: var(--muted);
+}
+/* A panel-level conclusion above a list of readings. Body register and not provenance: it is the
+   finding, not a note about where the numbers came from. */
+.bucket-finding {
+  margin: 0 0 var(--s3);
+  font-size: var(--panel-body);
+  line-height: 1.5;
 }
 .import-observation {
   margin-top: 10px;
