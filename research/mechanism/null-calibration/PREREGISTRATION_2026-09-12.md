@@ -143,3 +143,74 @@ specified in §6 and the schedule changes — not the design.
 `FP2200 <= 0.10` with `FP450` at a similar level. That would mean the instrument does not
 manufacture passes at 2200 games, and that the power-artifact reading — the one this document was
 written to test, and the one its author currently believes — is wrong.
+
+---
+
+# AMENDMENT 1 — 2026-09-12, same day, before any null was run here
+
+**H0 is withdrawn. It was already tested and refuted by work I had not seen when §1-§12 above were
+written.**
+
+## What I did not know
+
+`research/mechanism/replication100/completion_gate/` reached this branch after the sections above
+were committed. It contains a within-game permutation null over both stages, 200 permutations per
+member per discovery file, and its result answers this study's primary question:
+
+| | |
+|---|---|
+| pass rate at the `z = 3.5` bar under permutation | **3 of 4800 = 0.06%** |
+| null median | ~0.85, the expected maximum of three standard normal draws, and three frozen candidates is what the search returns |
+| corpus size 1,810 -> 14,766 VALIDATE rows | **null does not move** |
+
+Against §5's decision rule, `FP2200 ~= 0.0006` falls in the branch `FP2200 <= 0.10 and
+FP2200 - FP450 <= 0.10`, which this document declared in advance to mean **H1 supported**. The
+judge is not permissive and the statistic is correctly standardised. That `z` grows as `sqrt(n)` in
+the presence of a real effect is ordinary behaviour of a test statistic, not a defect.
+
+## The error, named
+
+§1 above read the perfect confound between `RESIDUAL_POWERED` and window 2200, plus the steep rise
+of `z` with `n_in`, as evidence that a fixed absolute bar is in substance an n-dependent
+effect-size bar. That reading is wrong, and it is worth recording that the completion gate reached
+it first, tested it directly, and withdrew it — before I reproduced it independently from the same
+artifacts. Two analysts making the same inference from the same numbers is not corroboration; the
+permutation null is what settled it, and only one of us had run it.
+
+What the red flag caught is neither a permissive judge nor a weak baseline. It is that
+`RESIDUAL_POWERED` is by definition the subgroup with the power to detect, and a threshold was
+placed on its *detection rate* as though statistical power were not a variable. **The defect is in
+the flag's specification, not in the instrument.**
+
+## What survives, and it is only one thing
+
+Coverage. The completion gate states its own limit: the null covers the members whose scored
+decisions were present in that environment — **three** of the 25 `RESIDUAL_POWERED`. "It does not
+establish that all 17 are."
+
+This environment holds scored decisions for **all 25** of them (22 with a feature table already
+built; the remaining 3 rebuild from `scored/` in about 20 s each via `pipeline/features.py`).
+
+## The study, as narrowed
+
+- **Question.** Do all 25 `RESIDUAL_POWERED` members reproduce their committed class against their
+  own permutation null, or only the three already tested?
+- **Instrument.** `completion_gate/scripts/null_permutation.py`, unmodified. Reuse over rebuild: a
+  second instrument written for the same question by the same author is one evidence family, not
+  two. The `plant.py` design in §7 above is withdrawn for this question.
+- **One execution note, not a code change.** That script hardcodes `/home/user/lichess_app`. It is
+  run here behind a container symlink to the mount point; the file is not edited and no hash moves.
+- **Endpoint.** Per member: observed `resid_wg_z` on the POP stage, its null distribution over 200
+  permutations, the permutation p, and whether the committed class reproduces.
+- **Decision rule.** If all 25 reproduce, the cohort's 17 detections stand as detections. If any
+  member's committed class fails to reproduce against its own null, that member is a defect to
+  record — not a reason to change any threshold.
+- **Measured cost.** 10.6 s per permutation-file, measured on `superchango99` through the script
+  itself: **~1.2 h per member, ~29.5 h for 25**, single-threaded, resumable per member.
+
+## What has not changed
+
+The replication's `UNDETERMINED` verdict is final and nothing here revises it. No threshold,
+vocabulary, bar, or class definition may move because of anything found here. The cohort remains
+discovery-contaminated for this question, per §9: it supplies the inputs and may not confirm the
+answer.
