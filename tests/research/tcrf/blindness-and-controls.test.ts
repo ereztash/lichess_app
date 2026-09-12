@@ -152,6 +152,8 @@ describe("C2: the donor swap", () => {
         target_structure_mentioned: t.topology_condition === "present",
         target_structure_referenced: true,
         target_telos_linked: false,
+        named_elements: ["e5"],
+        predicate_arity: "two_place",
         coder_uncertain: false,
         coder_comment: t.trial_id,
       } satisfies CodedResponse,

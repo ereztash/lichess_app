@@ -47,6 +47,8 @@ const OUTPUT = "research/tcrf/stimuli/PRIMARY_V1.json";
 interface Candidate {
   template_id: string;
   family: StimulusPair["family"];
+  /** Omitted on records written before Amendment 1, which were all affordance templates. */
+  purpose?: StimulusPair["purpose"];
   base_fen: string;
   present_fen: string;
   disrupted_fen: string;
@@ -77,6 +79,7 @@ function derive(candidate: Candidate, sha: string | null): StimulusPair {
     !fieldDisrupted.includes(candidate.target_relation);
   return {
     ...candidate,
+    purpose: candidate.purpose ?? "AFFORDANCE_TEST",
     invariants_present: computeInvariants(candidate.present_fen, candidate.target_affordance_present),
     invariants_disrupted: computeInvariants(
       candidate.disrupted_fen,
@@ -160,7 +163,7 @@ async function main() {
 
   const verdict = validateManifest(manifest);
   for (const { set, pair, violations } of entries) {
-    process.stdout.write(`\n${pair.template_id} [${pair.family}] -> ${set}\n`);
+    process.stdout.write(`\n${pair.template_id} [${pair.family}/${pair.purpose}] -> ${set}\n`);
     process.stdout.write(
       `  diff ${pair.graph_diff.size} (non-target ${pair.non_target_edit_count}), ` +
         `relocations ${pair.piece_relocations}, ` +

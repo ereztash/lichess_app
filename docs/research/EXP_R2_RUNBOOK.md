@@ -1,5 +1,11 @@
 # EXP-R2 runbook — recruitment to verdict
 
+> **PHASES 2 TO 5 ARE PAUSED BY [`EXP_R2_AMENDMENT_1.md`](./EXP_R2_AMENDMENT_1.md) (2026-09-12).**
+> Do not recruit, do not author stimuli at scale, do not start the language rollout. The next step is
+> in the amendment §4 and the pilot's §7, not in Phase 1 below. Phase 0 and Phase 1's authoring rules
+> still apply, with one addition that outranks them: a pair destined for R2-A must carry a
+> discriminating element, which is the manipulation-class rule.
+
 **Status: THE SEQUENCE ANOTHER RESEARCHER FOLLOWS.** Every step names what is run, what must be true
 before the next step, and which stop code fires when it is not. A step that cannot be completed is a
 stop, not a thing to work around.

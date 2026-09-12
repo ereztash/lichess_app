@@ -1,5 +1,11 @@
 # TCRF construct audit — what survived an adversarial review, and what did not
 
+> **A-2 WAS RESOLVED AND A LARGER FINDING FOUND UNDERNEATH IT.** See
+> [`EXP_R2_AMENDMENT_1.md`](./EXP_R2_AMENDMENT_1.md): the value tension is real, and the prior problem
+> is that the frozen manipulation cannot tell a relational representation from a per-piece one in two
+> of the four families. §4's "simpler constructs" table below understated the risk; the pilot measured
+> it.
+
 **Status: REVIEW OF A RESEARCH CANDIDATE.** This audits
 [`TELOS_CONDITIONED_RESOURCE_FIELD_SPEC.md`](./TELOS_CONDITIONED_RESOURCE_FIELD_SPEC.md) against
 [`EXP_R2_RESOURCE_FIELD_PREREG.md`](./EXP_R2_RESOURCE_FIELD_PREREG.md) and against what the

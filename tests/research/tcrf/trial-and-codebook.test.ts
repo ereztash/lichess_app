@@ -23,6 +23,8 @@ const coded = (patch: Partial<CodedResponse> = {}): CodedResponse => ({
   target_structure_mentioned: true,
   target_structure_referenced: true,
   target_telos_linked: false,
+  named_elements: ["e1", "e5"],
+  predicate_arity: "two_place",
   coder_uncertain: false,
   coder_comment: "",
   ...patch,
@@ -120,7 +122,11 @@ describe("the polarity rule between the primary and secondary coded variables", 
   });
 
   it("allows a response coded with nothing at all, and requires it to name no first level", () => {
-    expect(codingContradictions(coded({ levels: [], first_level: null }))).toEqual([]);
+    expect(
+      codingContradictions(
+        coded({ levels: [], first_level: null, named_elements: [], predicate_arity: "none" }),
+      ),
+    ).toEqual([]);
     expect(codingContradictions(coded({ levels: ["RELATION"], first_level: null }))).toContain(
       "levels were assigned but none was recorded as first",
     );
@@ -134,6 +140,8 @@ describe("the polarity rule between the primary and secondary coded variables", 
           first_level: "OTHER_UNCLASSIFIED",
           target_structure_mentioned: false,
           target_structure_referenced: false,
+          named_elements: [],
+          predicate_arity: "none",
         }),
       ),
     ).toEqual([]);

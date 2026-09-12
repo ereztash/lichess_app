@@ -107,6 +107,36 @@ export const STOP_CONDITIONS: readonly StopCondition[] = [
   },
   {
     /*
+     * ADDED BY AMENDMENT 1, AND IT NOW OUTRANKS EVERY CODE BELOW IT.
+     *
+     * The frozen §12 list assumes the experiment is worth running and asks how it might fail. The
+     * stimulus pilot found a prior question: for two of the four families, the relational account
+     * and a per-piece account predict the SAME report, so no sample size distinguishes them. A
+     * family in that state is not a weak arm of the study, it is an arm that cannot answer.
+     */
+    code: "STOP-R2-CONSTRUCT",
+    prereg_code: null,
+    condition:
+      "for a given family, no admissible stimulus makes the relational account predict an observation the strongest simpler account does not",
+    consequence: "that family does not go to human participants",
+    permitted_response:
+      "drop the family, or change the MANIPULATION CLASS and re-run the identifiability check. Recruiting to distinguish models that make the same prediction is the one thing forbidden",
+  },
+  {
+    /*
+     * THE STUDY-LEVEL VERSION, AND A PASS THROUGH IT IS A RESULT RATHER THAN A SETBACK. TCRF does
+     * not earn a human experiment by being computable; it earns one by predicting something else
+     * does not.
+     */
+    code: "STOP-R2-CONSTRUCT-IDENTIFIABILITY",
+    prereg_code: null,
+    condition: "no family at all clears STOP-R2-CONSTRUCT",
+    consequence: "EXP-R2 is not run on humans",
+    permitted_response:
+      "report it as a finding. A construct that cannot be told apart from a simpler one is not a construct that needs measuring, and saying so is the successful outcome",
+  },
+  {
+    /*
      * §12's `STOP-R2-F` HAS NO SHORT NAME IN THIS TASK'S LIST AND IS KEPT ANYWAY, because it is the
      * one that catches the instrument inventing its own subject: an effect that appears only when
      * the interface names the relation is an effect the interface made.

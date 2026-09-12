@@ -1,5 +1,13 @@
 # EXP-R2 execution plan — the decision, the claims, the alternatives, and the architecture
 
+> **SUPERSEDED IN PART BY [`EXP_R2_AMENDMENT_1.md`](./EXP_R2_AMENDMENT_1.md) (2026-09-12).** The open
+> decision in §5 below has been taken: the owner chose the pre-recruitment amendment route, and a
+> prior question was found underneath it. Two of the four families cannot identify the construct
+> under the frozen manipulation at all, so recruitment, stimulus authoring at scale and the language
+> rollout are paused. Read the amendment and
+> [`EXP_R2_IDENTIFIABILITY_PILOT.md`](./EXP_R2_IDENTIFIABILITY_PILOT.md) before acting on anything
+> here. Sections 1 to 4 and 6 stand unchanged.
+
 **Status: EXECUTION ARCHITECTURE FOR A FROZEN DESIGN.** This plan implements
 [`EXP_R2_RESOURCE_FIELD_PREREG.md`](./EXP_R2_RESOURCE_FIELD_PREREG.md). It does not amend it.
 Where the frozen text left something open, this plan says what was decided, where the decision

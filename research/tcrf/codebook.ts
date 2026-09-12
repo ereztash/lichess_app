@@ -41,8 +41,13 @@
  */
 import { z } from "zod";
 
-/** Bumped on any change to the levels, the rules or the polarity definition. §5 freezes it. */
-export const CODEBOOK_VERSION = 1;
+/**
+ * Bumped on any change to the levels, the rules or the polarity definition. §5 freezes it.
+ *
+ * v2 adds `named_elements` and `predicate_arity`, the two variables Amendment 1's identifiability
+ * argument rests on. v1 coding is not comparable and is not backfilled.
+ */
+export const CODEBOOK_VERSION = 2;
 
 /**
  * §8's six levels. No level is superior to another and the order is not a ranking.
@@ -106,6 +111,36 @@ export const codedResponseSchema = z.object({
   target_telos_linked: z.boolean(),
 
   /**
+   * THE ELEMENTS THE RESPONSE ACTUALLY NAMES, and the reason this is a list of squares rather than
+   * a verdict is the whole point of Amendment 1.
+   *
+   * The identifying question is whether a participant named an element whose own description is
+   * IDENTICAL in both arms -- an element the object-local account has no reason to make anybody
+   * mention. Asking a coder that question directly would hand them the manipulation: they would
+   * have to be told which elements those are, which is the condition. So the coder records only
+   * what the response refers to, in the response's own terms mapped to squares where that is
+   * unambiguous, and the analysis intersects it with the per-template set computed by
+   * `research/tcrf/identifiability.ts`. The theory-laden step happens after blindness has done its
+   * work, not inside it.
+   *
+   * An element named without a square -- "the pawn in front of the king" -- is recorded as written.
+   * Coders do not resolve chess references they are unsure of; unresolved entries are reported.
+   */
+  named_elements: z.array(z.string().max(60)).max(20),
+  /**
+   * How many things the response's main assertion is ABOUT. §9's representation levels say what
+   * KIND of unit was used; this says how many places the predicate has.
+   *
+   * `one_place`     a property of one thing: "the knight is hanging"
+   * `two_place`     a relation between two: "the rook is not covering the knight"
+   * `higher_order`  a structure over three or more: "the pawn is holding both knights"
+   *
+   * CODEABLE WITHOUT KNOWING THE CONDITION, which is why it is here and not derived later. It is
+   * the second identifying variable: an object-local representation has no reason to produce
+   * two-place or higher-order predicates about elements that did not change.
+   */
+  predicate_arity: z.enum(["none", "one_place", "two_place", "higher_order"]),
+  /**
    * The coder's own confidence, kept because §8's adjudication needs to know where to look.
    *
    * A CODER WHO IS UNSURE HAS SAID SOMETHING, and a scheme that forces a confident 0 or 1 throws it
@@ -140,6 +175,17 @@ export function codingContradictions(coded: CodedResponse): string[] {
   }
   if (coded.target_telos_linked && !coded.target_structure_referenced) {
     out.push("a telos is linked to a target structure the response never referenced");
+  }
+  if (coded.predicate_arity === "none" && coded.named_elements.length > 0) {
+    out.push("elements were named while the response was coded as asserting nothing about them");
+  }
+  if (coded.predicate_arity === "higher_order" && coded.named_elements.length < COALITION_ELEMENT_THRESHOLD) {
+    out.push(
+      `a higher-order predicate was coded over fewer than ${COALITION_ELEMENT_THRESHOLD} named elements`,
+    );
+  }
+  if (coded.levels.includes("COALITION_MOTIF") && coded.predicate_arity === "one_place") {
+    out.push("a coalition was coded from a one-place predicate");
   }
   if (coded.codebook_version !== CODEBOOK_VERSION) {
     out.push(

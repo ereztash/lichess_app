@@ -29,6 +29,21 @@ import { RELATION_TYPES, STIMULUS_FAMILIES, DETECTOR_VERSIONS } from "./relation
 /** Bumped when the meaning of any field here changes. Recorded on every trial. */
 export const STIMULUS_SCHEMA_VERSION = 1;
 
+/**
+ * WHAT A TEMPLATE IS FOR, and it is two different things after Amendment 1.
+ *
+ * `AFFORDANCE_TEST` is the original design: the pair exists so that `target_affordance_selected`
+ * has a positive case and H2 has an outcome. `IDENTIFIABILITY_TEST` is what the amendment adds: the
+ * pair exists so that the relational account predicts an observation the object-local account does
+ * not, and its primary outcome is what the participant NAMES, not which move they pick.
+ *
+ * THE TWO CARRY DIFFERENT ADMISSION RULES, which is why this is a field and not a comment. An
+ * identifiability template with no affordance is fine and an affordance template with no
+ * discriminating element is fine; the reverse of each is not. `validate-stimulus.ts` branches on it.
+ */
+export const STIMULUS_PURPOSES = ["AFFORDANCE_TEST", "IDENTIFIABILITY_TEST"] as const;
+export type StimulusPurpose = (typeof STIMULUS_PURPOSES)[number];
+
 export const TOPOLOGY_ARMS = ["present", "disrupted"] as const;
 export type TopologyArm = (typeof TOPOLOGY_ARMS)[number];
 
@@ -101,6 +116,8 @@ export const stimulusPairSchema = z.object({
   // ---- hand-authored ----
   template_id: z.string().regex(/^[A-Z]{2}-\d{2}$/),
   family: z.enum(STIMULUS_FAMILIES),
+  /** Defaulted so records written before Amendment 1 keep parsing as what they were. */
+  purpose: z.enum(STIMULUS_PURPOSES).default("AFFORDANCE_TEST"),
   base_fen: fen,
   present_fen: fen,
   disrupted_fen: fen,

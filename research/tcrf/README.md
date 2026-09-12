@@ -22,6 +22,10 @@ npm run gates && npm run gates:controls
 derived file is regenerated, never edited: every field in it is recomputed by
 `GATE-TCRF-STIMULUS` and compared against the positions it claims to describe.
 
-**The current manifest is a feasibility pilot, not a stimulus set.** Eight candidate pairs, none
-reviewed, `STOP-R2-STIMULUS` would fire at recruitment. What it establishes is in
+**Amendment 1 (2026-09-12) paused recruitment.** See
+[`docs/research/EXP_R2_AMENDMENT_1.md`](../../docs/research/EXP_R2_AMENDMENT_1.md) and
+[`docs/research/EXP_R2_IDENTIFIABILITY_PILOT.md`](../../docs/research/EXP_R2_IDENTIFIABILITY_PILOT.md).
+`identifiability.ts` is the module that forced it.
+
+**The current manifest is a feasibility and identifiability pilot, not a stimulus set.** Thirteen candidate pairs, none reviewed, `STOP-R2-STIMULUS` would fire at recruitment. What it establishes is in
 [`docs/research/TCRF_CONSTRUCT_AUDIT.md`](../../docs/research/TCRF_CONSTRUCT_AUDIT.md) A-2 and A-4.

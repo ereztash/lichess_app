@@ -37,6 +37,11 @@ import {
 } from "../../../research/tcrf/stop-conditions";
 import { traceDrift, type ResearchTrace } from "../../../research/tcrf/trace";
 import { DETECTOR_VERSIONS } from "../../../research/tcrf/relations";
+import { CODEBOOK_VERSION } from "../../../research/tcrf/codebook";
+import { ANALYSIS_PLAN_VERSION } from "../../../research/tcrf/analysis/plan";
+import { LANGUAGE_VERSION } from "../../../research/tcrf/probe-wording";
+import { TRIAL_PROTOCOL_VERSION } from "../../../research/tcrf/trial";
+import { STIMULUS_SCHEMA_VERSION } from "../../../research/tcrf/stimulus";
 
 const root = resolve(__dirname, "../../..");
 const manifest = stimulusManifestSchema.parse(
@@ -188,13 +193,18 @@ describe("stop codes and the verdict matrix", () => {
 describe("provenance drift is reported per field", () => {
   const trace: ResearchTrace = {
     git_sha: "abc1234",
-    protocol_version: 1,
+    /*
+     * READ FROM THE CONSTANTS, NOT WRITTEN AS LITERALS. This test is about `traceDrift` reporting
+     * per field; a hard-coded 1 here turns every legitimate version bump into a red test about
+     * something else, which is how a test stops being about its own subject.
+     */
+    protocol_version: TRIAL_PROTOCOL_VERSION,
     stimulus_version: 1,
-    stimulus_schema_version: 1,
+    stimulus_schema_version: STIMULUS_SCHEMA_VERSION,
     detector_versions: { ...DETECTOR_VERSIONS },
-    language_version: 1,
-    codebook_version: 1,
-    analysis_plan_version: 1,
+    language_version: LANGUAGE_VERSION,
+    codebook_version: CODEBOOK_VERSION,
+    analysis_plan_version: ANALYSIS_PLAN_VERSION,
     engine_identity: "Stockfish 18 Lite WASM",
     engine_options: { limit: "nodes 2000000" },
     randomisation_seed: "seed-1",
