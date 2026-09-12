@@ -6,7 +6,8 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `claude/ux-ui-analysis-v6ao5u`.
-* Commit: `__SHA__`.
+* Commit: `4c395637cd274c5faffb29ebb8429bfdac358eb1`. The commit that stamps this line into this file is its child and changes
+  nothing else, so the built bundle is the same bytes either way.
 * What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
   repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
