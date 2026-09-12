@@ -27,8 +27,29 @@ def _acc_threshold():
     return ACCURATE_WIN_PROBABILITY_LOSS
 
 
-def load_decisions(path: str, corpus: str | None = "erez281") -> pd.DataFrame:
+AUTO_CORPUS = "__auto__"
+
+
+def load_decisions(path: str, corpus: str | None = AUTO_CORPUS) -> pd.DataFrame:
+    """Load a decision table.
+
+    GENERALISED (infrastructure): `corpus` used to default to the literal "erez281". It now
+    defaults to AUTO_CORPUS, which selects the file's single corpus when there is exactly one and
+    refuses to guess when there is more than one. On the frozen erez281 table (one corpus,
+    "erez281") that selects exactly the same rows the old default did; `corpus=None` (the
+    population call sites) still means "keep every corpus".
+    """
     df = pd.read_parquet(path)
+    if corpus == AUTO_CORPUS:
+        if "corpus" in df.columns:
+            labels = sorted(df["corpus"].dropna().unique())
+            if len(labels) > 1:
+                raise ValueError(
+                    f"{path} holds {len(labels)} corpora {labels}; pass corpus=<label> or corpus=None"
+                )
+            corpus = labels[0] if labels else None
+        else:
+            corpus = None
     if corpus is not None and "corpus" in df.columns:
         df = df[df["corpus"] == corpus].copy()
     df["err"] = 1 - df["y_accurate"]

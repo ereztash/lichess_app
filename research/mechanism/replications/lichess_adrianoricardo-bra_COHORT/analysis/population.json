@@ -1,0 +1,83 @@
+{
+ "region": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+ "frame": "VALIDATE",
+ "population": {
+  "n": 34794,
+  "games": 600,
+  "sides": 1200,
+  "base_err": 0.14439271138702076,
+  "raw": {
+   "n_in": 8136,
+   "n_out": 26658,
+   "p_in": 0.2321779744346116,
+   "p_out": 0.11760072023407607,
+   "diff": 0.11457725420053554,
+   "se": 0.006014728173836747,
+   "z": 19.049448435414103,
+   "games_in": 598
+  },
+  "resid": {
+   "resid_in": 0.045269237692925096,
+   "resid_out": -0.013776229638433947,
+   "diff": 0.05904546733135904,
+   "z": 10.420903457023696,
+   "n_in": 8136
+  }
+ },
+ "focal": {
+  "corpus": "lichess:adrianoricardo-bra",
+  "player_keys": [
+   "adrianoricardo-bra"
+  ],
+  "n": 2792,
+  "raw": {
+   "n_in": 667,
+   "n_out": 2125,
+   "p_in": 0.2653673163418291,
+   "p_out": 0.12941176470588237,
+   "diff": 0.13595555163594672,
+   "se": 0.02066748872114292,
+   "z": 6.578232772754034,
+   "games_in": 88
+  },
+  "resid_under_population_baseline": {
+   "resid_in": 0.1034799033812655,
+   "resid_out": 0.005822602025726806,
+   "diff": 0.0976573013555387,
+   "z": 4.912939022565777,
+   "n_in": 667
+  }
+ },
+ "leakage_guard": {
+  "population_rows_before": 34794,
+  "population_rows_after": 34794,
+  "focal_rows_removed": 0,
+  "focal_corpus": "lichess:adrianoricardo-bra",
+  "focal_keys": [
+   "adrianoricardo-bra"
+  ]
+ },
+ "per_side": {
+  "n_sides": 433,
+  "elev_mean": 0.05415127294239455,
+  "elev_sd": 0.1518036600364149,
+  "elev_q": {
+   "0.05": -0.18905266455895556,
+   "0.25": -0.043576549080054955,
+   "0.5": 0.04718218141257548,
+   "0.75": 0.15205232451775874,
+   "0.95": 0.305035227330574
+  },
+  "focal_elev": 0.0976573013555387,
+  "focal_percentile": 0.6443418013856813,
+  "raw_q": {
+   "0.05": -0.12596491228070172,
+   "0.25": 0.0,
+   "0.5": 0.09722222222222221,
+   "0.75": 0.2,
+   "0.95": 0.36363636363636365
+  },
+  "focal_raw_elev": 0.13595555163594672,
+  "focal_raw_percentile": 0.6120092378752887
+ }
+}

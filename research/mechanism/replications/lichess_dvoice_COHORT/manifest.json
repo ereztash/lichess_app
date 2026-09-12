@@ -1,0 +1,196 @@
+{
+ "contract_version": "replication-1.0.0",
+ "platform": "lichess",
+ "username": "dvoice",
+ "canonical_player_id": "dvoice",
+ "corpus": "lichess:dvoice",
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T17:37:48Z",
+  "http_status": 200,
+  "bytes": 15806068,
+  "sha256": "f087e3b1d7ef2a03ab31ddc450c92dc31a1b563a603aab4c6bddf4a2ca9da84f",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_dvoice_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 86,
+    "rating": 1647
+   },
+   "blitz": {
+    "games": 61813,
+    "rating": 1613
+   },
+   "rapid": {
+    "games": 85,
+    "rating": 1623
+   },
+   "classical": {
+    "games": 5,
+    "rating": 1717
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 16,
+    "rating": 1069
+   },
+   "kingOfTheHill": {
+    "games": 174,
+    "rating": 1402
+   },
+   "antichess": {
+    "games": 4,
+    "rating": 1680
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1464
+   },
+   "horde": {
+    "games": 16,
+    "rating": 1540
+   },
+   "crazyhouse": {
+    "games": 6,
+    "rating": 1276
+   },
+   "puzzle": {
+    "games": 14,
+    "rating": 1485
+   }
+  },
+  "createdAt": 1544611498105,
+  "seenAt": 1788821603678
+ },
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
+ "exclusions_by_reason": {
+  "no-clocks": 7,
+  "outside-window": 134,
+  "termination:Abandoned": 251,
+  "termination:Time forfeit": 1969,
+  "under-20-plies": 39
+ },
+ "speeds": {
+  "blitz": 2199,
+  "rapid": 1
+ },
+ "eligibility_rule": {
+  "game": {
+   "termination": "Normal",
+   "requires_clock_annotations": true,
+   "min_plies_with_clock": 20,
+   "rated_only": true,
+   "variant": "standard"
+  },
+  "berserk": "clock-model",
+  "window_rule": "all-admissible-in-dateDesc-order",
+  "decision": "not forced AND not book AND seconds present AND clock present"
+ },
+ "repo_sha": "180aa6226a50b9fad0e31fa2e1ccc9f4a721d655",
+ "repo_dirty": false,
+ "pipeline_version": {
+  "files": {
+   "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
+   "research/mechanism/analysis/common.py": "424bc61722617423047b4c48a456d12340d2538ab0f0b0867bc372bdfc0a7926",
+   "research/mechanism/analysis/search.py": "a91522485f4518128df84a76f79fce4c3acc8580beb4ea35612483eec4b644ce",
+   "research/mechanism/analysis/run_discovery.py": "abb4c2e379740c1a2b0f788bbbf83c2b319521d29b00341aa7b968f6e0f07528",
+   "research/mechanism/analysis/population.py": "f4065e4cca20669a2a209057f7cb36b4d14a4a27fb6c33f775bac3f2432317b0",
+   "research/mechanism/analysis/predict.py": "50a65da2c8ed064954ba985ec4bd6dcd8f91dff3ba61c9215221e4a89f688d34",
+   "research/mechanism/analysis/invariance.py": "28e75286615ebcb321d0ab4fb133b2a4ad7453c715b649a830db21150a684719",
+   "research/mechanism/analysis/stability_loco.py": "d8e2a0437be5dddbe27f20395e60d60cbeaaa687f45524b35a266ccc88a924ef",
+   "research/mechanism/analysis/focal.py": "59a2b0d36d7d6d662d16e7d191f41cbf232c37a381feee983c80af063dd5a343",
+   "research/mechanism/pipeline/features.py": "f742447dce0cea78e416a3a73c7b5dabaf25e0e4531697912756924822da61b8",
+   "research/mechanism/pipeline/score_games.py": "0222cc03b8fafff0bd282c680646d922715dba35f2082e05350bb582bbf25497",
+   "research/mechanism/replication/contract.py": "9f099e07f7e2f91f34c17e356cd5a5e302b82922e62e18c97f71c51788f86d75",
+   "research/mechanism/replication/eligibility.py": "2285f7f352bffaa1e54c22a9d1b95151301ad930fffc81f8b1af940e8520bdef",
+   "research/mechanism/replication/classify.py": "7a377f2290138658c3380c1ff8df9c976802f811f8b015dc95ef07f36deda297",
+   "research/mechanism/replication/populations.py": "713ba1c26e55a6c6a8cc4a4d687daf7ff558b52b523b59dbf822db9509e7a0bd",
+   "research/mechanism/replication/readiness.py": "a04600723f3e56a7c0644b338e8b3d8934f1ca42c58d08b9584d614ca7c1266f",
+   "research/mechanism/replication/run.py": "a1c4c3fc812d448bfe1bb3a7f6baa1c6ed4aaeb844c2408d852ca963eca3f0a5"
+  },
+  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143"
+ },
+ "engine": {
+  "research": {
+   "name": "Stockfish 17.1",
+   "build": "ubuntu-x86-64-avx2",
+   "depth": 12,
+   "multipv": 3,
+   "threads": 1,
+   "hash_mb": 16,
+   "hash_cleared_per_position": true
+  },
+  "shipped_parity": {
+   "name": "Stockfish 18 Lite WASM (the product's engine)",
+   "entrypoint": "scripts/sf-wasm.sh",
+   "depth": 12,
+   "multipv": 1,
+   "hash_cleared_per_position": true,
+   "role": "engine-artifact control only; never the primary label"
+  },
+  "hierarchy": "research engine labels every primary statistic; the shipped engine re-scores VALIDATE as a control (Node G). Performance changes are admissible only if proven output-equivalent."
+ },
+ "split": {
+  "unit": "game",
+  "order": "chronological by game createdAt, oldest first",
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "test_frac": 0.2,
+  "test_opened": "once, for the frozen candidate only"
+ },
+ "min_corpus": {
+  "basis": "DERIVED_FROM_FROZEN_DESIGN",
+  "derive_decisions": 300,
+  "validate_decisions": 200,
+  "test_decisions": 200,
+  "derive_games": 5,
+  "validate_games": 2,
+  "test_games": 2
+ },
+ "population_contract": {
+  "band_centre": "median own_rating over the focal player's admissible BLITZ games, rounded to the nearest 50",
+  "band_halfwidth": 200,
+  "both_sides_in_band": true,
+  "time_controls": [
+   "180+0",
+   "300+0"
+  ],
+  "source": "database.lichess.org monthly standard rated dump",
+  "prefix_bytes": 80000000,
+  "n_games": 600,
+  "one_game_per_player": true,
+  "both_colours_focal": true,
+  "termination": "Normal",
+  "requires_clocks": true,
+  "no_berserk": true,
+  "min_plies": 20,
+  "sample_hash_seed": "20260905:<gameId>",
+  "leakage_rule": "the focal player's corpus label AND player_key are excluded from the population frame before any model is fit",
+  "model": "HistGradientBoostingClassifier(max_iter=400, learning_rate=0.05, max_leaf_nodes=31, min_samples_leaf=60, l2_regularization=1.0, random_state=DESIGN.seed), one per target",
+  "frame": "blitz only (the population has no bullet or rapid)"
+ },
+ "focal": {
+  "platform": "lichess",
+  "username": "dvoice",
+  "player_id": "dvoice",
+  "corpus": "lichess:dvoice"
+ },
+ "run_dir": "/work/research/mechanism/replications/lichess_dvoice_COHORT"
+}

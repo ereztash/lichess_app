@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "one-trick-wilfred",
+ "player_id": "one-trick-wilfred",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 412,
+    "rating": 1615
+   },
+   "blitz": {
+    "games": 30509,
+    "rating": 1649
+   },
+   "rapid": {
+    "games": 5,
+    "rating": 1074
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1393,
+    "rating": 1641
+   }
+  },
+  "createdAt": 1644872631011,
+  "seenAt": 1788037567886
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/one-trick-wilfred?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:27:36Z",
+  "http_status": 200,
+  "bytes": 3929591,
+  "sha256": "bdd51f21896752992deac119bb38a53bcb2ec147ffdff405efe2a92375aaf608",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_one-trick-wilfred_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

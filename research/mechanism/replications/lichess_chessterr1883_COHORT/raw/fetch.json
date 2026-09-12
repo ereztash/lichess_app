@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "chessterr1883",
+ "player_id": "chessterr1883",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1423,
+    "rating": 1376
+   },
+   "blitz": {
+    "games": 19229,
+    "rating": 1675
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1650957332231,
+  "seenAt": 1788860468744
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/chessterr1883?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:38:25Z",
+  "http_status": 200,
+  "bytes": 3462020,
+  "sha256": "ba37a61497016af04d91e2ca630cf80658243209b7288a6750ce155606ad78cf",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_chessterr1883_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

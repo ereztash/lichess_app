@@ -1,0 +1,84 @@
+{
+ "platform": "lichess",
+ "username": "skibidisigma12345",
+ "player_id": "skibidisigma12345",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 109,
+    "rating": 1307
+   },
+   "bullet": {
+    "games": 1874,
+    "rating": 1754
+   },
+   "blitz": {
+    "games": 1266,
+    "rating": 1615
+   },
+   "rapid": {
+    "games": 373,
+    "rating": 1772
+   },
+   "classical": {
+    "games": 82,
+    "rating": 1892
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1737
+   },
+   "chess960": {
+    "games": 2,
+    "rating": 1244
+   },
+   "threeCheck": {
+    "games": 2,
+    "rating": 1380
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1276
+   },
+   "crazyhouse": {
+    "games": 2,
+    "rating": 1104
+   },
+   "puzzle": {
+    "games": 2522,
+    "rating": 2122
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1736214305905,
+  "seenAt": 1788845676641
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/skibidisigma12345?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:36:30Z",
+  "http_status": 200,
+  "bytes": 3202189,
+  "sha256": "b0bd19334d87b3f5244e4c6a420c178bbba0103544caf04b315ae08244b4ac5b",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_skibidisigma12345_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

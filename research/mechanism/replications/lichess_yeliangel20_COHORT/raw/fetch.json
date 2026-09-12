@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "yeliangel20",
+ "player_id": "yeliangel20",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 130,
+    "rating": 1526
+   },
+   "blitz": {
+    "games": 18256,
+    "rating": 1564
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1456
+   },
+   "racingKings": {
+    "games": 1,
+    "rating": 1662
+   }
+  },
+  "createdAt": 1587228637909,
+  "seenAt": 1788699279276
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/yeliangel20?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T06:50:24Z",
+  "http_status": 200,
+  "bytes": 3720735,
+  "sha256": "c12f542506a1b56dc09023e38a1ca0598f2e9484900612a373daef7171376d4a",
+  "records": 950,
+  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_yeliangel20_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

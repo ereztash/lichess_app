@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "francinov",
+ "player_id": "francinov",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1318
+   },
+   "blitz": {
+    "games": 1877,
+    "rating": 1721
+   },
+   "rapid": {
+    "games": 18,
+    "rating": 1760
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 34,
+    "rating": 1413
+   }
+  },
+  "createdAt": 1485830813117,
+  "seenAt": 1788797262322
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/francinov?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:54:36Z",
+  "http_status": 200,
+  "bytes": 3938639,
+  "sha256": "cf27f5565886519e6c79ef2829f81664909c1ef42941a5d73c540ef1f132b27d",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_francinov_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

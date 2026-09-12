@@ -1,0 +1,234 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 5.592306732126976,
+   "zs": [
+    6.5662077786797255,
+    6.202934117992018,
+    6.233708283835243,
+    3.6790313703150628,
+    5.279652109812825
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 5.964370526398994,
+   "zs": [
+    6.796883200573738,
+    5.758514468299523,
+    6.700804655533504,
+    5.187151261477581,
+    5.378499046110624
+   ],
+   "regions": [
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 5.901404648876538,
+   "zs": [
+    7.005295695660803,
+    6.265739166267015,
+    5.808564480522243,
+    4.5702005102136525,
+    5.857223391718973
+   ],
+   "regions": [
+    "material_balance>=-2 AND opp_queen==1 AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND opp_queen==1 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND opp_queen==1 AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND opp_queen==1 AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND opp_queen==1 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 2,
+ "frozen": [
+  {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 5.072246297666958,
+   "depth": 2,
+   "n_derive": 8378,
+   "derive_err_in": 0.2619957030317498,
+   "derive_err_out": 0.13332581990307674,
+   "derive_wg_est": 0.1314151660894519,
+   "derive_wg_z": 22.304581215125005,
+   "derive_resid_wg_in": 0.05541535960143223,
+   "stability_share_j60": 0.6666666666666666,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 2771,
+    "n_out": 8865,
+    "p_in": 0.24215084806928908,
+    "p_out": 0.1212633953750705,
+    "diff": 0.12088745269421858,
+    "se": 0.010344221772998501,
+    "z": 11.686471476256514,
+    "games_in": 419,
+    "wg_est": 0.12231380725560201,
+    "wg_se": 0.009658603473081059,
+    "wg_z": 12.66371557715314,
+    "wg_games": 419,
+    "pass": true,
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06411104348478629,
+    "resid_wg_z": 6.707866064328267,
+    "secondary_wg": {
+     "est": 0.08279308985868428,
+     "z": 9.18622098399142,
+     "n_games": 419
+    },
+    "wp_loss_wg": {
+     "est": 0.023795323165477014,
+     "z": 9.00030041922418
+    }
+   }
+  },
+  {
+   "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 5.050766916632856,
+   "depth": 2,
+   "n_derive": 4552,
+   "derive_err_in": 0.2840509666080844,
+   "derive_err_out": 0.14619806207915914,
+   "derive_wg_est": 0.13696230960256814,
+   "derive_wg_z": 18.05863502331567,
+   "derive_resid_wg_in": 0.07486109933013177,
+   "stability_share_j60": 0.3,
+   "stability_median_j": 0.5229159148321906,
+   "validate": {
+    "n_in": 1449,
+    "n_out": 10187,
+    "p_in": 0.2553485162180814,
+    "p_out": 0.13507411406694808,
+    "diff": 0.12027440215113333,
+    "se": 0.013429622531986901,
+    "z": 8.955903404184424,
+    "games_in": 386,
+    "wg_est": 0.12338687533340353,
+    "wg_se": 0.013072207984009633,
+    "wg_z": 9.43887027228564,
+    "wg_games": 386,
+    "pass": true,
+    "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.0696798631503217,
+    "resid_wg_z": 5.116010413425441,
+    "secondary_wg": {
+     "est": 0.12774488616431826,
+     "z": 9.995068647866024,
+     "n_games": 386
+    },
+    "wp_loss_wg": {
+     "est": 0.03635885850904878,
+     "z": 9.429382574638751
+    }
+   }
+  },
+  {
+   "region": "material_balance: [0:3[ AND own_hanging_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.6279048670277785,
+   "depth": 2,
+   "n_derive": 3308,
+   "derive_err_in": 0.2892986698911729,
+   "derive_err_out": 0.15106188267222065,
+   "derive_wg_est": 0.1347489131063476,
+   "derive_wg_z": 15.310422984499002,
+   "derive_resid_wg_in": 0.08046401002929056,
+   "stability_share_j60": 0.3,
+   "stability_median_j": 0.36809815950920244,
+   "validate": {
+    "n_in": 1020,
+    "n_out": 10616,
+    "p_in": 0.26862745098039215,
+    "p_out": 0.1386586284853052,
+    "diff": 0.12996882249508696,
+    "se": 0.015599605217208124,
+    "z": 8.331545618328642,
+    "games_in": 351,
+    "wg_est": 0.1340765595520935,
+    "wg_se": 0.015122820848487857,
+    "wg_z": 8.865843277215038,
+    "wg_games": 351,
+    "pass": true,
+    "region": "material_balance: [0:3[ AND own_hanging_piece_count>=1",
+    "resid_wg_est": 0.08388020798426027,
+    "resid_wg_z": 5.424720611478662,
+    "secondary_wg": {
+     "est": 0.1066714007973474,
+     "z": 7.756376694738462,
+     "n_games": 351
+    },
+    "wp_loss_wg": {
+     "est": 0.03447731329090184,
+     "z": 7.895892027338556
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1": 2,
+  "material_balance>=-2 AND own_overloaded_piece_count>=1": 18,
+  "material_balance: [0:3[ AND own_overloaded_piece_count>=1": 9,
+  "own_overloaded_piece_count>=1 AND standing=='level'": 1
+ }
+}

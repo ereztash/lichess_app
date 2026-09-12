@@ -1,0 +1,66 @@
+{
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_original-chess_COHORT",
+ "focal": {
+  "platform": "lichess",
+  "username": "original-chess",
+  "player_id": "original-chess",
+  "corpus": "lichess:original-chess"
+ },
+ "contract_version": "replication-1.0.0",
+ "repo_sha": "eb6649d1fd657f4944045215056a5118ff920837",
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "corpus": {
+  "fetched": 950,
+  "admissible": 450,
+  "scorable": 450,
+  "eligible_decisions": null,
+  "exclusions": {
+   "outside-window": 285,
+   "termination:Time forfeit": 198,
+   "under-20-plies": 17
+  },
+  "speeds": {
+   "blitz": 447,
+   "bullet": 3
+  }
+ },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "ENGINE_FAILURE",
+ "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+ "failure_code": "ENGINE_FAILURE"
+}

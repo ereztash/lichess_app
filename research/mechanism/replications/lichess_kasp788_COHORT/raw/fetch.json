@@ -1,0 +1,80 @@
+{
+ "platform": "lichess",
+ "username": "kasp788",
+ "player_id": "kasp788",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 12,
+    "rating": 1000
+   },
+   "bullet": {
+    "games": 199,
+    "rating": 1576
+   },
+   "blitz": {
+    "games": 19881,
+    "rating": 1691
+   },
+   "rapid": {
+    "games": 1,
+    "rating": 1258
+   },
+   "classical": {
+    "games": 22,
+    "rating": 1688
+   },
+   "correspondence": {
+    "games": 2,
+    "rating": 1383
+   },
+   "chess960": {
+    "games": 1,
+    "rating": 1082
+   },
+   "threeCheck": {
+    "games": 1,
+    "rating": 1258
+   },
+   "atomic": {
+    "games": 2,
+    "rating": 656
+   },
+   "horde": {
+    "games": 2,
+    "rating": 1377
+   },
+   "puzzle": {
+    "games": 223,
+    "rating": 2073
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1640475801562,
+  "seenAt": 1788831567077
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/kasp788?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:03:56Z",
+  "http_status": 200,
+  "bytes": 3661028,
+  "sha256": "5dd7f9b2d03fec62b7ffa2049cf57cda8faeb1a6ed3843b8b84e3837fcc213b5",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_kasp788_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

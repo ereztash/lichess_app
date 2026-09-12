@@ -1,0 +1,234 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.5982402044336035,
+   "zs": [
+    3.3209410220721556,
+    1.2047813798762668,
+    1.9373345018156107,
+    2.991451288726146,
+    3.5366928296778375
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 2.5085001960339506,
+   "zs": [
+    2.62403683436645,
+    2.069776547725095,
+    1.654001680092156,
+    2.4906641119205535,
+    3.7040218060654984
+   ],
+   "regions": [
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count: [1:2[",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 1.7752129738457125,
+   "zs": [
+    1.0253816830354157,
+    2.0482576029558754,
+    1.6761747817111345,
+    1.6175567424214359,
+    2.508694059104701
+   ],
+   "regions": [
+    "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1 AND own_queen==1",
+    "material_balance>=-2 AND material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND opp_last_spent_s<15 AND own_overloaded_piece_count: [1:2[",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1 AND own_passed<1",
+    "n_captures>=1 AND opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.872256950128447,
+   "depth": 1,
+   "n_derive": 2600,
+   "derive_err_in": 0.24615384615384617,
+   "derive_err_out": 0.12791908374237693,
+   "derive_wg_est": 0.11040373282627954,
+   "derive_wg_z": 10.719997015175734,
+   "derive_resid_wg_in": 0.03671797970447948,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 850,
+    "n_out": 2254,
+    "p_in": 0.18823529411764706,
+    "p_out": 0.1313220940550133,
+    "diff": 0.056913200062633756,
+    "se": 0.017462711766888066,
+    "z": 3.25912726627887,
+    "games_in": 90,
+    "wg_est": 0.05015217428485114,
+    "wg_se": 0.01738762429678971,
+    "wg_z": 2.8843603604956414,
+    "wg_games": 90,
+    "pass": false,
+    "region": "own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.0003415295470519541,
+    "resid_wg_z": 0.020247335104431316,
+    "secondary_wg": {
+     "est": 0.009923727740072927,
+     "z": 0.7354502026669691,
+     "n_games": 90
+    },
+    "wp_loss_wg": {
+     "est": -0.004292428414471937,
+     "z": -1.2435759443633063
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count: [1:2[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.700953812708059,
+   "depth": 1,
+   "n_derive": 2139,
+   "derive_err_in": 0.24123422159887797,
+   "derive_err_out": 0.13697104677060135,
+   "derive_wg_est": 0.09512829692350858,
+   "derive_wg_z": 8.507248407859088,
+   "derive_resid_wg_in": 0.03677791703423833,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 0.8529411764705882,
+   "validate": {
+    "n_in": 725,
+    "n_out": 2379,
+    "p_in": 0.17379310344827587,
+    "p_out": 0.13871374527112232,
+    "diff": 0.03507935817715355,
+    "se": 0.01669406422822375,
+    "z": 2.1013072489470104,
+    "games_in": 89,
+    "wg_est": 0.02757616413114831,
+    "wg_se": 0.016841176226834207,
+    "wg_z": 1.6374250681617657,
+    "wg_games": 89,
+    "pass": false,
+    "region": "own_overloaded_piece_count: [1:2[",
+    "resid_wg_est": -0.014021502491731785,
+    "resid_wg_z": -0.8677506702896025,
+    "secondary_wg": {
+     "est": 0.007545987398028396,
+     "z": 0.4892136312641657,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": -0.0036927680465092738,
+     "z": -0.994961407510273
+    }
+   }
+  },
+  {
+   "region": "own_hanging_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.4454930409111486,
+   "depth": 1,
+   "n_derive": 2032,
+   "derive_err_in": 0.23622047244094488,
+   "derive_err_out": 0.13989850500617199,
+   "derive_wg_est": 0.08957058866662634,
+   "derive_wg_z": 8.080849760830587,
+   "derive_resid_wg_in": 0.03206669147920502,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 0.7364705882352941,
+   "validate": {
+    "n_in": 626,
+    "n_out": 2478,
+    "p_in": 0.1869009584664537,
+    "p_out": 0.1368038740920097,
+    "diff": 0.05009708437444399,
+    "se": 0.017378606860757245,
+    "z": 2.8826870171951797,
+    "games_in": 89,
+    "wg_est": 0.0461751673457623,
+    "wg_se": 0.016713840400357515,
+    "wg_z": 2.7626904553171747,
+    "wg_games": 89,
+    "pass": false,
+    "region": "own_hanging_piece_count>=1",
+    "resid_wg_est": 0.004242558145754552,
+    "resid_wg_z": 0.25852616599009565,
+    "secondary_wg": {
+     "est": -0.012271489945559386,
+     "z": -0.8445892265994981,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": -0.006792007103576128,
+     "z": -1.8874395373665303
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "own_overloaded_piece_count>=1": 24,
+  "own_overloaded_piece_count: [1:2[": 4,
+  "n_captures>=3": 1,
+  "material_change_2ply>=1": 1
+ }
+}

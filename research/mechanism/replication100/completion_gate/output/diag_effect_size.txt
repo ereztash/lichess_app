@@ -1,0 +1,17 @@
+usable candidates: 833 of 835
+Spearman rho(n_in, z)          = +0.550  p = 5.65e-67
+Spearman rho(n_in, z/sqrt(n))  = +0.067  p = 5.44e-02
+
+log z on log n_in: slope = 0.439 (se 0.029), r2 = 0.233
+  slope 0.50 is exactly what a fixed effect measured with more data looks like
+  slope 0.00 would mean n does not move the statistic at all
+
+implied effect size z/sqrt(n_in), by member class:
+  RESIDUAL_POWERED     n= 199  median 0.0907  IQR 0.0495-0.1292
+  not RESIDUAL_POWERED n= 634  median 0.0765  IQR 0.0253-0.1215
+  Mann-Whitney two-sided p = 0.001
+
+best candidate per member, implied effect size:
+  RESIDUAL_POWERED     n= 25  median 0.1505
+  not RESIDUAL_POWERED n= 75  median 0.1572
+  Mann-Whitney two-sided p = 0.297

@@ -1,0 +1,237 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/home/user/lichess_app/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.637993265055126,
+   "zs": [
+    3.937122078076969,
+    1.9968065321067963,
+    3.449116244946507,
+    0.3129993222799838,
+    3.493922147865374
+   ],
+   "regions": [
+    "standing=='level'",
+    "standing=='level'",
+    "standing=='level'",
+    "n_captures>=3",
+    "standing=='level'"
+   ]
+  },
+  "2": {
+   "mean_z": 2.542467760311802,
+   "zs": [
+    2.7692213578774814,
+    2.8266179263346953,
+    3.0385757670363365,
+    0.5923715712462428,
+    3.4855521790642556
+   ],
+   "regions": [
+    "legal_moves>=35.0 AND standing=='level'",
+    "legal_moves>=35.0 AND standing=='level'",
+    "legal_moves>=35.0 AND standing=='level'",
+    "material_balance: [0:3[ AND n_captures>=3",
+    "legal_moves>=35.0 AND standing=='level'"
+   ]
+  },
+  "3": {
+   "mean_z": 2.3700107236299424,
+   "zs": [
+    2.4488550260121054,
+    2.5648372618505357,
+    2.8038685775826973,
+    0.44388449842550304,
+    3.5886082542788715
+   ],
+   "regions": [
+    "legal_moves>=35.0 AND own_attacked_piece_count>=1 AND standing=='level'",
+    "material_balance>=-2 AND own_attacked_piece_count>=1 AND standing=='level'",
+    "legal_moves>=35.0 AND own_attacked_piece_count>=1 AND standing=='level'",
+    "material_balance: [0:3[ AND n_captures>=3 AND own_prev_spent_s>=1",
+    "n_captures>=1 AND n_good_captures<1 AND standing=='level'"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "phase=='opening'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.4326675252263084,
+   "depth": 1,
+   "n_derive": 10266,
+   "derive_err_in": 0.08737580362361193,
+   "derive_err_out": 0.0814166433870317,
+   "derive_wg_est": -0.0007985591318110816,
+   "derive_wg_z": -0.21556101637354347,
+   "derive_resid_wg_in": 0.014139849491522397,
+   "stability_share_j60": 0.6666666666666666,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 3427,
+    "n_out": 11108,
+    "p_in": 0.07732710825795155,
+    "p_out": 0.08282319049333814,
+    "diff": -0.005496082235386585,
+    "se": 0.005925784889656101,
+    "z": -0.9274859512670474,
+    "games_in": 439,
+    "wg_est": -0.01230316440825845,
+    "wg_se": 0.006335719069497294,
+    "wg_z": -1.941873412205229,
+    "wg_games": 433,
+    "pass": false,
+    "region": "phase=='opening'",
+    "resid_wg_est": 0.011953722258301125,
+    "resid_wg_z": 2.070073389181136,
+    "secondary_wg": {
+     "est": -0.030069972487350587,
+     "z": -3.753140381055746,
+     "n_games": 433
+    },
+    "wp_loss_wg": {
+     "est": -0.008725086277556797,
+     "z": -5.4408137832132795
+    }
+   }
+  },
+  {
+   "region": "n_captures>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.3334067878673928,
+   "depth": 1,
+   "n_derive": 11796,
+   "derive_err_in": 0.12012546625974907,
+   "derive_err_out": 0.06853064815720011,
+   "derive_wg_est": 0.05867385727413456,
+   "derive_wg_z": 15.67848301814474,
+   "derive_resid_wg_in": 0.012277085480760577,
+   "stability_share_j60": 0.3,
+   "stability_median_j": 0.08267945364719559,
+   "validate": {
+    "n_in": 4024,
+    "n_out": 10511,
+    "p_in": 0.12524850894632206,
+    "p_out": 0.0647892683855009,
+    "diff": 0.06045924056082115,
+    "se": 0.0063454951506073595,
+    "z": 9.527899576920218,
+    "games_in": 426,
+    "wg_est": 0.06566723183022946,
+    "wg_se": 0.006474763364521745,
+    "wg_z": 10.142028076277029,
+    "wg_games": 426,
+    "pass": true,
+    "region": "n_captures>=3",
+    "resid_wg_est": 0.02553909131361683,
+    "resid_wg_z": 4.1499132834002,
+    "secondary_wg": {
+     "est": 0.06403953493193647,
+     "z": 8.068378974182957,
+     "n_games": 426
+    },
+    "wp_loss_wg": {
+     "est": 0.015038965111585038,
+     "z": 7.52702720803889
+    }
+   }
+  },
+  {
+   "region": "ply<20",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.3268190017482784,
+   "depth": 1,
+   "n_derive": 9626,
+   "derive_err_in": 0.08549761063785581,
+   "derive_err_out": 0.0820829655781112,
+   "derive_wg_est": -0.0036261113728359735,
+   "derive_wg_z": -0.9694168407025462,
+   "derive_resid_wg_in": 0.013523489055076027,
+   "stability_share_j60": 0.6666666666666666,
+   "stability_median_j": 0.935220309308433,
+   "validate": {
+    "n_in": 3205,
+    "n_out": 11330,
+    "p_in": 0.0748829953198128,
+    "p_out": 0.08340688437775816,
+    "diff": -0.008523889057945364,
+    "se": 0.00591626024088064,
+    "z": -1.4407562735402215,
+    "games_in": 439,
+    "wg_est": -0.015556444034187138,
+    "wg_se": 0.00618880316029867,
+    "wg_z": -2.5136433703340453,
+    "wg_games": 436,
+    "pass": false,
+    "region": "ply<20",
+    "resid_wg_est": 0.010571252570615867,
+    "resid_wg_z": 1.887617143036278,
+    "secondary_wg": {
+     "est": -0.035495579242710136,
+     "z": -4.370836785501744,
+     "n_games": 436
+    },
+    "wp_loss_wg": {
+     "est": -0.009828139122908856,
+     "z": -6.104590355256344
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "phase=='opening'": 19,
+  "n_captures>=3": 8,
+  "opp_attacked_piece_count>=3": 1,
+  "ply<20": 1,
+  "own_castling==1": 1
+ }
+}

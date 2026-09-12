@@ -1,0 +1,129 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.07149155395765434,
+   "zs": [
+    -0.48121713657893966,
+    -2.0836634275012083,
+    2.8979565094736595,
+    0.1824462489324221,
+    -0.15806442453766192
+   ],
+   "regions": [
+    "standing=='level'",
+    "own_overloaded_piece_count: [1:2[",
+    "n_captures>=1",
+    "n_captures>=1",
+    "opp_king_ring_enemy_attacks>=3"
+   ]
+  },
+  "2": {
+   "mean_z": 0.6287794704126064,
+   "zs": [
+    0.16252792684673734,
+    -0.4383199570358109,
+    0.8569996733570089,
+    0.6064016389820018,
+    1.956288069913095
+   ],
+   "regions": [
+    "n_captures>=1 AND standing=='level'",
+    "material_balance>=-2 AND own_hanging_piece_count>=1",
+    "opp_attacked_piece_count: [1:3[ AND phase=='opening'",
+    "opp_passed<1 AND own_hanging_piece_count>=1",
+    "n_captures: [1:3[ AND standing=='level'"
+   ]
+  },
+  "3": {
+   "mean_z": 1.8626029746387651,
+   "zs": [
+    2.395170611453836,
+    0.10241375087833719,
+    1.7340843649778486,
+    2.7248295910010825,
+    2.356516554882722
+   ],
+   "regions": [
+    "n_captures: [1:3[ AND ply<20 AND standing=='level'",
+    "material_balance>=-2 AND own_hanging_piece_count>=1 AND own_pinned_count<1",
+    "n_captures: [1:3[ AND ply<20 AND standing=='level'",
+    "n_captures: [1:3[ AND phase=='opening' AND standing=='level'",
+    "n_captures: [1:3[ AND phase=='opening' AND standing=='level'"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [],
+ "bootstrap_winners": {
+  "n_captures: [1:3[ AND ply<20 AND standing=='level'": 5,
+  "material_change_2ply<1 AND own_hanging_piece_count>=1 AND own_king_ring_enemy_attacks<1": 1,
+  "opp_attacked_piece_count: [1:3[ AND ply<20 AND standing=='level'": 1,
+  "game_in_session<2 AND n_captures>=1 AND opp_last_spent_s<1": 1,
+  "material_balance>=-2 AND own_hanging_piece_count>=1 AND own_pinned_count<1": 1,
+  "n_captures>=3 AND opp_hanging_piece_count<1 AND opp_last_captured_value<1": 1,
+  "n_captures: [1:3[ AND phase=='opening' AND standing=='level'": 3,
+  "clock_diff_s: [0:30[ AND n_captures: [1:3[ AND opp_king_ring_enemy_attacks: [1:3[": 1,
+  "legal_moves>=31.0 AND own_hanging_piece_count>=1 AND own_queen==1": 1,
+  "opp_last_captured_value<1 AND own_hanging_piece_count: [1:2[ AND own_queen==1": 1,
+  "opp_last_captured_value<1 AND own_hanging_piece_count>=1 AND own_queen==1": 1,
+  "legal_moves>=25.0 AND own_hanging_piece_count>=1 AND own_prev_spent_s: [1:5[": 1,
+  "material_balance>=-2 AND own_hanging_piece_count>=1 AND own_king_ring_enemy_attacks<3": 1,
+  "own_hanging_piece_count>=1 AND own_pinned_count<1 AND ply: [20:40[": 1,
+  "opp_passed<1 AND own_overloaded_piece_count>=1 AND own_prev_spent_s: [1:5[": 1,
+  "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[ AND own_prev_spent_s: [1:5[": 1,
+  "own_hanging_piece_count>=1 AND own_pinned_count<1 AND ply<60": 1,
+  "own_hanging_piece_count>=1 AND own_prev_spent_s: [1:5[ AND ply<60": 1,
+  "legal_moves>=24.0 AND n_checks<1 AND own_hanging_piece_count>=1": 1,
+  "opp_attacked_piece_count>=1 AND own_attacked_piece_count<3 AND standing=='level'": 1,
+  "material_balance>=-2 AND own_hanging_piece_count>=1 AND standing=='losing'": 1,
+  "opp_passed<1 AND own_overloaded_piece_count: [1:2[ AND own_prev_spent_s: [1:5[": 1,
+  "opp_attacked_piece_count: [1:3[ AND phase=='opening' AND standing=='level'": 1,
+  "opp_last_pawn==1 AND own_lost_material==0 AND own_overloaded_piece_count>=1": 1
+ }
+}

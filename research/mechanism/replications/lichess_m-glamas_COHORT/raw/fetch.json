@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "m-glamas",
+ "player_id": "m-glamas",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 10824,
+    "rating": 1632
+   },
+   "rapid": {
+    "games": 32,
+    "rating": 1768
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 809,
+    "rating": 2022
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1653009506254,
+  "seenAt": 1788860126041
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/m-glamas?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T14:13:44Z",
+  "http_status": 200,
+  "bytes": 3156859,
+  "sha256": "324139652ec49a245f8c5a3a53fe6253d86f53c361765d912f2cbddd6ae2ae57",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_m-glamas_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

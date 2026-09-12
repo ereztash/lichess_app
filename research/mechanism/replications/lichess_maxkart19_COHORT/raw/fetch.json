@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "maxkart19",
+ "player_id": "maxkart19",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 7,
+    "rating": 1757
+   },
+   "blitz": {
+    "games": 15728,
+    "rating": 1713
+   },
+   "rapid": {
+    "games": 23,
+    "rating": 1224
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 17,
+    "rating": 1314
+   }
+  },
+  "createdAt": 1682917851520,
+  "seenAt": 1788799250881
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/maxkart19?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T16:32:19Z",
+  "http_status": 200,
+  "bytes": 18161321,
+  "sha256": "a498ff4d81174f55d71e7398a2782ea9fe0cd37784fea1fe04f87cd9a6288ad0",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_maxkart19_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

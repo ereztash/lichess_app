@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "sajahggggtggggggg",
+ "player_id": "sajahggggtggggggg",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1290
+   },
+   "bullet": {
+    "games": 2744,
+    "rating": 1762
+   },
+   "blitz": {
+    "games": 725,
+    "rating": 1692
+   },
+   "rapid": {
+    "games": 30,
+    "rating": 1533
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1626157419221,
+  "seenAt": 1788812341452
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/sajahggggtggggggg?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:15:37Z",
+  "http_status": 200,
+  "bytes": 3871191,
+  "sha256": "6bc9f1dbd6f9bf82adb2e5637a9885c4e94b0ea99cd1497e50a332427024020e",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_sajahggggtggggggg_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

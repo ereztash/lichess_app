@@ -32,9 +32,11 @@ def main():
     ap.add_argument("--depth", type=int, default=2)
     ap.add_argument("--vocab", default="OBS")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--corpus", default=None, help="focal corpus label (default: the file's only corpus)")
     a = ap.parse_args()
     design = vocab.DESIGN.copy(); design["vocab"] = vocab.VOCAB[a.vocab]; design["residual"] = True
-    df = chronological_split(eligible(load_decisions(a.decisions)), design["derive_frac"], design["validate_frac"])
+    from common import AUTO_CORPUS
+    df = chronological_split(eligible(load_decisions(a.decisions, corpus=a.corpus or AUTO_CORPUS)), design["derive_frac"], design["validate_frac"])
     dv = df[df.split == "DERIVE"].reset_index(drop=True); va = df[df.split == "VALIDATE"].reset_index(drop=True)
     ref = ps.Conjunction.from_str(a.region); ref_cov = np.asarray(ref.covers(va), bool)
     rows = []

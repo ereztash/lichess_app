@@ -1,0 +1,80 @@
+{
+ "platform": "lichess",
+ "username": "dvoice",
+ "player_id": "dvoice",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 86,
+    "rating": 1647
+   },
+   "blitz": {
+    "games": 61813,
+    "rating": 1613
+   },
+   "rapid": {
+    "games": 85,
+    "rating": 1623
+   },
+   "classical": {
+    "games": 5,
+    "rating": 1717
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 16,
+    "rating": 1069
+   },
+   "kingOfTheHill": {
+    "games": 174,
+    "rating": 1402
+   },
+   "antichess": {
+    "games": 4,
+    "rating": 1680
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1464
+   },
+   "horde": {
+    "games": 16,
+    "rating": 1540
+   },
+   "crazyhouse": {
+    "games": 6,
+    "rating": 1276
+   },
+   "puzzle": {
+    "games": 14,
+    "rating": 1485
+   }
+  },
+  "createdAt": 1544611498105,
+  "seenAt": 1788821603678
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T17:37:48Z",
+  "http_status": 200,
+  "bytes": 15806068,
+  "sha256": "f087e3b1d7ef2a03ab31ddc450c92dc31a1b563a603aab4c6bddf4a2ca9da84f",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_dvoice_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

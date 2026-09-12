@@ -1,0 +1,79 @@
+{
+ "region": "own_hanging_piece_count>=1 AND recapture_available==0",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 6486,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5461538461538461
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 4869,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5461538461538461
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 4123,
+   "winner": "own_hanging_piece_count>=1 AND own_lost_material==0",
+   "jaccard": 0.8939096267190569
+  },
+  {
+   "variant": "drop eco_family=E",
+   "n": 7688,
+   "winner": "own_hanging_piece_count>=1 AND recapture_available==0",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=w",
+   "n": 4051,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.693359375
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 7229,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5461538461538461
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 5629,
+   "winner": "own_hanging_piece_count>=1 AND recapture_available==0",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 3839,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5461538461538461
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3883,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.8376865671641791
+  },
+  {
+   "variant": "random half 0",
+   "n": 3855,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.8376865671641791
+  },
+  {
+   "variant": "random half 1",
+   "n": 3692,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.693359375
+  },
+  {
+   "variant": "random half 2",
+   "n": 3853,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5461538461538461
+  }
+ ]
+}

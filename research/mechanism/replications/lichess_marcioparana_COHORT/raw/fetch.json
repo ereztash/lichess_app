@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "marcioparana",
+ "player_id": "marcioparana",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 2,
+    "rating": 856
+   },
+   "bullet": {
+    "games": 4,
+    "rating": 1371
+   },
+   "blitz": {
+    "games": 7813,
+    "rating": 1648
+   },
+   "rapid": {
+    "games": 58,
+    "rating": 1471
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1,
+    "rating": 1424
+   }
+  },
+  "createdAt": 1641391743581,
+  "seenAt": 1788823026676
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/marcioparana?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:07:07Z",
+  "http_status": 200,
+  "bytes": 3864196,
+  "sha256": "671b352e101fe8f9f2fcf8511b7dd6666a5234f6ff73725bcfea262acca95314",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_marcioparana_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,84 @@
+{
+ "platform": "lichess",
+ "username": "imfrei",
+ "player_id": "imfrei",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 461,
+    "rating": 1467
+   },
+   "blitz": {
+    "games": 24983,
+    "rating": 1598
+   },
+   "rapid": {
+    "games": 349,
+    "rating": 1512
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 273,
+    "rating": 1502
+   },
+   "antichess": {
+    "games": 70,
+    "rating": 1265
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1746
+   },
+   "horde": {
+    "games": 4,
+    "rating": 1373
+   },
+   "puzzle": {
+    "games": 15125,
+    "rating": 1800
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1639371762447,
+  "seenAt": 1788836848584
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/imfrei?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:35:34Z",
+  "http_status": 200,
+  "bytes": 3464079,
+  "sha256": "bdaa1cb1194dd048576fa2a78cf3c36de020b14048b077b38449236171ecc1e0",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_imfrei_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

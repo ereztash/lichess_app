@@ -1,0 +1,59 @@
+== the cohort was chosen under the documents that are on disk now ==
+PASS selection carries the pre-registration's own hash  -- 3aa7e5335942 vs 3aa7e5335942
+PASS selection carries the screened frame's own hash  -- fa6b05a4bc9f vs fa6b05a4bc9f
+PASS the walk shuffled under the pre-registered selection seed  -- 20260907100 vs 20260907100
+PASS the working tree is the frozen instrument  -- tree eb840a439af4, freeze eb840a439af4
+
+== the hundred are a hundred distinct people ==
+PASS exactly 100 accepted  -- got 100
+PASS 100 distinct usernames
+PASS 100 distinct player ids
+PASS 100 distinct run dirs
+PASS no two members differ only by case  -- collides: []
+
+== every member came out of the committed frame, in order ==
+PASS every accepted member is a row of the screened frame  -- not in frame: []
+PASS the cursor did not run past the frame  -- cursor 1915, frame 15000
+PASS no candidate was both accepted and rejected  -- both: []
+
+== nothing was judged that could not be reached, and nothing is still owed ==
+PASS no candidate was lost between a transport failure and a decision  -- unreachable and never settled: []
+PASS the retry queue is empty  -- still queued: []
+     (16 candidates were unreachable; 3 were then accepted, 13 rejected on their merits)
+
+== the two window classes are what the pre-registration declares ==
+PASS exactly 25 RESIDUAL-class members  -- got 25
+PASS the rest are BROAD  -- got 75
+PASS every RESIDUAL member holds the wider window  -- narrow: []
+PASS every RESIDUAL member's corpus is larger than the broad bound  -- not larger: []
+PASS every member that could be promoted was tried  -- untried and capable: ['pratamaok', 'josephm613', 'sha4ever231', 'kasp788', 'vivasandino']
+
+== each member's band was DERIVED here, not read back from the walk ==
+PASS all 100 bands re-derived from the members' own games
+PASS every re-derived band equals the one selection recorded  -- mismatches: []
+PASS every re-derived band exists in the population registry  -- 0 members whose band has no baseline
+
+== PHASE 19: no member is in the baseline that judges them ==
+PASS no cohort member appears in the population baseline  -- in baseline: []
+     (baseline holds 1200 distinct players; 57 candidates were rejected for this)
+
+== provenance: every member was derived by code this repository can name ==
+PASS every member has a manifest  -- missing: []
+PASS no member was derived from a dirty tree  -- dirty: []
+PASS every member was derived under the frozen pipeline hash  -- other hashes: []
+
+== nothing has been scored ==
+FAIL no member carries scored decisions  -- scored already: ['nouramine', 'maxkart19', 'original-chess', 'franckzurita18', 'medkol']
+FAIL no member carries a terminal result  -- already run: ['nouramine', 'maxkart19', 'original-chess', 'franckzurita18', 'medkol']
+
+== every rejection is pre-analysis ==
+PASS no rejection reason outside the declared set  -- undeclared: []
+PASS no candidate was rejected for a transport failure  -- 0 rejected as FETCH_FAILED
+
+== the defect requeue is on the record ==
+     requeued: cesarau (MANIFEST_RECORDED_A_DIRTY_TREE)
+PASS every requeued username was either re-derived or is absent, never duplicated  -- duplicated after requeue
+
+31 checks: 29 pass, 2 fail, 0 NOT MEASURED
+
+NO-GO. Failed: no member carries scored decisions, no member carries a terminal result

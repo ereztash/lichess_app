@@ -1,0 +1,96 @@
+{
+ "platform": "lichess",
+ "username": "uliduarte",
+ "player_id": "uliduarte",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 23,
+    "rating": 1350
+   },
+   "bullet": {
+    "games": 291,
+    "rating": 1679
+   },
+   "blitz": {
+    "games": 1610,
+    "rating": 1736
+   },
+   "rapid": {
+    "games": 225,
+    "rating": 1870
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1213
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 4,
+    "rating": 1256
+   },
+   "threeCheck": {
+    "games": 10,
+    "rating": 1641
+   },
+   "antichess": {
+    "games": 5,
+    "rating": 1357
+   },
+   "atomic": {
+    "games": 2,
+    "rating": 1247
+   },
+   "racingKings": {
+    "games": 1,
+    "rating": 1121
+   },
+   "crazyhouse": {
+    "games": 3,
+    "rating": 1393
+   },
+   "puzzle": {
+    "games": 156,
+    "rating": 1919
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1663531791663,
+  "seenAt": 1788402837815
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/uliduarte?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:00:36Z",
+  "http_status": 200,
+  "bytes": 3462647,
+  "sha256": "c7e1f9e81778fee3f5109a107430a53c7b22bc35d29b931f6f9738084ef69e57",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_uliduarte_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

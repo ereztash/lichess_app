@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "navaneethav",
+ "player_id": "navaneethav",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 2604,
+    "rating": 1375
+   },
+   "blitz": {
+    "games": 12582,
+    "rating": 1680
+   },
+   "rapid": {
+    "games": 12,
+    "rating": 1201
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1396
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1442
+   },
+   "puzzle": {
+    "games": 667,
+    "rating": 1801
+   }
+  },
+  "createdAt": 1520600363515,
+  "seenAt": 1788881390766
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/navaneethav?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T19:06:36Z",
+  "http_status": 200,
+  "bytes": 14198640,
+  "sha256": "d4730aec0ae6d0fa0bf27a2d70b647b56829b9733e39c5f1cfc7bc20b87b486a",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_navaneethav_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

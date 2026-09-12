@@ -1,0 +1,258 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": -0.5348286509982034,
+   "zs": [
+    -0.8681379332050235,
+    -0.004127115857378035,
+    0.4693968744007238,
+    -1.461596651586416,
+    -0.8096784287429234
+   ],
+   "regions": [
+    "n_captures>=3",
+    "opp_passed>=1",
+    "n_good_captures>=1",
+    "own_overloaded_piece_count>=2",
+    "clock_frac: [0.25:0.50["
+   ]
+  },
+  "2": {
+   "mean_z": 1.044195827409738,
+   "zs": [
+    0.14169250540815073,
+    0.5910388746376819,
+    1.1757537474198665,
+    1.2335038488318426,
+    2.0789901607511485
+   ],
+   "regions": [
+    "n_captures>=3 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND opp_attacked_piece_count<3",
+    "n_captures>=3 AND opp_attacked_piece_count<3",
+    "n_captures>=3 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND opp_attacked_piece_count<3"
+   ]
+  },
+  "3": {
+   "mean_z": 1.3696603327342654,
+   "zs": [
+    0.3492310630408544,
+    1.1191196576368712,
+    1.6181404779678392,
+    1.649983249750342,
+    2.11182721527542
+   ],
+   "regions": [
+    "material_change_2ply<1 AND n_captures>=3 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND opp_attacked_piece_count<3 AND opp_queen==1",
+    "n_captures>=3 AND opp_attacked_piece_count<3 AND opp_queen==1",
+    "n_captures>=3 AND opp_king_ring_enemy_attacks<1 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND opp_attacked_piece_count<3 AND opp_queen==1"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [
+  {
+   "region": "n_captures>=3 AND opp_attacked_piece_count<3",
+   "region_depth3": "n_captures>=3 AND opp_attacked_piece_count<3 AND opp_queen==1",
+   "collapse_jaccard": 0.8703703703703703,
+   "quality": 1.8641232396243865,
+   "depth": 2,
+   "n_derive": 432,
+   "derive_err_in": 0.28935185185185186,
+   "derive_err_out": 0.15055227719776063,
+   "derive_wg_est": 0.14292824626384942,
+   "derive_wg_z": 6.161054829786665,
+   "derive_resid_wg_in": 0.07384219101972957,
+   "stability_share_j60": 0.23333333333333334,
+   "stability_median_j": 0.08050079799853341,
+   "validate": {
+    "n_in": 141,
+    "n_out": 1716,
+    "p_in": 0.2978723404255319,
+    "p_out": 0.15442890442890442,
+    "diff": 0.14344343599662748,
+    "se": 0.04327653397996791,
+    "z": 3.314577735431063,
+    "games_in": 59,
+    "wg_est": 0.150963801450662,
+    "wg_se": 0.04440288220014387,
+    "wg_z": 3.399864918006896,
+    "wg_games": 59,
+    "pass": false,
+    "region": "n_captures>=3 AND opp_attacked_piece_count<3",
+    "resid_wg_est": 0.08086635502744786,
+    "resid_wg_z": 1.9125507903305465,
+    "secondary_wg": {
+     "est": 0.031009993098993174,
+     "z": 0.8745480104534593,
+     "n_games": 59
+    },
+    "wp_loss_wg": {
+     "est": 0.008636725409355854,
+     "z": 1.1373792090464943
+    }
+   }
+  },
+  {
+   "region": "n_captures>=3 AND opp_attacked_piece_count: [1:3[",
+   "region_depth3": "n_captures>=3 AND opp_attacked_piece_count: [1:3[ AND opp_queen==1",
+   "collapse_jaccard": 0.8703703703703703,
+   "quality": 1.8641232396243865,
+   "depth": 2,
+   "n_derive": 432,
+   "derive_err_in": 0.28935185185185186,
+   "derive_err_out": 0.15055227719776063,
+   "derive_wg_est": 0.14292824626384942,
+   "derive_wg_z": 6.161054829786665,
+   "derive_resid_wg_in": 0.07384219101972957,
+   "stability_share_j60": 0.23333333333333334,
+   "stability_median_j": 0.08050079799853341,
+   "validate": {
+    "n_in": 141,
+    "n_out": 1716,
+    "p_in": 0.2978723404255319,
+    "p_out": 0.15442890442890442,
+    "diff": 0.14344343599662748,
+    "se": 0.04327653397996791,
+    "z": 3.314577735431063,
+    "games_in": 59,
+    "wg_est": 0.150963801450662,
+    "wg_se": 0.04440288220014387,
+    "wg_z": 3.399864918006896,
+    "wg_games": 59,
+    "pass": false,
+    "region": "n_captures>=3 AND opp_attacked_piece_count: [1:3[",
+    "resid_wg_est": 0.08086635502744786,
+    "resid_wg_z": 1.9125507903305465,
+    "secondary_wg": {
+     "est": 0.031009993098993174,
+     "z": 0.8745480104534593,
+     "n_games": 59
+    },
+    "wp_loss_wg": {
+     "est": 0.008636725409355854,
+     "z": 1.1373792090464943
+    }
+   }
+  },
+  {
+   "region": "n_captures>=3 AND opp_attacked_piece_count<3",
+   "region_depth3": "n_captures>=3 AND opp_attacked_piece_count<3 AND own_passed<1",
+   "collapse_jaccard": 0.8263888888888888,
+   "quality": 1.8283184329004818,
+   "depth": 2,
+   "n_derive": 432,
+   "derive_err_in": 0.28935185185185186,
+   "derive_err_out": 0.15055227719776063,
+   "derive_wg_est": 0.14292824626384942,
+   "derive_wg_z": 6.161054829786665,
+   "derive_resid_wg_in": 0.07384219101972957,
+   "stability_share_j60": 0.23333333333333334,
+   "stability_median_j": 0.08050079799853341,
+   "validate": {
+    "n_in": 141,
+    "n_out": 1716,
+    "p_in": 0.2978723404255319,
+    "p_out": 0.15442890442890442,
+    "diff": 0.14344343599662748,
+    "se": 0.04327653397996791,
+    "z": 3.314577735431063,
+    "games_in": 59,
+    "wg_est": 0.150963801450662,
+    "wg_se": 0.04440288220014387,
+    "wg_z": 3.399864918006896,
+    "wg_games": 59,
+    "pass": false,
+    "region": "n_captures>=3 AND opp_attacked_piece_count<3",
+    "resid_wg_est": 0.08086635502744786,
+    "resid_wg_z": 1.9125507903305465,
+    "secondary_wg": {
+     "est": 0.031009993098993174,
+     "z": 0.8745480104534593,
+     "n_games": 59
+    },
+    "wp_loss_wg": {
+     "est": 0.008636725409355854,
+     "z": 1.1373792090464943
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "n_captures>=3 AND opp_attacked_piece_count<3 AND opp_queen==1": 4,
+  "n_captures>=3 AND opp_attacked_piece_count<3 AND own_passed<1": 1,
+  "opp_attacked_piece_count: [1:3[ AND opp_last_captured_value>=1 AND own_overloaded_piece_count: [1:2[": 1,
+  "legal_moves>=28.0 AND opp_last_captured_value>=1 AND own_overloaded_piece_count>=1": 1,
+  "material_balance: [0:3[ AND opp_hanging_piece_count>=1 AND own_attacked_piece_count<3": 1,
+  "legal_moves<36.0 AND opp_hanging_piece_count>=1 AND recapture_available==0": 1,
+  "n_captures>=3 AND opp_king_ring_enemy_attacks<1 AND own_attacked_piece_count>=3": 1,
+  "n_captures>=3 AND opp_hanging_piece_count<1 AND own_attacked_piece_count>=3": 1,
+  "n_captures>=3 AND opp_attacked_piece_count<3 AND ply<60": 2,
+  "opp_attacked_piece_count<3 AND opp_hanging_piece_count>=1 AND standing=='level'": 1,
+  "legal_moves<35.0 AND material_balance: [0:3[ AND opp_hanging_piece_count: [1:2[": 1,
+  "material_change_2ply<1 AND n_captures>=3 AND own_attacked_piece_count>=3": 1,
+  "opp_passed>=1 AND own_last_check==0 AND own_passed<1": 1,
+  "opp_hanging_piece_count>=1 AND own_prev_spent_s<1 AND rating_diff: [-100:100[": 1,
+  "legal_moves>=36.0 AND material_change_2ply<1 AND own_attacked_piece_count>=3": 1,
+  "n_captures<3 AND opp_queen==1 AND ply>=60": 1,
+  "color=='b' AND own_last_capture==1 AND own_overloaded_piece_count>=1": 1,
+  "opp_last_captured_value<1 AND own_prev_spent_s: [5:15[ AND own_queen==1": 1,
+  "clock_frac: [0.25:0.50[ AND legal_moves>=28.0 AND own_overloaded_piece_count<2": 1,
+  "n_captures>=3 AND own_attacked_piece_count>=3 AND own_overloaded_piece_count: [1:2[": 1,
+  "game_in_session>=2 AND legal_moves: [28.0:36.0[ AND own_last_capture==1": 1,
+  "clock_frac: [0.25:0.50[ AND opp_last_spent_s>=1 AND own_passed<1": 1,
+  "material_balance: [0:3[ AND opp_attacked_piece_count<3 AND opp_hanging_piece_count>=1": 1,
+  "material_change_2ply<1 AND n_good_captures>=1 AND opp_last_captured_value<1": 1,
+  "n_good_captures>=1 AND opp_attacked_piece_count<3 AND opp_last_pawn==0": 1,
+  "legal_moves>=37.0 AND opp_king_ring_enemy_attacks>=3 AND standing=='winning'": 1
+ }
+}

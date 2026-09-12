@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "rey-ajedrez2010",
+ "player_id": "rey-ajedrez2010",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1175
+   },
+   "blitz": {
+    "games": 4567,
+    "rating": 1745
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 63,
+    "rating": 1823
+   }
+  },
+  "createdAt": 1719068555381,
+  "seenAt": 1788817453048
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/rey-ajedrez2010?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:25:52Z",
+  "http_status": 200,
+  "bytes": 3406230,
+  "sha256": "c1075020c307dee87192594f48e2361be73c6ef7fdbb2bce3f7b54abbae84f35",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_rey-ajedrez2010_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

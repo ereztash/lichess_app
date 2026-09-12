@@ -1,0 +1,240 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.9290006787680525,
+   "zs": [
+    1.8025172161343594,
+    0.8191500338569503,
+    0.15073449848250997,
+    1.7198663601133013,
+    0.15273528525314187
+   ],
+   "regions": [
+    "own_prev_spent_s: [5:15[",
+    "own_prev_spent_s: [5:15[",
+    "own_prev_spent_s: [5:15[",
+    "own_prev_spent_s: [5:15[",
+    "own_hanging_piece_count>=2"
+   ]
+  },
+  "2": {
+   "mean_z": 0.44838168057611866,
+   "zs": [
+    1.3119723229543705,
+    0.32317743767887547,
+    0.5313662863206904,
+    -0.061011479357174735,
+    0.13640383528383157
+   ],
+   "regions": [
+    "n_captures>=3 AND own_prev_spent_s: [5:15[",
+    "material_balance: [0:3[ AND ply>=20",
+    "n_captures>=3 AND own_prev_spent_s: [5:15[",
+    "legal_moves>=36.0 AND own_prev_spent_s: [5:15[",
+    "material_balance: [0:3[ AND opp_hanging_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": -0.07800194789131357,
+   "zs": [
+    1.34098419015278,
+    0.13096898214959518,
+    -1.1616568756379213,
+    -1.146350968579756,
+    0.4460449324587343
+   ],
+   "regions": [
+    "material_balance: [0:3[ AND n_captures>=3 AND own_prev_spent_s: [5:15[",
+    "material_balance: [0:3[ AND material_change_2ply: [-1:1[ AND ply>=20",
+    "material_balance: [0:3[ AND n_captures>=3 AND own_prev_spent_s: [5:15[",
+    "legal_moves>=36.0 AND own_prev_spent_s: [5:15[ AND ply: [20:40[",
+    "material_balance: [0:3[ AND material_change_2ply: [-1:1[ AND opp_hanging_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "own_prev_spent_s: [5:15[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.7032393397017309,
+   "depth": 1,
+   "n_derive": 2565,
+   "derive_err_in": 0.09473684210526316,
+   "derive_err_out": 0.05519176800748363,
+   "derive_wg_est": 0.03821370904459496,
+   "derive_wg_z": 5.490396306181515,
+   "derive_resid_wg_in": 0.01388543445561218,
+   "stability_share_j60": 0.5,
+   "stability_median_j": 0.642320819112628,
+   "validate": {
+    "n_in": 862,
+    "n_out": 2194,
+    "p_in": 0.08352668213457076,
+    "p_out": 0.059708295350957154,
+    "diff": 0.02381838678361361,
+    "se": 0.011004889218252704,
+    "z": 2.16434589310617,
+    "games_in": 89,
+    "wg_est": 0.02088552746026844,
+    "wg_se": 0.010072001091727838,
+    "wg_z": 2.073622438089466,
+    "wg_games": 89,
+    "pass": false,
+    "region": "own_prev_spent_s: [5:15[",
+    "resid_wg_est": -0.0011054696363954424,
+    "resid_wg_z": -0.10877549669281028,
+    "secondary_wg": {
+     "est": 0.047573261095463705,
+     "z": 3.189066555244929,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": 0.01149824392006634,
+     "z": 3.346279216703936
+    }
+   }
+  },
+  {
+   "region": "own_hanging_piece_count>=2",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.5020658640113068,
+   "depth": 1,
+   "n_derive": 361,
+   "derive_err_in": 0.18559556786703602,
+   "derive_err_out": 0.06149918774657693,
+   "derive_wg_est": 0.1179789688635465,
+   "derive_wg_z": 5.311051950196677,
+   "derive_resid_wg_in": 0.026424519158489833,
+   "stability_share_j60": 0.2,
+   "stability_median_j": 0.04792332268370607,
+   "validate": {
+    "n_in": 122,
+    "n_out": 2934,
+    "p_in": 0.14754098360655737,
+    "p_out": 0.06305385139740968,
+    "diff": 0.08448713220914769,
+    "se": 0.03219097928048006,
+    "z": 2.6245592429174387,
+    "games_in": 60,
+    "wg_est": 0.07726979524977481,
+    "wg_se": 0.030500389414208007,
+    "wg_z": 2.533403564145322,
+    "wg_games": 60,
+    "pass": false,
+    "region": "own_hanging_piece_count>=2",
+    "resid_wg_est": -0.016048991089672143,
+    "resid_wg_z": -0.501927790229562,
+    "secondary_wg": {
+     "est": -0.028193428849864234,
+     "z": -1.0722361221345713,
+     "n_games": 60
+    },
+    "wp_loss_wg": {
+     "est": -8.644766411741073e-05,
+     "z": -0.013521863628487089
+    }
+   }
+  },
+  {
+   "region": "n_captures>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.4833258214747679,
+   "depth": 1,
+   "n_derive": 2893,
+   "derive_err_in": 0.10093328724507432,
+   "derive_err_out": 0.05011501807426881,
+   "derive_wg_est": 0.058026141596809334,
+   "derive_wg_z": 8.01655659550207,
+   "derive_resid_wg_in": 0.008985986895845786,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.28464163822525596,
+   "validate": {
+    "n_in": 1020,
+    "n_out": 2036,
+    "p_in": 0.09803921568627451,
+    "p_out": 0.050589390962671905,
+    "diff": 0.0474498247236026,
+    "se": 0.011339870608694746,
+    "z": 4.184335638470237,
+    "games_in": 90,
+    "wg_est": 0.04857034323546759,
+    "wg_se": 0.011289545004284158,
+    "wg_z": 4.302240986420277,
+    "wg_games": 90,
+    "pass": false,
+    "region": "n_captures>=3",
+    "resid_wg_est": 0.0106135372646535,
+    "resid_wg_z": 0.9366671085331847,
+    "secondary_wg": {
+     "est": 0.04993839541606765,
+     "z": 3.0196201181265656,
+     "n_games": 90
+    },
+    "wp_loss_wg": {
+     "est": 0.010182813941382965,
+     "z": 2.669482611878944
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "recapture_available==1": 2,
+  "own_hanging_piece_count>=2": 6,
+  "own_prev_spent_s: [5:15[": 15,
+  "own_passed>=1": 1,
+  "n_captures>=3": 2,
+  "ply: [20:40[": 2,
+  "standing=='winning'": 1,
+  "clock_own_ms: [30000:60000[": 1
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "boligarla",
+ "player_id": "boligarla",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 6,
+    "rating": 1199
+   },
+   "blitz": {
+    "games": 4757,
+    "rating": 1660
+   },
+   "rapid": {
+    "games": 224,
+    "rating": 1822
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1588
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1018,
+    "rating": 1535
+   }
+  },
+  "createdAt": 1647734992428,
+  "seenAt": 1788881321320
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/boligarla?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T18:02:29Z",
+  "http_status": 200,
+  "bytes": 19002045,
+  "sha256": "7bddae38109500064ce49e33d590cdb797abef952dd40feaae50c8a9e701a7cd",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_boligarla_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

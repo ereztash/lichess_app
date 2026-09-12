@@ -1,0 +1,72 @@
+{
+ "platform": "lichess",
+ "username": "chasethepirate",
+ "player_id": "chasethepirate",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 334,
+    "rating": 1581
+   },
+   "blitz": {
+    "games": 9439,
+    "rating": 1659
+   },
+   "rapid": {
+    "games": 458,
+    "rating": 1838
+   },
+   "classical": {
+    "games": 3,
+    "rating": 1711
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 7,
+    "rating": 1483
+   },
+   "kingOfTheHill": {
+    "games": 11,
+    "rating": 1735
+   },
+   "atomic": {
+    "games": 16,
+    "rating": 1251
+   },
+   "horde": {
+    "games": 2,
+    "rating": 1484
+   },
+   "puzzle": {
+    "games": 3412,
+    "rating": 1839
+   }
+  },
+  "createdAt": 1611069463253,
+  "seenAt": 1787259154692
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/chasethepirate?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:20:40Z",
+  "http_status": 200,
+  "bytes": 3497236,
+  "sha256": "27c420c6ef3dd77e1ac8b1aec7ef7cf9ce2358bc99ab8d80b3d39117237bf90f",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_chasethepirate_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

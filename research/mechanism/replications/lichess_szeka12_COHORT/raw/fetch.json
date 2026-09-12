@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "szeka12",
+ "player_id": "szeka12",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 8,
+    "rating": 1361
+   },
+   "blitz": {
+    "games": 8804,
+    "rating": 1702
+   },
+   "rapid": {
+    "games": 382,
+    "rating": 1812
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 417,
+    "rating": 1806
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1661180914469,
+  "seenAt": 1788867850786
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/szeka12?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:56:10Z",
+  "http_status": 200,
+  "bytes": 3385057,
+  "sha256": "ed593b9c69206db3b94770c4e975760d8749b84b9710cf15801c38828e612d96",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_szeka12_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

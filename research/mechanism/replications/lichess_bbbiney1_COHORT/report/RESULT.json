@@ -1,0 +1,147 @@
+{
+ "run_dir": "/work/research/mechanism/replications/lichess_bbbiney1_COHORT",
+ "focal": {
+  "platform": "lichess",
+  "username": "bbbiney1",
+  "player_id": "bbbiney1",
+  "corpus": "lichess:bbbiney1"
+ },
+ "contract_version": "replication-1.0.0",
+ "repo_sha": "04b2740121edffc0f509d29e826cbaf57dd83028",
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "corpus": {
+  "fetched": 950,
+  "admissible": 450,
+  "scorable": 441,
+  "eligible_decisions": 13800,
+  "exclusions": {
+   "non-standard-variant": 9,
+   "outside-window": 292,
+   "termination:Time forfeit": 182,
+   "under-20-plies": 26
+  },
+  "speeds": {
+   "blitz": 118,
+   "bullet": 37,
+   "classical": 14,
+   "rapid": 272
+  }
+ },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "INSUFFICIENT_EVIDENCE",
+ "failure_code": "POPULATION_BASELINE_INSUFFICIENT",
+ "splits": {
+  "DERIVE_decisions": 8369,
+  "DERIVE_games": 265,
+  "VALIDATE_decisions": 2861,
+  "VALIDATE_games": 88,
+  "TEST_decisions": 2570,
+  "TEST_games": 88
+ },
+ "blitz_splits": {
+  "DERIVE_decisions": 3401,
+  "DERIVE_games": 108,
+  "VALIDATE_decisions": 48,
+  "VALIDATE_games": 2,
+  "TEST_decisions": 177,
+  "TEST_games": 8
+ },
+ "population": {
+  "status": "OK",
+  "focal_blitz_median_rating": 1635.0,
+  "band": [
+   1450,
+   1850
+  ]
+ },
+ "population_id": "population_2026-06",
+ "verdict": {
+  "output_class": "INSUFFICIENT_EVIDENCE",
+  "failure_code": "POPULATION_BASELINE_INSUFFICIENT",
+  "reason": "the population corpus is blitz-only, and this player's blitz frame is below the point at which the frozen judge is defined",
+  "missing": [
+   "VALIDATE: 48 eligible decisions, the frozen design needs 200",
+   "TEST: 177 eligible decisions, the frozen design needs 200"
+  ],
+  "broad_structure": {
+   "region": "own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.5856380346232648,
+   "depth": 1,
+   "n_derive": 2547,
+   "derive_err_in": 0.19591676482135847,
+   "derive_err_out": 0.10271384403984885,
+   "derive_wg_est": 0.08861986897882722,
+   "derive_wg_z": 9.644684468553297,
+   "derive_resid_wg_in": 0.03141879916619839,
+   "stability_share_j60": 0.6666666666666666,
+   "stability_median_j": 0.7949061662198391,
+   "validate": {
+    "n_in": 746,
+    "n_out": 2115,
+    "p_in": 0.20107238605898123,
+    "p_out": 0.09598108747044917,
+    "diff": 0.10509129858853206,
+    "se": 0.017897733263396512,
+    "z": 5.871765828774484,
+    "games_in": 88,
+    "wg_est": 0.10639952632243521,
+    "wg_se": 0.01715913865726723,
+    "wg_z": 6.200749842263961,
+    "wg_games": 88,
+    "pass": true,
+    "region": "own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06879628900256102,
+    "resid_wg_z": 4.173659744786093,
+    "secondary_wg": {
+     "est": 0.012379541266550454,
+     "z": 0.6985034527137526,
+     "n_games": 88
+    },
+    "wp_loss_wg": {
+     "est": 0.006261155027932016,
+     "z": 1.4714287775202368
+    }
+   },
+   "target": "cls_tactical"
+  }
+ },
+ "evidence": {},
+ "finished_at": "2026-09-09T14:06:28Z"
+}

@@ -1,0 +1,119 @@
+PASS imports: cohort_select
+PASS imports: freeze_cohort
+PASS imports: cohort_run
+PASS imports: aggregate_cohort
+PASS imports: write_report
+PASS imports: make_cohort_prereg
+PASS imports: make_power_plan
+PASS imports: make_instrument_freeze
+PASS band rule on the tracked fixture
+PASS band helper matches the pipeline on the recorded run
+PASS prereg names the frozen frame
+PASS prereg names the frozen instrument
+PASS prereg carries the retrieval bound and its enforcement
+PASS frame holds screenable rows
+PASS pipeline hash still matches the freeze
+PASS run verifies: lichess_a1alexch_122_COHORT
+PASS run verifies: lichess_a_juni_COHORT
+PASS run verifies: lichess_abdohassan11_COHORT
+PASS run verifies: lichess_acid_1_COHORT
+PASS run verifies: lichess_adrianoricardo-bra_COHORT
+PASS run verifies: lichess_ajshaz17_COHORT
+PASS run verifies: lichess_akkaclaros_COHORT
+PASS run verifies: lichess_al3s_COHORT
+PASS run verifies: lichess_alexduranr_COHORT
+PASS run verifies: lichess_anil1947_COHORT
+PASS run verifies: lichess_archpopov_COHORT
+PASS run verifies: lichess_atheerjalilgalilshb_COHORT
+PASS run verifies: lichess_ayinzzz_COHORT
+PASS run verifies: lichess_bbbiney1_COHORT
+PASS run verifies: lichess_belichenkosw62_COHORT
+PASS run verifies: lichess_beni_kpknldmi_COHORT
+PASS run verifies: lichess_blindfoldpractice4_COHORT
+PASS run verifies: lichess_bmyers2015_COHORT
+PASS run verifies: lichess_board_at_work_COHORT
+PASS run verifies: lichess_boligarla_COHORT
+PASS run verifies: lichess_boycoe_COHORT
+PASS run verifies: lichess_bromptonymous_COHORT
+PASS run verifies: lichess_carlos_g83_COHORT
+PASS run verifies: lichess_cavalogigante_COHORT
+PASS run verifies: lichess_cesarau_COHORT
+PASS run verifies: lichess_chahinskandar_COHORT
+PASS run verifies: lichess_chasethepirate_COHORT
+PASS run verifies: lichess_chessterr1883_COHORT
+PASS run verifies: lichess_christianjessen_COHORT
+PASS run verifies: lichess_cybernandox_COHORT
+PASS run verifies: lichess_dm77777_COHORT
+PASS run verifies: lichess_dvoice_COHORT
+PASS run verifies: lichess_ednardomarques134_COHORT
+PASS run verifies: lichess_egregiouschessplayer_COHORT
+PASS run verifies: lichess_elciclonzapala25_COHORT
+PASS run verifies: lichess_erez281_RUNOFRECORD
+PASS run verifies: lichess_fink4241_COHORT
+PASS run verifies: lichess_francinov_COHORT
+PASS run verifies: lichess_franckzurita18_COHORT
+PASS run verifies: lichess_gapee_COHORT
+PASS run verifies: lichess_garangersan_COHORT
+PASS run verifies: lichess_gilrivera_COHORT
+PASS run verifies: lichess_goshich_COHORT
+PASS run verifies: lichess_grebmesorchess_COHORT
+PASS run verifies: lichess_ilpiccolopico_COHORT
+PASS run verifies: lichess_imfrei_COHORT
+PASS run verifies: lichess_ingjaldurs_COHORT
+PASS run verifies: lichess_josephm613_COHORT
+PASS run verifies: lichess_jskeens_COHORT
+PASS run verifies: lichess_kasp788_COHORT
+PASS run verifies: lichess_kjcarranzap_COHORT
+PASS run verifies: lichess_kosbog1977_COHORT
+PASS run verifies: lichess_leoferrando_COHORT
+PASS run verifies: lichess_lichisss_COHORT
+PASS run verifies: lichess_m-glamas_COHORT
+PASS run verifies: lichess_madman1988_COHORT
+PASS run verifies: lichess_malaikat_izroil58_COHORT
+PASS run verifies: lichess_marcinek2012_COHORT
+PASS run verifies: lichess_marcioparana_COHORT
+PASS run verifies: lichess_maxkart19_COHORT
+PASS run verifies: lichess_mcpolan_COHORT
+PASS run verifies: lichess_medkol_COHORT
+PASS run verifies: lichess_millerglua_COHORT
+PASS run verifies: lichess_montifiqe_COHORT
+PASS run verifies: lichess_muammer1926_COHORT
+PASS run verifies: lichess_naa12_COHORT
+PASS run verifies: lichess_naughtrapier_COHORT
+PASS run verifies: lichess_navaneethav_COHORT
+PASS run verifies: lichess_nerdstomper3_COHORT
+PASS run verifies: lichess_newnampat64_COHORT
+PASS run verifies: lichess_nouramine_COHORT
+PASS run verifies: lichess_omar2137_COHORT
+PASS run verifies: lichess_one-trick-wilfred_COHORT
+PASS run verifies: lichess_original-chess_COHORT
+PASS run verifies: lichess_pablorocchi_COHORT
+PASS run verifies: lichess_pizeta_COHORT
+PASS run verifies: lichess_pratamaok_COHORT
+PASS run verifies: lichess_pumuckel_COHORT
+PASS run verifies: lichess_rdumalig_COHORT
+PASS run verifies: lichess_rey-ajedrez2010_COHORT
+PASS run verifies: lichess_rizzlerchi_COHORT
+PASS run verifies: lichess_rookiepawn89_COHORT
+PASS run verifies: lichess_sajahggggtggggggg_COHORT
+PASS run verifies: lichess_sgad_COHORT
+PASS run verifies: lichess_sha4ever231_COHORT
+PASS run verifies: lichess_skibidisigma12345_COHORT
+PASS run verifies: lichess_sofiyankhan_COHORT
+PASS run verifies: lichess_sumanbala_COHORT
+PASS run verifies: lichess_superchango99_COHORT
+PASS run verifies: lichess_szeka12_COHORT
+PASS run verifies: lichess_toscohg_COHORT
+PASS run verifies: lichess_uliduarte_COHORT
+PASS run verifies: lichess_vibesgalore_B
+PASS run verifies: lichess_viktor19625_COHORT
+PASS run verifies: lichess_vivasandino_COHORT
+PASS run verifies: lichess_vrajik_COHORT
+PASS run verifies: lichess_wildhorse420_COHORT
+PASS run verifies: lichess_williamsrya94_COHORT
+PASS run verifies: lichess_win33r_COHORT
+PASS run verifies: lichess_xuorig_COHORT
+PASS run verifies: lichess_yeliangel20_COHORT
+PASS run verifies: lichess_yurisato123_COHORT
+
+117 checks: 117 pass, 0 fail, 0 skipped

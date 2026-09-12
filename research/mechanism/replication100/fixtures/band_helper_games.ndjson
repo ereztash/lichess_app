@@ -1,0 +1,7 @@
+{"speed": "blitz", "players": {"white": {"user": {"id": "focal"}, "rating": 1600}, "black": {"user": {"id": "other"}, "rating": 1700}}}
+{"speed": "blitz", "players": {"white": {"user": {"id": "other"}, "rating": 1500}, "black": {"user": {"id": "focal"}, "rating": 1700}}}
+{"speed": "bullet", "players": {"white": {"user": {"id": "focal"}, "rating": 900}, "black": {"user": {"id": "other"}, "rating": 1000}}}
+{"speed": "rapid", "players": {"white": {"user": {"id": "focal"}, "rating": 2400}, "black": {"user": {"id": "other"}, "rating": 1000}}}
+{"speed": "blitz", "players": {"white": {"user": {"id": "other"}, "rating": 1234}, "black": {"user": {"id": "third"}, "rating": 1235}}}
+{"speed": "blitz", "players": {"white": {"user": {"id": "FOCAL"}, "rating": 1620}, "black": {"user": {"id": "other"}, "rating": 1400}}}
+{"speed": "blitz", "players": {"white": {"user": {"id": "focal"}, "rating": 1660}, "black": {}}}

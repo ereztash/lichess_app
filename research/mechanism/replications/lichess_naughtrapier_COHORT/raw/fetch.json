@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "naughtrapier",
+ "player_id": "naughtrapier",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 6,
+    "rating": 1594
+   },
+   "blitz": {
+    "games": 613,
+    "rating": 1639
+   },
+   "rapid": {
+    "games": 16,
+    "rating": 1808
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1772149153812,
+  "seenAt": 1788791717961
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/naughtrapier?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T06:52:23Z",
+  "http_status": 200,
+  "bytes": 2326684,
+  "sha256": "a7709b0a13e7175a325a7f47ca7ac7e6c8505edadcccee7d6aea98f025e2329c",
+  "records": 636,
+  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_naughtrapier_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

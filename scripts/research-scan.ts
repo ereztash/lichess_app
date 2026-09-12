@@ -220,6 +220,142 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "generated blitz datasets, derived from dumps that are not in the tree",
   },
   {
+    artefact: "research/mechanism/replication/BASELINE_EREZ281.json",
+    keyPath: "data_sha256.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (_artefact, leaf) => leaf,
+    why: "the frozen erez281 corpus the whole generalisation is held against: the decision tables, the engine lines and the manifests. GATE-GENERIC-PIPELINE-EQUIVALENCE compares the generic pipeline to numbers computed FROM these files, so a file that quietly changed would turn a proof of equivalence into a proof of nothing. The `<doc>` key IS the tree path, hence the identity subject",
+  },
+  {
+    artefact: "research/mechanism/replication/BASELINE_EREZ281.json",
+    keyPath: "inputs.game_ids_sha256|feature_schema.schema_hash|splits.<doc>.games_sha256",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "digests over content the file already carries or derives -- the 2,209 game ids of the frozen window, the 155 feature column names, the game-id list of each split. They name no tree file. `make_baseline.py` recomputes every one of them from the committed data, so the check that matters is running that generator, which the equivalence gate does",
+  },
+  {
+    artefact: "research/mechanism/replication/PLAYER_B_SELECTION.json",
+    keyPath: "selection_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the selection record's hash of itself, so a reader can tell whether the rule that picked the replication player was edited after it picked them. It claims nothing about any file",
+  },
+  {
+    artefact: "research/mechanism/replication/REPLICATION_PREREG_*.json",
+    keyPath: "pipeline_files.<doc>|protocol.files.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    why: "the research code and the protocol text a replication was frozen against, hashed before its first outcome-bearing stage. Not asserted HERE, and the wildcard says so: a pre-registration is a claim about the tree AT THE FREEZE, and holding it against the tree forever would redden this gate on the next legitimate pipeline change rather than on a drift. The assertion lives in `verify_run.py`, which compares a run's pipeline hash against the working tree and which the equivalence workflow runs on every replication directory",
+  },
+  {
+    artefact: "research/mechanism/replication/REPLICATION_PREREG_*.json",
+    keyPath: "prereg_hash|pipeline_hash|protocol.protocol_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the pre-registration's hash of itself, and digests over the two blocks above it. `verify_run.py` recomputes the self-hash and reddens if the document was edited after it was frozen",
+  },
+  {
+    artefact: "research/mechanism/replication/REPLICATION_PREREG_*.json",
+    keyPath: "retrieval.sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the bytes the platform returned for that player's games. Deliberately not committed -- a third party's raw game export is not this repository's to carry -- so the digest exists for a rerun to prove it read the same response",
+  },
+  {
+    artefact: "research/mechanism/replications/**/*.json",
+    keyPath: "pipeline_version.files.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    why: "the research code a replication run executed under, recorded in both its manifest and its pre-registration. Same reasoning and same checker as the rows above: held by `verify_run.py` against the working tree, not pinned here, because a completed run is a record of what the code WAS",
+  },
+  {
+    artefact: "research/mechanism/replications/**/*.json",
+    keyPath: "pipeline_version.pipeline_hash|pipeline_hash|prereg_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "a digest over the pipeline-file block, and a pre-registration's hash of itself. They identify a run's code state without claiming anything about a particular file; `verify_run.py` is what compares them to the tree",
+  },
+  {
+    artefact: "research/mechanism/replications/**/*.json",
+    keyPath: "fetch.sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the platform's raw response for that run's games, which is gitignored for the reason above. The digest lets a rerun prove it read the same bytes",
+  },
+  {
+    artefact: "research/mechanism/replication100/preservation/failed_attempts/**/*.json",
+    keyPath: "pipeline_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the `RESULT.json` of a cohort member whose run died before scoring a position, kept because a deleted failed attempt would leave the run's history claiming these members were simply scored later. Same kind and same reasoning as the live-run row above: a digest over the pipeline-file block, recording what the code WAS when the attempt failed. It is not a claim that the tree still looks like this, and `verify_run.py` is what compares a LIVE run's copy to the tree",
+  },
+  {
+    artefact: "research/mechanism/replication100/preservation/failed_attempts_index.json",
+    keyPath: "research_identity.cohort_hash|research_identity.prereg_hash|research_identity.instrument_hash|research_identity.pipeline_hash|research_identity.protocol_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the five identities the cohort is frozen around, repeated once at the head of the index so a failed attempt cannot be read as belonging to some other cohort. Each is a document's digest of itself or of a path-to-hash map, already classified where it is generated; here they are quotations, and the row exists so that a reader who finds these attempts years from now can tell which run they failed inside",
+  },
+  {
+    artefact: "research/mechanism/replication100/preservation/failed_attempts_index.json",
+    keyPath: "attempts.[].pipeline_identity",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the same digest as the row above, lifted into the index so the twenty-eight attempts can be read without opening twenty-eight files. All twenty-eight carry the frozen `pipeline_hash`, which is the point: the attempts failed on the engine's absence from PATH, not on a moved instrument",
+  },
+  {
+    artefact: "research/mechanism/replication100/preservation/failed_attempts_index.json",
+    keyPath: "attempts.[].evidence_files.[].sha256",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    why: "each preserved evidence file, hashed at the moment it was preserved. Unlike most `HASH_OF_TREE_FILE` sites here these subjects ARE committed, one directory down at `failed_attempts/<player_id>/<file>`, so the claim is checkable rather than merely classified: `preservation/verify_failed_attempts.py` re-hashes all one hundred and forty and is what would catch a preserved log edited after the fact. No `subject` resolver is given because the path lives in the sibling `file` key rather than in the key path, which is the shape this scanner's `<doc>` machinery cannot address",
+  },
+  {
+    artefact: "research/mechanism/replication/USERNAME_ONLY_PROOF.json",
+    keyPath: "fetch.sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the bytes lichess returned for the username-only ingest proof. Deliberately not committed, for the same reason no run's raw export is: a third party's game history is not this repository's to carry. The digest exists so a rerun can prove it read the same response, and the proof it belongs to is what withdrew this package's claim that the endpoint needs a token",
+  },
+  {
+    artefact: "research/mechanism/replication100/INSTRUMENT_FREEZE.json",
+    keyPath: "tree_sha256.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (_artefact, leaf) => leaf,
+    why: "the whole instrument the 100-player cohort is to be judged by: the 17 research-content files, the protocol text, the classifier and the population registry. Asserted here, unlike a per-run pre-registration, because a cohort's meaning depends on Player 1 and Player 100 being judged by the SAME thing, so an instrument that drifts mid-cohort is precisely the failure this row exists to catch. Reddening on a legitimate pipeline change is intended and the remedy is to re-run `make_instrument_freeze.py`, which puts the change in the freeze's own git history instead of hiding it. The `<doc>` key IS the tree path, hence the identity subject",
+  },
+  {
+    artefact: "research/mechanism/replication100/*.json",
+    keyPath: "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash|instrument.instrument_hash|instrument.pipeline_hash|instrument.protocol_hash|prereg_hash|cohort_hash|sampling_frame.frame_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "digests over blocks the documents already carry. `instrument_hash` is the freeze's hash of itself, repeated by the power plan, the feasibility screen, the cohort pre-registration and the frozen cohort so a reader can tell which instrument each was computed against; `pipeline_hash` and `protocol_hash` are digests over the path-to-hash map that `tree_sha256` asserts above; `frame_hash` is the screen's digest of the rows it read; `prereg_hash` and `cohort_hash` are the cohort pre-registration's and the frozen cohort's hashes of themselves, which is how a rule edited after a result becomes visible. They name no tree file, and each generator recomputes its own, while `cohort_select.py`, `freeze_cohort.py`, `cohort_run.py` and `aggregate_cohort.py` all refuse to proceed when the hash they were started under has moved",
+  },
+  {
+    artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
+    keyPath: "members.[].manifest_sha256|members.[].prereg_sha256",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    // No `subject`, deliberately, and that is what says "checked, but not here".
+    why: "each member's manifest and per-player pre-registration AS THEY WERE when the cohort was frozen, before any member was scored. Not asserted here, for the reason the per-run rows above are not: the scoring run rewrites a member's manifest, so pinning these to the tree would redden on the cohort RUNNING rather than on a member being tampered with. `verify_run.py` holds each run against the tree per run, and what these are for is the comparison a reader makes between the frozen cohort and the finished one. THIS ROW WAS PREVIOUSLY UNCHECKABLE IN TWO WAYS AT ONCE: its keyPath said `members.manifest_sha256`, but `members` is a LIST and the scanner emits `members.[].manifest_sha256`, so it matched nothing and all three hundred sites read as unclassified the day the freeze file first existed; and it was marked SUPERSEDED by `verify_run.py`, which is a script and therefore can never be the CURRENT register block that `findOrphanedSupersessions` requires a successor to be. Both were invisible while the artefact did not exist, because every predicate skips an absent file",
+  },
+  {
+    artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
+    keyPath: "members.[].raw_sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the bytes lichess returned for each cohort member's games, gitignored for the reason every other run's raw export is: a third party's game history is not this repository's to carry. The digest lets a rerun prove it read the same response",
+  },
+  {
+    artefact: "research/mechanism/replication100/SCALING_BENCH.json",
+    keyPath: "corpus.frozen_digest|rows.[].digest",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the compute-scaling benchmark's own equivalence proof, and it can be checked nowhere but in the run that produced it. `frozen_digest` is a sha256 over the canonical reassembly of the ALREADY-SCORED records for a 64-game slice of Player B, read from that run's `scored/*.jsonl`, which is gitignored like every other run's scored output; `rows.[].digest` is the same digest recomputed over what each worker topology produced, into a scratch directory outside the repository that the benchmark deletes. Neither names a tree file, so neither is assertable here. What the artefact claims is the EQUALITY -- one distinct digest across 1, 2, 4 and 8 workers, all equal to the frozen one -- and that was measured at the time rather than argued: sharding changes which part file holds a game and cannot change a digest taken over the reassembled set. The benchmark scored no cohort member and changed no depth, MultiPV, thread count, hash size, eligibility rule or threshold",
+  },
+  {
     artefact: "research/b3_population_expertise/results/period_*.json",
     keyPath: "_cache_key",
     kind: "INTERNAL_DIGEST",
@@ -306,11 +442,17 @@ function globToRegex(glob: string): string {
  * earlier version used `[^.]+` here, which matched nothing at all and reported all five live freeze
  * records as unclassified while `findStaleFrozenHashes` was checking them. `|` stays alive so one
  * row can cover a set of sibling key names.
+ *
+ * `[` AND `]` ARE ESCAPED BECAUSE THE SCANNER ITSELF EMITS THEM. `findUnregisteredClaims` reports a
+ * hash inside an array as `rows.[].digest`, so that is the shape an author has to write here -- and
+ * unescaped it is an empty character class, a regex that matches nothing while looking like it
+ * matches the key. A row written in the shape the scanner printed would have stayed silently
+ * uncovered, which is the one failure this predicate exists to make impossible.
  */
 function keyPathToRegex(keyPath: string): string {
   return keyPath
     .split("|")
-    .map((part) => part.replace(/[.]/g, "\\.").replace("<doc>", ".+"))
+    .map((part) => part.replace(/[.[\]]/g, (c) => `\\${c}`).replace("<doc>", ".+"))
     .join("|");
 }
 
@@ -331,6 +473,12 @@ export function findStaleFrozenHashes(root: string): Finding[] {
   for (const relation of RESEARCH_RELATIONS) {
     if (relation.kind !== "HASH_OF_TREE_FILE" || relation.status !== "CURRENT") continue;
     if (relation.artefact.includes("*") || !has(root, relation.artefact)) continue;
+    // A ROW WITH NO `subject` NAMES NO FILE TO HOLD THE HASH AGAINST, so there is nothing here to
+    // assert and `relation.subject!` below would throw on it. That is not leniency: the row is
+    // still REGISTERED, so `findUnregisteredClaims` is satisfied and its `why` has to say what
+    // checks it instead. The globbed rows above have always relied on exactly this and were only
+    // spared the crash by their glob.
+    if (!relation.subject) continue;
     const raw = read(root, relation.artefact);
     const doc = JSON.parse(raw) as Record<string, unknown>;
     const [head, tail] = relation.keyPath.split(".");

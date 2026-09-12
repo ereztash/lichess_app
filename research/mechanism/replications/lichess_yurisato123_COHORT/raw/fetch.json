@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "yurisato123",
+ "player_id": "yurisato123",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1400,
+    "rating": 1744
+   },
+   "blitz": {
+    "games": 2268,
+    "rating": 1718
+   },
+   "rapid": {
+    "games": 71,
+    "rating": 1743
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 2896,
+    "rating": 1782
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1701443300071,
+  "seenAt": 1788725197961
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/yurisato123?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:57:10Z",
+  "http_status": 200,
+  "bytes": 3602750,
+  "sha256": "1aefb9554cd049a9f8f961f2179c58fa9217974f22f7170b741dc570b9e309ff",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_yurisato123_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

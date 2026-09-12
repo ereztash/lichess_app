@@ -1,0 +1,236 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.9151790367463497,
+   "zs": [
+    2.9954397119807563,
+    1.3172907098242546,
+    1.4735917031949461,
+    1.4959264792981226,
+    2.293646579433669
+   ],
+   "regions": [
+    "standing=='level'",
+    "standing=='level'",
+    "standing=='level'",
+    "ply<20",
+    "ply<20"
+   ]
+  },
+  "2": {
+   "mean_z": 2.905151446066816,
+   "zs": [
+    3.647416405242454,
+    2.5388469876301563,
+    2.7298005657371753,
+    2.9991785451914166,
+    2.6105147265328763
+   ],
+   "regions": [
+    "n_captures: [1:3[ AND ply<20",
+    "n_captures: [1:3[ AND ply<20",
+    "n_captures: [1:3[ AND ply<20",
+    "n_captures: [1:3[ AND ply<20",
+    "n_captures: [1:3[ AND ply<20"
+   ]
+  },
+  "3": {
+   "mean_z": 2.7762377604904707,
+   "zs": [
+    3.4534334588452857,
+    2.802726647810497,
+    2.8024732428841017,
+    2.3127916949711613,
+    2.5097637579413083
+   ],
+   "regions": [
+    "clock_diff_s: [0:30[ AND n_captures: [1:3[ AND ply<20",
+    "clock_diff_s: [0:30[ AND n_captures: [1:3[ AND ply<20",
+    "opp_attacked_piece_count: [1:3[ AND opp_last_captured_value<1 AND ply<20",
+    "opp_attacked_piece_count: [1:3[ AND opp_last_captured_value<1 AND ply<20",
+    "opp_attacked_piece_count: [1:3[ AND opp_last_captured_value<1 AND ply<20"
+   ]
+  }
+ },
+ "depth": 2,
+ "frozen": [
+  {
+   "region": "n_captures: [1:3[ AND ply<20",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.481969171344882,
+   "depth": 2,
+   "n_derive": 727,
+   "derive_err_in": 0.16643741403026135,
+   "derive_err_out": 0.13381995133819952,
+   "derive_wg_est": 0.029224703667151516,
+   "derive_wg_z": 1.601181269249819,
+   "derive_resid_wg_in": 0.09205114127510897,
+   "stability_share_j60": 0.9666666666666667,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 247,
+    "n_out": 2767,
+    "p_in": 0.145748987854251,
+    "p_out": 0.13335742681604626,
+    "diff": 0.01239156103820474,
+    "se": 0.026201137276406192,
+    "z": 0.47293981583628397,
+    "games_in": 85,
+    "wg_est": 0.01934543611410648,
+    "wg_se": 0.025727738339753815,
+    "wg_z": 0.7519291380624167,
+    "wg_games": 85,
+    "pass": false,
+    "region": "n_captures: [1:3[ AND ply<20",
+    "resid_wg_est": 0.08895275336378836,
+    "resid_wg_z": 3.4577903022848457,
+    "secondary_wg": {
+     "est": 0.00901747212878942,
+     "z": 0.42804842203042814,
+     "n_games": 85
+    },
+    "wp_loss_wg": {
+     "est": -0.002195116113040405,
+     "z": -0.6073747203257238
+    }
+   }
+  },
+  {
+   "region": "n_captures: [1:3[ AND phase=='opening'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.351114939610027,
+   "depth": 2,
+   "n_derive": 833,
+   "derive_err_in": 0.15726290516206481,
+   "derive_err_out": 0.13436323510320655,
+   "derive_wg_est": 0.01957788593872999,
+   "derive_wg_z": 1.1967338722312033,
+   "derive_resid_wg_in": 0.08146130448722545,
+   "stability_share_j60": 0.9666666666666667,
+   "stability_median_j": 0.894927536231884,
+   "validate": {
+    "n_in": 276,
+    "n_out": 2738,
+    "p_in": 0.13405797101449277,
+    "p_out": 0.1344046749452155,
+    "diff": -0.0003467039307227249,
+    "se": 0.025313778607418673,
+    "z": -0.013696253573977172,
+    "games_in": 88,
+    "wg_est": 0.006085905945607032,
+    "wg_se": 0.02463400834366547,
+    "wg_z": 0.24705301145893283,
+    "wg_games": 88,
+    "pass": false,
+    "region": "n_captures: [1:3[ AND phase=='opening'",
+    "resid_wg_est": 0.07525264287582582,
+    "resid_wg_z": 3.1096333901463655,
+    "secondary_wg": {
+     "est": 0.017391359784399815,
+     "z": 0.8235754204695871,
+     "n_games": 88
+    },
+    "wp_loss_wg": {
+     "est": -0.000361197511346967,
+     "z": -0.10188637610797549
+    }
+   }
+  },
+  {
+   "region": "opp_attacked_piece_count: [1:3[ AND ply<20",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.2483215634498217,
+   "depth": 2,
+   "n_derive": 839,
+   "derive_err_in": 0.16805721096543505,
+   "derive_err_out": 0.1331687670520982,
+   "derive_wg_est": 0.03178833775327002,
+   "derive_wg_z": 1.9139008403257838,
+   "derive_resid_wg_in": 0.07762068040815139,
+   "stability_share_j60": 0.9666666666666667,
+   "stability_median_j": 0.8541666666666666,
+   "validate": {
+    "n_in": 287,
+    "n_out": 2727,
+    "p_in": 0.1602787456445993,
+    "p_out": 0.13164649798313163,
+    "diff": 0.028632247661467658,
+    "se": 0.026193733316525865,
+    "z": 1.093095333737834,
+    "games_in": 86,
+    "wg_est": 0.035323871929455214,
+    "wg_se": 0.025489864212744816,
+    "wg_z": 1.3858007102208665,
+    "wg_games": 86,
+    "pass": false,
+    "region": "opp_attacked_piece_count: [1:3[ AND ply<20",
+    "resid_wg_est": 0.084627696218315,
+    "resid_wg_z": 3.452529332984785,
+    "secondary_wg": {
+     "est": -0.004932516326898596,
+     "z": -0.25721196757263537,
+     "n_games": 86
+    },
+    "wp_loss_wg": {
+     "est": -0.0051104730155572455,
+     "z": -1.4987221673054478
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "n_captures: [1:3[ AND ply<20": 25,
+  "legal_moves>=28.0 AND standing=='level'": 1,
+  "n_captures: [1:3[ AND phase=='opening'": 2,
+  "opp_attacked_piece_count: [1:3[ AND ply<20": 2
+ }
+}

@@ -1,0 +1,50 @@
+PASS an unfinished member gives INCOMPLETE
+PASS the unfinished member is named, not just counted
+PASS a member short of blitz games is BROAD_POWERED and not RESIDUAL_POWERED
+PASS an all-null cohort trips a red flag
+PASS a met red flag forces UNDETERMINED, never a verdict
+PASS a cohort of clones trips the R*/R** flag
+PASS a cohort of clones trips the residual-rate flag
+PASS the flags beat the counts: UNDETERMINED, not DOES_NOT_GENERALISE
+PASS the population gate is measured, not asserted
+PASS no fixture member is in the baseline
+PASS POSITIVE CONTROL: a real baseline player as a member turns the gate red
+PASS an absent baseline reads as NOT MEASURED, never as clean
+PASS unreachable candidates are counted as events and as names
+PASS a candidate still queued at freeze is visible
+PASS unreachable candidates stay OUT of the tried denominator
+{
+ "out": "/tmp/tmplk80sptr/REPORT.md",
+ "verdict": "UNDETERMINED",
+ "broad_powered": 2,
+ "residual_powered": 1,
+ "classes_residual": {
+  "PERSONAL_RESIDUAL_CANDIDATE": 1
+ }
+}
+PASS the report renders
+PASS the report carries the population-safety gate
+PASS the report does not print a bare None
+PASS the report states the finished count rather than asserting a hundred
+{
+ "out": "/tmp/tmpwo33brq7/REPORT.md",
+ "verdict": "UNDETERMINED",
+ "broad_powered": 2,
+ "residual_powered": 1,
+ "classes_residual": {
+  "PERSONAL_RESIDUAL_CANDIDATE": 1
+ }
+}
+PASS the report separates unreachable candidates from rejections
+PASS the report says how many were still queued at the freeze
+PASS the screen flag counts rejected candidates, not just members
+PASS the screen flag fires when the screen mispredicts most tried candidates
+PASS a met screen flag forces UNDETERMINED
+PASS the two band comparisons are not the same number
+PASS a candidate with no derived band is outside the denominator
+PASS the reasons a candidate could not be compared are named
+PASS the report says how many candidates had no band to compare
+PASS the runner refuses a pipeline hash that moved since the freeze
+PASS the runner proceeds under the frozen instrument
+
+30 checks: 30 pass, 0 fail

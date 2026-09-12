@@ -1,0 +1,2624 @@
+{
+ "_what": "The frozen 100-player cohort. Written before any member was scored.",
+ "frozen_at": "2026-09-08T19:45:18Z",
+ "repo_sha": "acc9bc2ebdd39d2029fb3e023a5c0dd4931d8ec8",
+ "prereg_hash": "3aa7e5335942c860922454939003cb0256817f8b8a92c5414d25a2ae8af31a0d",
+ "instrument_hash": "b75d31cc8f07f9453098d7c7f7fcffa037cf8c2aeec3a4478fa19272a03aa677",
+ "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
+ "seed": 20260907100,
+ "n_members": 100,
+ "n_residual_class": 25,
+ "selection_walk": {
+  "walked": 1915,
+  "prefiltered_without_a_fetch": {
+   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
+   "PREFILTER_TOO_FEW_GAMES": 39
+  },
+  "fetched": 768,
+  "rejected_after_fetch": 668,
+  "rejection_reasons": {
+   "POPULATION_BASELINE_INSUFFICIENT": 605,
+   "IN_POPULATION_BASELINE": 57,
+   "INSUFFICIENT_ELIGIBLE_GAMES": 3,
+   "NO_BLITZ_GAMES": 3
+  },
+  "unreachable_events": 16,
+  "unreachable_usernames": [
+   "akhiln3",
+   "astrangia",
+   "borodek",
+   "cameraguy38",
+   "enginekiller",
+   "fuerzasarmadas",
+   "josephm613",
+   "klkos",
+   "malaikat_izroil58",
+   "nikopop",
+   "ogbullz",
+   "pratamaok",
+   "sysolceh",
+   "tegenek",
+   "virgile23",
+   "yigitcan-turkoglu"
+  ]
+ },
+ "screen_band_agreement": {
+  "agreed": 40,
+  "of": 100,
+  "_note": "how often the metadata screen's predicted band matched the band the frozen window actually derives, among ACCEPTED members. Rejected candidates are in COHORT_SELECTION.json and carry the same comparison."
+ },
+ "members": [
+  {
+   "u": "nouramine",
+   "player_id": "nouramine",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_nouramine_COHORT",
+   "raw_sha256": "8765298751a110cc87fc4469ad2d56cdf527efa9444bd4ce33efdd88c7a31805",
+   "manifest_sha256": "723e9ba775b79649148333804b9b3f5dee6a1cf6bdb45333054a4e8a197aa32c",
+   "prereg_sha256": "7983831e808be99b01a5dad50c8d6c7a4ade96c916cce0b6b139ec2f74318233"
+  },
+  {
+   "u": "maxkart19",
+   "player_id": "maxkart19",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2199,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1638.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_maxkart19_COHORT",
+   "raw_sha256": "a498ff4d81174f55d71e7398a2782ea9fe0cd37784fea1fe04f87cd9a6288ad0",
+   "manifest_sha256": "e098fa5f54a668fc8e0aadde1ce68641dc8020155c24e9049ccd0f9240a0e98f",
+   "prereg_sha256": "ad39a9bf59afe592714f7f29a4c2dc25af429e514c8ea76e2c8257cdbd5ad496"
+  },
+  {
+   "u": "original-chess",
+   "player_id": "original-chess",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 447,
+   "speeds": {
+    "blitz": 447,
+    "bullet": 3
+   },
+   "blitz_median": 1664.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_original-chess_COHORT",
+   "raw_sha256": "c50661aa67122930318b8a88e7a5c9df6e277613b6c1721b84e22e30dc948966",
+   "manifest_sha256": "e79826ea1bb3bb67f695e7fb43806be85dae1c4bf9d51224588870910cb081ab",
+   "prereg_sha256": "0ce6343673350c11b586b5edc390583ac2558c0591e8d3227747ff8f425fd930"
+  },
+  {
+   "u": "franckzurita18",
+   "player_id": "franckzurita18",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1655.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_franckzurita18_COHORT",
+   "raw_sha256": "5428009923e5b88c99f8e71d3f66442f1283d630f69570f85c3afafb4007db48",
+   "manifest_sha256": "41a051d69b1b47aaa2cf27c80dfaba2083101ed860a1feb1216242a4b629381f",
+   "prereg_sha256": "6833160781ad7bae7dc9149b5200967a61e93cccfbf13b2eb096d492a398883a"
+  },
+  {
+   "u": "medkol",
+   "player_id": "medkol",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1642.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_medkol_COHORT",
+   "raw_sha256": "0120fcef960d2bb67147165e17388dc1725f748f258d8640f5a6ab5a1c0aa979",
+   "manifest_sha256": "93a078e44e69ee1f6e61905ee9cab6b6e2b504ff267ef100038e479560bcb4ce",
+   "prereg_sha256": "2ec7c8d0c8690fef4457906f22409082b88e108ee50f9ed8bf60e1164048be0a"
+  },
+  {
+   "u": "millerglua",
+   "player_id": "millerglua",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 319,
+   "speeds": {
+    "blitz": 319,
+    "bullet": 46,
+    "classical": 2,
+    "rapid": 78
+   },
+   "blitz_median": 1671.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_millerglua_COHORT",
+   "raw_sha256": "313682cfe8392da752a86641919ef3bec42c6a76f86ea39b15339525be0d4045",
+   "manifest_sha256": "568634b2ea3373d320e8f1ae26dda2e6c7f5177961a5020f1db34913c688ea81",
+   "prereg_sha256": "7449d5384e074549159154b9d93d22236706968c2f2b12abe742e231927110f3"
+  },
+  {
+   "u": "bmyers2015",
+   "player_id": "bmyers2015",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2198,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1659.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_bmyers2015_COHORT",
+   "raw_sha256": "3761d96f162897bb73a467718c04c300f70a32c87f69b98ca8552dfac2dba245",
+   "manifest_sha256": "7b722227c598e9046a93142ef0453ba100a1ef14922968148928e29e58f39903",
+   "prereg_sha256": "e358c8e04d0fa43b85761925ccb08cfd3f97e3ffa3449fad603f9142ee96a121"
+  },
+  {
+   "u": "pablorocchi",
+   "player_id": "pablorocchi",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2197,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1654.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_pablorocchi_COHORT",
+   "raw_sha256": "2ad47ff32017fc117016ae97f79fa7b8f0218dad3cfd9b37560703cfe18c6ce5",
+   "manifest_sha256": "abb8b491f0d9d78f2c4f49a21574a8db17b96d7ef8054980485dbff14a66013d",
+   "prereg_sha256": "fa9eab24d7ec40b51c1c38ed4298a86ec60d99115e662b55f62d078cf768aae9"
+  },
+  {
+   "u": "yeliangel20",
+   "player_id": "yeliangel20",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1636.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_yeliangel20_COHORT",
+   "raw_sha256": "c12f542506a1b56dc09023e38a1ca0598f2e9484900612a373daef7171376d4a",
+   "manifest_sha256": "5a8b2772b01e8aad51d4f7baa319d34f570210fef33392c7ea88364db517a7e1",
+   "prereg_sha256": "41a7c323aaf0f247f53533b75a558700285ec7129000772b1b351fcf3ee6d2fa"
+  },
+  {
+   "u": "naughtrapier",
+   "player_id": "naughtrapier",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 446,
+   "speeds": {
+    "blitz": 446,
+    "bullet": 1,
+    "rapid": 3
+   },
+   "blitz_median": 1640.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_naughtrapier_COHORT",
+   "raw_sha256": "a7709b0a13e7175a325a7f47ca7ac7e6c8505edadcccee7d6aea98f025e2329c",
+   "manifest_sha256": "62cbfef3be102aa806cc33250b4647ba3b49ffe7b27c10dc2bfb33ed8043c763",
+   "prereg_sha256": "422ea638814def87f4747c09b9b790f94445d8010fd304f06e84ce70d868f9fd"
+  },
+  {
+   "u": "malaikat_izroil58",
+   "player_id": "malaikat_izroil58",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1661.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_malaikat_izroil58_COHORT",
+   "raw_sha256": "d3ef856be8ee1b6511d54d21a12d28b70fb53a9a1490b324e4b98b07bc0496e7",
+   "manifest_sha256": "e90236ad865800522823c477ec6226cbcced7546f6f21388bb3cd45e3558bfc1",
+   "prereg_sha256": "3e7b19cc393988b8f43aacb59397397761cffd07a8889e90bf87eb23356a434e"
+  },
+  {
+   "u": "bbbiney1",
+   "player_id": "bbbiney1",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 118,
+   "speeds": {
+    "blitz": 118,
+    "bullet": 37,
+    "classical": 14,
+    "rapid": 272
+   },
+   "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_bbbiney1_COHORT",
+   "raw_sha256": "809f455d3441846a246cdb5cfc386b574aed09c9d0abdaf73905cdf0ed056f1a",
+   "manifest_sha256": "1c1c852a57e6d638f71812d1e203decb3fffefcc3cd98a08fb84df0c865ba273",
+   "prereg_sha256": "71ee44499ccc8d37e81474e85787404a83d857e7301d808b4378acba8bf67c97"
+  },
+  {
+   "u": "rdumalig",
+   "player_id": "rdumalig",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 448,
+   "speeds": {
+    "blitz": 448,
+    "rapid": 2
+   },
+   "blitz_median": 1630.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_rdumalig_COHORT",
+   "raw_sha256": "539a6dd251fda7f4674f77ed032ea4c652923f0aeec99962e91beebcfa77fad3",
+   "manifest_sha256": "b0f9e1c210cac905f240015625cc27c0789f2dc28dcc7b37307df254e037121d",
+   "prereg_sha256": "1afeade5f2d724fb6330e167cfab8108f969f7d8f7851848cec267bdf319711e"
+  },
+  {
+   "u": "imfrei",
+   "player_id": "imfrei",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1634.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_imfrei_COHORT",
+   "raw_sha256": "bdaa1cb1194dd048576fa2a78cf3c36de020b14048b077b38449236171ecc1e0",
+   "manifest_sha256": "86bc6df6e6bd6ec3ffbc92bebd85a13e921c04f3752fe365cd27c8c206b3d01b",
+   "prereg_sha256": "fa8144db51ca9770472def4593e28d7a192cdd280541be020187ffde5cb1df17"
+  },
+  {
+   "u": "superchango99",
+   "player_id": "superchango99",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2197,
+   "speeds": {
+    "blitz": 448,
+    "rapid": 2
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_superchango99_COHORT",
+   "raw_sha256": "4694430a8564cf117329aa9014da45df51217c460a124ec7d7b58d603a9325c5",
+   "manifest_sha256": "9cfb6bfa18639e7f3edf1bf17f8dbca2f6b99263414a51bcbc946e28eeb46323",
+   "prereg_sha256": "0a4bcf7eef4ee052d095a9e528d6df71ab66638ff350f2dd5752c63b42bbf6ae"
+  },
+  {
+   "u": "cesarau",
+   "player_id": "cesarau",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 340,
+   "speeds": {
+    "blitz": 340,
+    "bullet": 110
+   },
+   "blitz_median": 1663.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT",
+   "raw_sha256": "2373449c83a697aefc34d3c801718633f36569619af98f9a95ba4d1dc6389d01",
+   "manifest_sha256": "4a01c890dfb6bb99a0d3a6d8d5657b046ea63a7c840615f9fe392562c79b42f5",
+   "prereg_sha256": "6cbbdeb64412a788130ce9d9fd2538c03f511322d4cee8c5d17b91dea566c55d"
+  },
+  {
+   "u": "williamsrya94",
+   "player_id": "williamsrya94",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 1971,
+   "speeds": {
+    "blitz": 360,
+    "bullet": 90
+   },
+   "blitz_median": 1632.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_williamsrya94_COHORT",
+   "raw_sha256": "7ffccbca99ea1a9a274a8a177604643cccbcf2d04f140f74cdc77fbe59abd57a",
+   "manifest_sha256": "18f9fe55e4bd50c2e6af9733d94e78c464633fb2f0928d81ea0faa276992b703",
+   "prereg_sha256": "9ceddac0381234308b525ecbbe60034dc405e537af600a99e626a1382d00d4ce"
+  },
+  {
+   "u": "naa12",
+   "player_id": "naa12",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1664.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_naa12_COHORT",
+   "raw_sha256": "24db3f061d6f65af1c66879aedd8f38e17269b3a2162d45e6f1ee80128e1e60c",
+   "manifest_sha256": "c18a131c9416f8c4f4d03123031878ba2fb8603ecc7939f780925f529ef402e5",
+   "prereg_sha256": "05f898924af5500688241a64835bdd30fb7f4076d8912b64f8a7d0519e24a836"
+  },
+  {
+   "u": "ajshaz17",
+   "player_id": "ajshaz17",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2137,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1638.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_ajshaz17_COHORT",
+   "raw_sha256": "5ebc29b3021ddd3ee9654af944d7206364c0f3aad196570fe3937bb0224191a1",
+   "manifest_sha256": "2e60878c133fc047465a559baf422f8ac1321e1b38d16ebea1ae148936a428a4",
+   "prereg_sha256": "e1bffe8eded280cfe8170c3fe404325563bd2d64afdd9bafad23ccd4ae96e0cf"
+  },
+  {
+   "u": "christianjessen",
+   "player_id": "christianjessen",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 411,
+   "speeds": {
+    "blitz": 411,
+    "classical": 2,
+    "rapid": 37
+   },
+   "blitz_median": 1663.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_christianjessen_COHORT",
+   "raw_sha256": "7417522932a43b840792e8661b6468aac8fa153ab8ec6893b5c470c665f3a6d0",
+   "manifest_sha256": "ac4f8d2b96caa3d7bbdd44ece53df182d87a1aec690374debc8ea7c68ffddbba",
+   "prereg_sha256": "354736f69e4dfe3b4586cfd5a6dac6d8401c2e6a219c0e788e54bcfe864f2090"
+  },
+  {
+   "u": "sumanbala",
+   "player_id": "sumanbala",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_sumanbala_COHORT",
+   "raw_sha256": "2d7bdeb969a1e83fd03231816ca34a3e279083f3c2163daa02d31dd510d240be",
+   "manifest_sha256": "5705630619e7f5805945d67dc79409d6140d6ec3f6d99682db7f0b3381899024",
+   "prereg_sha256": "13c6ad15070ffcd839c33bbf254cd425f50c31d43cc626cfb59c4efd15b8d2e6"
+  },
+  {
+   "u": "sgad",
+   "player_id": "sgad",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 400,
+   "speeds": {
+    "blitz": 400,
+    "bullet": 50
+   },
+   "blitz_median": 1668.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_sgad_COHORT",
+   "raw_sha256": "f2fce53b369ed75595b394162614eb9855f2802dcc9cb71d82c9c512f78e3366",
+   "manifest_sha256": "07c6d8ea3c65ab6dd7fbec6b5817ff19898680c6d718c0b296f6b77944f90368",
+   "prereg_sha256": "064dc3a92134d94d620eed5f06ff38ee229ab51e6607beee6e618da446f5a933"
+  },
+  {
+   "u": "goshich",
+   "player_id": "goshich",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1654.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_goshich_COHORT",
+   "raw_sha256": "b86add9ce1f20ff61beceba46cd7e6c6373437fe213b4d6f88a7d1667d977089",
+   "manifest_sha256": "5a7c00a962f5756a22de25988e110d7e5754ed9a3d3ea68504a687041bc3dc69",
+   "prereg_sha256": "993a2fe044ec83665ac2af4878caf3749bcb67eafb8b1ae61a9a2d1cc271466a"
+  },
+  {
+   "u": "pratamaok",
+   "player_id": "pratamaok",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1630.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_pratamaok_COHORT",
+   "raw_sha256": "07e0eb6805946a3dc6ac7e10534e2f55d9f0aa2986ebb7d3d166da3b13702ebd",
+   "manifest_sha256": "064f3361a4d52a04f38ce882b5ab749f9549bb246ea94133983727b6f14d23a9",
+   "prereg_sha256": "00719707a6d346d4894301d6a69e45e774a4ad605b327b729ef9c6fbeaaf51e2"
+  },
+  {
+   "u": "cavalogigante",
+   "player_id": "cavalogigante",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 236,
+   "speeds": {
+    "blitz": 236,
+    "rapid": 214
+   },
+   "blitz_median": 1636.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_cavalogigante_COHORT",
+   "raw_sha256": "182b0095046b585fd94a36b3c9f67f4afd6cfc8df16c58f27a3e399cfe68b20a",
+   "manifest_sha256": "52c235cdd2faffdb3cd8df7cd703755e93db03372ea49571a8d7f098a009234f",
+   "prereg_sha256": "c2b90d328e7d3df4e87b5b71a087e2d89cc8103e9ba49daaa3be0da13c0d8042"
+  },
+  {
+   "u": "adrianoricardo-bra",
+   "player_id": "adrianoricardo-bra",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1637.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_adrianoricardo-bra_COHORT",
+   "raw_sha256": "d306d038c7b84e59de7c881fad604c91b7f0bba6ce675e512e04d2442b27970e",
+   "manifest_sha256": "eece2848d77c00784c3d80c9d7339dbeea11ad96f6e4b28121e0a76392be328a",
+   "prereg_sha256": "cbaf589f0a3b5678f588301df01df648e7ed6a089c7bf02527d1d126ed874866"
+  },
+  {
+   "u": "grebmesorchess",
+   "player_id": "grebmesorchess",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1667.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_grebmesorchess_COHORT",
+   "raw_sha256": "304aaddc1a3fe5d997854a5e63e3cba8f3762ce8b0083a2f217804f88913ff80",
+   "manifest_sha256": "8afef1ee06a3feedbf02b13a2dc5ef96754d431c3cad09945f6b36d1d219149f",
+   "prereg_sha256": "c7ef01c88f6e7029aaae42b8cf23734b688b7416c45f3658a272b02597e2e51b"
+  },
+  {
+   "u": "dvoice",
+   "player_id": "dvoice",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2199,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1659.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_dvoice_COHORT",
+   "raw_sha256": "f087e3b1d7ef2a03ab31ddc450c92dc31a1b563a603aab4c6bddf4a2ca9da84f",
+   "manifest_sha256": "a40f785dbd9b325d9298ebc5018d662372521ead41f958a6b4e8cccf2c58fb49",
+   "prereg_sha256": "b00c144f6f8b07ddd884c938985b4d1dfd6c21e2e0e2499fd5c0f0c17ed7c07f"
+  },
+  {
+   "u": "bromptonymous",
+   "player_id": "bromptonymous",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 416,
+   "speeds": {
+    "blitz": 416,
+    "rapid": 34
+   },
+   "blitz_median": 1671.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_bromptonymous_COHORT",
+   "raw_sha256": "b32ecc41ea8fc18670da066b9074b18afc4760485575f57afae1c83a98d3a865",
+   "manifest_sha256": "c664c110c355406584f688a1d6cafa7ea929418566727bd2cf75124b44099655",
+   "prereg_sha256": "3c7fbcde92b035f6fec16a8a2ce4e60bf69c3926d963dd9876f32abe99485fc7"
+  },
+  {
+   "u": "anil1947",
+   "player_id": "anil1947",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 272,
+   "speeds": {
+    "blitz": 272,
+    "bullet": 33,
+    "classical": 2,
+    "rapid": 143
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_anil1947_COHORT",
+   "raw_sha256": "753f42d61977fda210508b182f8da636bbf4144a79e38286277cc5a94d13fc99",
+   "manifest_sha256": "3f1a1eb7ba935432d4ee0a34609904645c8cd74a273e81cef94bbbac009ac3a4",
+   "prereg_sha256": "49a71bd35aebe7cb36f9d1b2c9ea270c406792e4a4b37d64d439cea5e5fc60a3"
+  },
+  {
+   "u": "acid_1",
+   "player_id": "acid_1",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2184,
+   "speeds": {
+    "blitz": 445,
+    "bullet": 5
+   },
+   "blitz_median": 1638.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_acid_1_COHORT",
+   "raw_sha256": "0b68e0a0d3eaae12f034b7e7380f882fb14b01709a930b5a32186edd37464187",
+   "manifest_sha256": "b3a0395fab6f7c7fc51102b61c22516558ac179bb8ddfdf5884c783033316f7f",
+   "prereg_sha256": "05ce23385ef1fbaf9d868fa26309b61e156beacd65c587c5e39c267671aaf374"
+  },
+  {
+   "u": "francinov",
+   "player_id": "francinov",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1647.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_francinov_COHORT",
+   "raw_sha256": "cf27f5565886519e6c79ef2829f81664909c1ef42941a5d73c540ef1f132b27d",
+   "manifest_sha256": "c0f7aa84119492a5d031d2d2218f2d7ae03202d06d887d9e14809472468ffd72",
+   "prereg_sha256": "acf25e4c72d59370122d44b0fb6afaf548e3ce5ee0fa75d61ebabe3f7d9d3a92"
+  },
+  {
+   "u": "gilrivera",
+   "player_id": "gilrivera",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 400,
+   "speeds": {
+    "blitz": 400,
+    "bullet": 19,
+    "rapid": 25
+   },
+   "blitz_median": 1657.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_gilrivera_COHORT",
+   "raw_sha256": "d7271308202916ad558760e543a42658cafaa0a2984467fe8f5ad1a43ce8752d",
+   "manifest_sha256": "79b0a63ebc134271cb10f30130cc97713c450cee55e634ab52467f9d45572b03",
+   "prereg_sha256": "a0ab0355c6878511b8697719bd9f245d1ebe842a675e927d481cfd371ec7a795"
+  },
+  {
+   "u": "ingjaldurs",
+   "player_id": "ingjaldurs",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_ingjaldurs_COHORT",
+   "raw_sha256": "bd46f61b950175447fa7c9414b202c56ace217d807a99b608569fa8b3020acfc",
+   "manifest_sha256": "be62a2d4535e927da91863293537f0a5492bfc358d611efd3874a3793cd9462f",
+   "prereg_sha256": "4893bc184ed230c12b5849330b749a29a816fc39ec72d0329a8e5ef6bff31b30"
+  },
+  {
+   "u": "archpopov",
+   "player_id": "archpopov",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2199,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1673.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_archpopov_COHORT",
+   "raw_sha256": "286ef39c1eba17f19e46e6633c27c0cdb1c94c3ba509b5a6a5ae5c3e3381460b",
+   "manifest_sha256": "98f5fb09d49741ad5f1794bd0c3ca316270ad3d8cf8a2cf0868145ff5a93d3fb",
+   "prereg_sha256": "31406854cc26118ce5934fa1a577cdb65479d4bf11c547bab0c8f8e297949d05"
+  },
+  {
+   "u": "al3s",
+   "player_id": "al3s",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2059,
+   "speeds": {
+    "blitz": 430,
+    "bullet": 20
+   },
+   "blitz_median": 1643.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_al3s_COHORT",
+   "raw_sha256": "e5b2e795a28eb0775f5a983c6559b16a7d8f73347377997cfb34d2105f7a72e9",
+   "manifest_sha256": "49273b867c450ff574b59c73ca939ccbe6ac304e6b6502617ec21bd3b325008f",
+   "prereg_sha256": "fd65b5d274bb0c2f1dd18275eac4ab1f204f489638de494e4a7954babe213914"
+  },
+  {
+   "u": "boligarla",
+   "player_id": "boligarla",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2195,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1666.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_boligarla_COHORT",
+   "raw_sha256": "7bddae38109500064ce49e33d590cdb797abef952dd40feaae50c8a9e701a7cd",
+   "manifest_sha256": "0cd1f4298174d310478df946a67e5dd913cefc0e2dd2b78d2b3d7b3b7dc54cca",
+   "prereg_sha256": "f1ea1038bae36bf0030e610a41bd98fb75e95fb497c8d1f8d9971496f5c2e76c"
+  },
+  {
+   "u": "rizzlerchi",
+   "player_id": "rizzlerchi",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1631.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_rizzlerchi_COHORT",
+   "raw_sha256": "9e28123dd13085c734b97569bfe43eaa2b90a60ee4f8a8e08da87f2252dbeb2e",
+   "manifest_sha256": "0715c57f93c7b0ec4f2960694c515d473d12f089f7b2c4c727ac794d66dcdfa5",
+   "prereg_sha256": "0928728b73dad98694c9f1575e22970e1f239c3cc1df8c260add8f33d78a96ad"
+  },
+  {
+   "u": "newnampat64",
+   "player_id": "newnampat64",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1631.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_newnampat64_COHORT",
+   "raw_sha256": "c8254b7ed613c146d8b36d0467f71a3082b678a1484dfd06fbe2b2cfecef04f7",
+   "manifest_sha256": "3a71b13f757a9f732a7a9a24589b884e73bcdac7fb905b79304400dac4cf309a",
+   "prereg_sha256": "9b47a88cc47d41d96df8a1611e88449ef2d935873ea438556007bd046c06f02b"
+  },
+  {
+   "u": "jskeens",
+   "player_id": "jskeens",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1669.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_jskeens_COHORT",
+   "raw_sha256": "f6d0253b9513684be7bd802cdedaee0d673939310871b22a53e7ec3bde2c83a5",
+   "manifest_sha256": "888f49a4742dfc3a39f226abc978688a0ebb97827325e74484625e83b238b3f3",
+   "prereg_sha256": "80b4c651797dad017fa0ed1f38da071bb3fd2e58b726111000279c2817b1c79e"
+  },
+  {
+   "u": "mcpolan",
+   "player_id": "mcpolan",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2189,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1658.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_mcpolan_COHORT",
+   "raw_sha256": "7c48907f5b83f7cc6abf4e5ef19bd55770d11d9360628739a12c733fa7ba6a61",
+   "manifest_sha256": "fdfd75397d9421998e59e3cca48701cda7b62881214317da3594921e906a4075",
+   "prereg_sha256": "220f4cd482d3d02120ac4c49ceb83897ce25883d3608407de47a071d5860c13d"
+  },
+  {
+   "u": "uliduarte",
+   "player_id": "uliduarte",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 324,
+   "speeds": {
+    "blitz": 324,
+    "bullet": 36,
+    "rapid": 50,
+    "ultraBullet": 1
+   },
+   "blitz_median": 1666.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_uliduarte_COHORT",
+   "raw_sha256": "c7e1f9e81778fee3f5109a107430a53c7b22bc35d29b931f6f9738084ef69e57",
+   "manifest_sha256": "91050a13d044ccf340a30d68cdc608ca250ed829957ea25d12cfbf8a1776baab",
+   "prereg_sha256": "d9b6dd95c7d187c34c9f0b6b6603b5cd5a126365313f6b8db8fcaf0bb51f2bcd"
+  },
+  {
+   "u": "montifiqe",
+   "player_id": "montifiqe",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2185,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1641.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_montifiqe_COHORT",
+   "raw_sha256": "c74583779acb8f55ee35a3feb146d29bdc86cf0ae9af95d1334e637861dc4cc4",
+   "manifest_sha256": "78a54ea5516a72c2f8b98db966f877c29f05fcaca77e8a61fd3dddd2c1207235",
+   "prereg_sha256": "ef30e96d08aec17297eefb72c30fb45d12b849bb8d36e789c2fd4b7cf137512f"
+  },
+  {
+   "u": "toscohg",
+   "player_id": "toscohg",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2194,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1628.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1300,
+    1700
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_toscohg_COHORT",
+   "raw_sha256": "ceafc2b6dffba2acfe60678f20cb37e52be73bee8c65bb01a612bbfa10058391",
+   "manifest_sha256": "57c8d9b6495fadc490a645e9fc4029a34c33f35088ed20fb347bcef9a78aa3d4",
+   "prereg_sha256": "3c722ca457243eb4637de7a1b3fb774922364d3370b31a1699dc6ff39238a9ee"
+  },
+  {
+   "u": "wildhorse420",
+   "player_id": "wildhorse420",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1636.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_wildhorse420_COHORT",
+   "raw_sha256": "98c6ca5bd64af4523c4c0c988b53fd68eb60f1d3e4d00359172b8dc63edb073b",
+   "manifest_sha256": "711b43495d62b0d53fd42f683d3728309c404b5d75863d12ac7d9b5b68f5a5e1",
+   "prereg_sha256": "fc4ec711feef7d7917a9e2fad708a24309641d6c41a5bcfb6a57b609a63f8265"
+  },
+  {
+   "u": "chasethepirate",
+   "player_id": "chasethepirate",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 443,
+   "speeds": {
+    "blitz": 443,
+    "rapid": 7
+   },
+   "blitz_median": 1639.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_chasethepirate_COHORT",
+   "raw_sha256": "27c420c6ef3dd77e1ac8b1aec7ef7cf9ce2358bc99ab8d80b3d39117237bf90f",
+   "manifest_sha256": "3ff81f28064b38a2d4e4e976a0fa90fef94c68e1f09ad861f40f999d9d468ac2",
+   "prereg_sha256": "1a58425db07ada39ce94d9604a1fcc6f8a9706e94d6d2cb4c1eddb98b943e978"
+  },
+  {
+   "u": "muammer1926",
+   "player_id": "muammer1926",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1640.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_muammer1926_COHORT",
+   "raw_sha256": "6d0ce17cdc977b6d7ae29697ce8eabdebacec0f3931f28f8572c6a7aa67bafd7",
+   "manifest_sha256": "6f63b7936e862bc69d8be68b457a7c510d6e5f84fbda04da4ce41d1b687e3d65",
+   "prereg_sha256": "05e36aa7842bb425afc4b878eb87df020d3c08e09cab058d1fe13aadefe49ab6"
+  },
+  {
+   "u": "rey-ajedrez2010",
+   "player_id": "rey-ajedrez2010",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1669.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_rey-ajedrez2010_COHORT",
+   "raw_sha256": "c1075020c307dee87192594f48e2361be73c6ef7fdbb2bce3f7b54abbae84f35",
+   "manifest_sha256": "7eb20667d7b3928a060561558bea9ad26db98324bdcd73d55bfa41fed17ba2eb",
+   "prereg_sha256": "4866a2377106f027b56eaf24d8657f6dfa96f82ba74846306a41c6e84749b64f"
+  },
+  {
+   "u": "xuorig",
+   "player_id": "xuorig",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2193,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_xuorig_COHORT",
+   "raw_sha256": "39a310d15b0c8438ae16921ac99fbada6dca0a739e1378c83f023801931da148",
+   "manifest_sha256": "02126d952978733184279675ff0b049d01293acb3569c9939c6ffdc08ada7bf1",
+   "prereg_sha256": "baa894fc3b29ec8c2414fe205512be51b12810f63d9feed5779e861d1e0a3c02"
+  },
+  {
+   "u": "gapee",
+   "player_id": "gapee",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 377,
+   "speeds": {
+    "blitz": 377,
+    "rapid": 62
+   },
+   "blitz_median": 1645.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_gapee_COHORT",
+   "raw_sha256": "acb6e7d3b20ae95a4cea20ae62a5ab3e59e37c9e5326743d61a3881cc1e89ce2",
+   "manifest_sha256": "1f6dbecfe880fc6bbb7c98002e32e7529e9ba1cf9c62b27af6a3c23cf66faaf3",
+   "prereg_sha256": "cd9d031c28afd4ba2c88a95a1935ff5cd9abccccb33522e34e75ce3c86fd0a3f"
+  },
+  {
+   "u": "lichisss",
+   "player_id": "lichisss",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 292,
+   "speeds": {
+    "blitz": 292,
+    "bullet": 157,
+    "rapid": 1
+   },
+   "blitz_median": 1646.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_lichisss_COHORT",
+   "raw_sha256": "fe140115746cd17f5a4b1f3e6935b98980945dff1a473ff3435489d459e7e6ca",
+   "manifest_sha256": "2981f5a5afbcec9d904f53c23412f8334deb8092df0ef8901d583dda87d8d490",
+   "prereg_sha256": "4158456f5cf20934a226daa349a9c56a0f7d9d5422c0dd4982371d2855c904b7"
+  },
+  {
+   "u": "viktor19625",
+   "player_id": "viktor19625",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2197,
+   "speeds": {
+    "blitz": 447
+   },
+   "blitz_median": 1642.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1300,
+    1700
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_viktor19625_COHORT",
+   "raw_sha256": "7e2e2d793b012140e151e56d5198d5a4e9df826e53c2f5213d77a7efa509cb17",
+   "manifest_sha256": "d3bf1eca9e844afd9c5aa2f54cb7ce6c85b3655175355a9f5f921435610c4ba5",
+   "prereg_sha256": "ec827f43c91ff6c03f33148dc8286ddb3da1dd1899a384b4416ee536f86a4805"
+  },
+  {
+   "u": "skibidisigma12345",
+   "player_id": "skibidisigma12345",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 123,
+   "speeds": {
+    "blitz": 123,
+    "bullet": 266,
+    "classical": 30,
+    "rapid": 30
+   },
+   "blitz_median": 1638.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_skibidisigma12345_COHORT",
+   "raw_sha256": "b0bd19334d87b3f5244e4c6a420c178bbba0103544caf04b315ae08244b4ac5b",
+   "manifest_sha256": "f80186856f70895a55a29c2577366c63ee88fd8ae32c9394a52080d65d66176c",
+   "prereg_sha256": "31f5bd9b2dec515ea0baeea25efd23c00a01e5ea432483f48d69b66e7c6d0f55"
+  },
+  {
+   "u": "a_juni",
+   "player_id": "a_juni",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1671.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_a_juni_COHORT",
+   "raw_sha256": "80ee58574562caffea69b0ff3cbb2be905b40c7d8cc14893894f19b6e81d6895",
+   "manifest_sha256": "fa4b4da5cf9eeb17e425222c3de4b13e3b939f7eb6aef59b69565fb843945631",
+   "prereg_sha256": "33381e5a5779b5c83897c8c2b5d633a938d3b2621cc817e4c9a75cb9afd9d810"
+  },
+  {
+   "u": "blindfoldpractice4",
+   "player_id": "blindfoldpractice4",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 334,
+   "speeds": {
+    "blitz": 334,
+    "bullet": 7,
+    "rapid": 109
+   },
+   "blitz_median": 1626.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_blindfoldpractice4_COHORT",
+   "raw_sha256": "074b01c7e71590bbe7723a9e23bb80fe8007120207a3e8ff693778b4326680eb",
+   "manifest_sha256": "1c1e67b89d28649c7b467014f459e664ea3c092acbdd4959c1156fd7842674e4",
+   "prereg_sha256": "b8e47b5b0865555a292d037125652353edcf96a3ced72f0da82baf9453c03420"
+  },
+  {
+   "u": "carlos_g83",
+   "player_id": "carlos_g83",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 10,
+   "speeds": {
+    "blitz": 10,
+    "bullet": 437,
+    "rapid": 3
+   },
+   "blitz_median": 1672.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_carlos_g83_COHORT",
+   "raw_sha256": "819f4469c4f561fff5c5f8ccb7844141161338c1e4a20ab9831fb865fbdef6d3",
+   "manifest_sha256": "6fccde27a1a6c91065a0dfdaf54b2066aa92de36df6bbe706fdc5825ab9cd825",
+   "prereg_sha256": "9a011463fd8a41e1d4d983093a915b6701d550bf96fe2c5fd1a67fe78d0ba420"
+  },
+  {
+   "u": "one-trick-wilfred",
+   "player_id": "one-trick-wilfred",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 444,
+   "speeds": {
+    "blitz": 444,
+    "bullet": 6
+   },
+   "blitz_median": 1631.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_one-trick-wilfred_COHORT",
+   "raw_sha256": "bdd51f21896752992deac119bb38a53bcb2ec147ffdff405efe2a92375aaf608",
+   "manifest_sha256": "9a055f0190b8ea0e2bc5bac607f483cd9e4da2a01cf741dbcefa52d02ef16be6",
+   "prereg_sha256": "4d6244fa06a32b4f1be18917bd1c3afda83f0dd5be42bf49d30898f40cc9798d"
+  },
+  {
+   "u": "chessterr1883",
+   "player_id": "chessterr1883",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 415,
+   "speeds": {
+    "blitz": 415,
+    "bullet": 35
+   },
+   "blitz_median": 1665.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_chessterr1883_COHORT",
+   "raw_sha256": "ba37a61497016af04d91e2ca630cf80658243209b7288a6750ce155606ad78cf",
+   "manifest_sha256": "4f7f60105494f93bc0ce5428200f8429c2d852b72ef60fb1b155e9139bceb372",
+   "prereg_sha256": "a16f2760cfb389a795180d2e81c7a03d9efbbb9f9d601288154fd33b7cf124c8"
+  },
+  {
+   "u": "alexduranr",
+   "player_id": "alexduranr",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 429,
+   "speeds": {
+    "blitz": 429,
+    "bullet": 21
+   },
+   "blitz_median": 1659.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_alexduranr_COHORT",
+   "raw_sha256": "c1b6d08e5738a8a143feb7f353f6be093f069b6a0ebbdaf57abeb52492aeb34a",
+   "manifest_sha256": "e1c12a425075dbc79294af34b68a4b98a95502bdbfce29ec64d8c685a6930566",
+   "prereg_sha256": "5ee3ba9854393066ff601e7501de9bc078b995c0e91a69ba47cb722472cfd87a"
+  },
+  {
+   "u": "dm77777",
+   "player_id": "dm77777",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 367,
+   "speeds": {
+    "blitz": 367,
+    "bullet": 66,
+    "rapid": 13,
+    "ultraBullet": 4
+   },
+   "blitz_median": 1626.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_dm77777_COHORT",
+   "raw_sha256": "2d400d283887221e073a56eb7e7ebaa37f071acb5efd4d8db173055e5786ff1d",
+   "manifest_sha256": "3c9e61524f87cdc645f049962492510568e4a88de5ed70fcec308ee0ee9df081",
+   "prereg_sha256": "8e999126f3a5c88c0106a6f59df2a1e2dce4ae2832cc5a2e6fb1f48b8a410f0d"
+  },
+  {
+   "u": "ayinzzz",
+   "player_id": "ayinzzz",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 250,
+   "speeds": {
+    "blitz": 250,
+    "bullet": 112,
+    "rapid": 88
+   },
+   "blitz_median": 1673.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_ayinzzz_COHORT",
+   "raw_sha256": "fafe38bb0dedfa85fd746500db8521ac5f76b3c8065a50b8521c15cf348c7d53",
+   "manifest_sha256": "f2754f18c57cb1467992deb962310d70bdbf5c4021ce106dc9ceb3d3f344b702",
+   "prereg_sha256": "f0c49a482cac4ab0d106fe112f9fb70c5b1004f46c40d637e0a386ac77f2e6d3"
+  },
+  {
+   "u": "yurisato123",
+   "player_id": "yurisato123",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 377,
+   "speeds": {
+    "blitz": 377,
+    "bullet": 63,
+    "rapid": 10
+   },
+   "blitz_median": 1665.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_yurisato123_COHORT",
+   "raw_sha256": "1aefb9554cd049a9f8f961f2179c58fa9217974f22f7170b741dc570b9e309ff",
+   "manifest_sha256": "db182b5e91402f19a4aa1ee65a6ec41360a2f1b7eee9aea931d063142fb30bc9",
+   "prereg_sha256": "7c36ee8a0b5456ac80983b45d60528ad961ec126e5bd50f6309e6f502c8a99fb"
+  },
+  {
+   "u": "navaneethav",
+   "player_id": "navaneethav",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2197,
+   "speeds": {
+    "blitz": 447,
+    "bullet": 3
+   },
+   "blitz_median": 1674.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_navaneethav_COHORT",
+   "raw_sha256": "d4730aec0ae6d0fa0bf27a2d70b647b56829b9733e39c5f1cfc7bc20b87b486a",
+   "manifest_sha256": "48bbf7d65fd9d77e1dd36fcfaed83a3a4cc36df1837be47364fcba952ecd41bb",
+   "prereg_sha256": "9c3073310d486408c62fab4aade56954a3e5aad4bcd5be089836b10fbc12d7f6"
+  },
+  {
+   "u": "ilpiccolopico",
+   "player_id": "ilpiccolopico",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 448,
+   "speeds": {
+    "blitz": 448,
+    "bullet": 1,
+    "rapid": 1
+   },
+   "blitz_median": 1631.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_ilpiccolopico_COHORT",
+   "raw_sha256": "be0c3eaedf8784bfec0af01f585c565fd4975201441a89da2c44c914247ac960",
+   "manifest_sha256": "a172e5e646627cd331cc1b1f893b497085ac8bda75f2658a6e892512a8edd2d1",
+   "prereg_sha256": "7bc8797b78c84f04f5beaaa814984b2dda94a34e2527ab067e359da3a2701308"
+  },
+  {
+   "u": "garangersan",
+   "player_id": "garangersan",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 275,
+   "speeds": {
+    "blitz": 275,
+    "bullet": 175
+   },
+   "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_garangersan_COHORT",
+   "raw_sha256": "c9e7edff47568a66efee290b583b76413061c470636d653baa87a19edb0d5034",
+   "manifest_sha256": "945611a8a1a275335b09bccdcc0cfbaccbdae4bbb45ff24fe86143a412c86215",
+   "prereg_sha256": "0cd550af717adc0756c07474d442e76b0b9a0503c59f39be5d2b5c63a35ea27d"
+  },
+  {
+   "u": "marcioparana",
+   "player_id": "marcioparana",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1662.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_marcioparana_COHORT",
+   "raw_sha256": "671b352e101fe8f9f2fcf8511b7dd6666a5234f6ff73725bcfea262acca95314",
+   "manifest_sha256": "1fa1b1278308357057d004f24d5b3f2eb59af9f415ad19f1301982ba93d1fe81",
+   "prereg_sha256": "b67b6c1bf9f830ead15b9a5f72a84bb7afe5307f30ef665be290e7a66ae60a10"
+  },
+  {
+   "u": "josephm613",
+   "player_id": "josephm613",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1630.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_josephm613_COHORT",
+   "raw_sha256": "54bb8b1c14108c5fac26aa4bf4e6c4ddef7191113d07a80ef87c4599dea2561c",
+   "manifest_sha256": "7c251edff79351073891685b24de57b1708aa08d007862670d2cc9f49cfa1c70",
+   "prereg_sha256": "895d72d813034d0b8e1f539ec124df39f34a826efecb396a1b3370fa1d975a9d"
+  },
+  {
+   "u": "sajahggggtggggggg",
+   "player_id": "sajahggggtggggggg",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 323,
+   "speeds": {
+    "blitz": 323,
+    "bullet": 127
+   },
+   "blitz_median": 1633.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_sajahggggtggggggg_COHORT",
+   "raw_sha256": "6bc9f1dbd6f9bf82adb2e5637a9885c4e94b0ea99cd1497e50a332427024020e",
+   "manifest_sha256": "6c397e92345f6a2a3217ebeccb555f5cd294284bb8d685ba0ac5af6a56133e5f",
+   "prereg_sha256": "56796a206ee62a06fb4c7ac7088c837486a1160252ad5c353112bf28efa47460"
+  },
+  {
+   "u": "marcinek2012",
+   "player_id": "marcinek2012",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_marcinek2012_COHORT",
+   "raw_sha256": "354303e23575e4a1069da1c9cefefb2eb4399b1c669d6515ee5a2272db3b072b",
+   "manifest_sha256": "193a6ffbc36e99a10d7cf168c51339b1921a4ef46936de04923482dd185f009d",
+   "prereg_sha256": "de35c2f25e8337cf4e1c2e9785859f64e0211f96b0511a41fc816c889dce7ad3"
+  },
+  {
+   "u": "abdohassan11",
+   "player_id": "abdohassan11",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 1992,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1672.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_abdohassan11_COHORT",
+   "raw_sha256": "da14789789d04573b254d8c685577b8208af88a5b70ae8f431eca3166d6aec31",
+   "manifest_sha256": "80dfd25605a69f6993641a305f40f2aa6210d7552742c58bde6e9f679bf00dc4",
+   "prereg_sha256": "02ffc9eca6225e80ecd445911f0ce0059df34e76e9e6998abed66aa6dd7192a3"
+  },
+  {
+   "u": "rookiepawn89",
+   "player_id": "rookiepawn89",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1641.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_rookiepawn89_COHORT",
+   "raw_sha256": "8b341c771a6accc9e268f0ddc8aaf0d751309b5fa863519e914ca09340eaf168",
+   "manifest_sha256": "28b5ff50c5b683ba40b1846b2340478df9669cf53715a0e405e35fa93eea5fb7",
+   "prereg_sha256": "f47f5bb8dfbe27d3b12442a235b0a3939cd4419299dbfa337acf1dc81965a08a"
+  },
+  {
+   "u": "boycoe",
+   "player_id": "boycoe",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 431,
+   "speeds": {
+    "blitz": 431,
+    "bullet": 19
+   },
+   "blitz_median": 1669.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_boycoe_COHORT",
+   "raw_sha256": "2a9266215612b650c1fc8f85aa26720848716bcd84b2016b635ba744d90ab075",
+   "manifest_sha256": "6ddfe25923f0df564c0563b9f23609d66434ccc16fc744d6d59550e2e284a1f8",
+   "prereg_sha256": "4c3232f06401885199be6942915e6d6023cc9ece7bd778f17e466da73d8906d6"
+  },
+  {
+   "u": "omar2137",
+   "player_id": "omar2137",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1665.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_omar2137_COHORT",
+   "raw_sha256": "f2a18aace62e0ee7f1640896a0aba6526bced909864cb3e5cdd200ae698dd773",
+   "manifest_sha256": "97922eb054fb3a108fa2a2e094d2e187f7cb9647fde0c8aa971ed96747b869a3",
+   "prereg_sha256": "80abbd505afcfdfc1069624c43f46e2af040b64fe6ffe828cce90ccbc13f03ac"
+  },
+  {
+   "u": "akkaclaros",
+   "player_id": "akkaclaros",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1653.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_akkaclaros_COHORT",
+   "raw_sha256": "ee70916c671d77c2eacbf99cabb4e4c9b166fbc660ff5cfe53346c4d6d487645",
+   "manifest_sha256": "be221f75a872d975e210be0a467ca64f8f05aef9989c752f34ad641e8386150e",
+   "prereg_sha256": "3565a7d51351d31951f1d1cbfcb7712a4db2697d40a251ebb490dbfe6bb6d50b"
+  },
+  {
+   "u": "board_at_work",
+   "player_id": "board_at_work",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1674.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_board_at_work_COHORT",
+   "raw_sha256": "3cd618d7426e5a417df9bd29d642a83dd12d42ea8468594a6e3590772db18792",
+   "manifest_sha256": "b45f687e4716b27ff57b3921fb69a54dbc0ad75a33e440d652a0899efa718b6c",
+   "prereg_sha256": "52a673f00c1e948bb32bd6ea35ae34fbbc22ed153b782624a5015c678ca37013"
+  },
+  {
+   "u": "cybernandox",
+   "player_id": "cybernandox",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "rapid": 1
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_cybernandox_COHORT",
+   "raw_sha256": "36874b37df74a5ad359ed25831356eaf91ae6d370e5e18b1a793f45e4859b295",
+   "manifest_sha256": "d2d293c9944b405baa10004c39ab523f5f3ad91167c24a2918b323a110c7ade8",
+   "prereg_sha256": "b7dcfd43453860bcc3af38eebbf292ba8acd90ef1a94cacf95e859adc3a15141"
+  },
+  {
+   "u": "m-glamas",
+   "player_id": "m-glamas",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1670.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_m-glamas_COHORT",
+   "raw_sha256": "324139652ec49a245f8c5a3a53fe6253d86f53c361765d912f2cbddd6ae2ae57",
+   "manifest_sha256": "82e93ddaebb5a7796ffead1ca2a8ad564f4fcd83106e56b74d5ea7e999ca3e4a",
+   "prereg_sha256": "0d1a3399958eb872c6352aeb334771c8b60e32d3c5211fae47fa70298fb37d6a"
+  },
+  {
+   "u": "egregiouschessplayer",
+   "player_id": "egregiouschessplayer",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2192,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_egregiouschessplayer_COHORT",
+   "raw_sha256": "3dbe622cad85f489aece9895ed993fbbe11539e85bb62be3493fa50dbd5e7ed1",
+   "manifest_sha256": "31629a03d572e527e1c3db3f7dcca5c866db55fbdc3d25686685f62fd468c568",
+   "prereg_sha256": "ae3328e61d5c438ca80952dad7ac68aadf52b448f3f777fb09af230eb3700c38"
+  },
+  {
+   "u": "beni_kpknldmi",
+   "player_id": "beni_kpknldmi",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_beni_kpknldmi_COHORT",
+   "raw_sha256": "e74575d91aa550fa8672c3d37673ad5f15190963dba39114ffc8f772d6330409",
+   "manifest_sha256": "66ff0c15836beea5dd49e62bbeade4fe85c1c6cc83fe4d054d1c1c0214a3ac68",
+   "prereg_sha256": "eca8f52610b33bf0a9d5247a62625d3174fb1247ea1b581df3ad1b71782a431f"
+  },
+  {
+   "u": "sofiyankhan",
+   "player_id": "sofiyankhan",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2186,
+   "speeds": {
+    "blitz": 445,
+    "bullet": 5
+   },
+   "blitz_median": 1658.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_sofiyankhan_COHORT",
+   "raw_sha256": "6a31a350384a3abd17a014ea6d07f367dfedf35f6f2332d00feb31b483e42a45",
+   "manifest_sha256": "c9d4bf245a72c36abe20f58f41f9149d4d61528418c05a8bf56a37bdae4984c1",
+   "prereg_sha256": "cb627c0e0b372c01c3688d109e933e3ecb68a1be5f199082250a1cadff7829e7"
+  },
+  {
+   "u": "fink4241",
+   "player_id": "fink4241",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2087,
+   "speeds": {
+    "blitz": 415,
+    "bullet": 24,
+    "rapid": 11
+   },
+   "blitz_median": 1664.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_fink4241_COHORT",
+   "raw_sha256": "40d6f7586a36715b2143214afe1804ac83e6932594923e2aa555f6dca510397c",
+   "manifest_sha256": "9f00d84ddb8127fca8d40f79de1b641eb8d7dc0f76f3defe8f6fa5694004e6de",
+   "prereg_sha256": "2ced66fc460cca0d19af1b1c923f3deca74b4c52704128748522f50a5b30e113"
+  },
+  {
+   "u": "sha4ever231",
+   "player_id": "sha4ever231",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_sha4ever231_COHORT",
+   "raw_sha256": "b219d53c2c8e8d16e0e1654ecbd20f27b625c8efdd353af1f82da64041bff129",
+   "manifest_sha256": "3852d67bfcf714238f46d57dcb1336f598e9ff134a24943683303773db4fe406",
+   "prereg_sha256": "79cf52bd9a05885113246b9374567890d3254ab46dcba1a41f7954106dd7d573"
+  },
+  {
+   "u": "kasp788",
+   "player_id": "kasp788",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 445,
+   "speeds": {
+    "blitz": 445
+   },
+   "blitz_median": 1638.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_kasp788_COHORT",
+   "raw_sha256": "5dd7f9b2d03fec62b7ffa2049cf57cda8faeb1a6ed3843b8b84e3837fcc213b5",
+   "manifest_sha256": "4d4458c05e53558721f153c3f69be8e163700364506c35db0439e015d6d0fc02",
+   "prereg_sha256": "875c5e7be79207a32d11f4a46f42e3cfa949c2d7c641ca82b3800f83e5a6274a"
+  },
+  {
+   "u": "vivasandino",
+   "player_id": "vivasandino",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_vivasandino_COHORT",
+   "raw_sha256": "3f743806fe739401e5d8a77d181de17d76e4c1cd9508863faad981ffcc586496",
+   "manifest_sha256": "ed77daa6f8c7fb4793e36d9ab48c8d8becc1ffcc06443d999842d1a36bfd8e93",
+   "prereg_sha256": "92fa42a2980a8b175870dfc1a97879a072f82efd7e036fdf202845ed4ffd91fd"
+  },
+  {
+   "u": "ednardomarques134",
+   "player_id": "ednardomarques134",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1672.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_ednardomarques134_COHORT",
+   "raw_sha256": "a56903aa3249ebebc7fb2d8bb8f2f23e1bf623e04b52cd4a34c0d40b9b0edde5",
+   "manifest_sha256": "6eda3c7d8f880db0cfa1d698359ba3a5e28e75ab5197e907d1f19c38fd9fcb83",
+   "prereg_sha256": "24d6694a2452c6e1c38da2f7dc94ddaae2be8744a468f5e1a271abdd9d5aac1f"
+  },
+  {
+   "u": "elciclonzapala25",
+   "player_id": "elciclonzapala25",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 402,
+   "speeds": {
+    "blitz": 402,
+    "bullet": 5,
+    "classical": 1,
+    "rapid": 42
+   },
+   "blitz_median": 1665.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_elciclonzapala25_COHORT",
+   "raw_sha256": "d50717c3832f55ae643ff5b8b268bf421b0400f17cc972ffe4760fd146430861",
+   "manifest_sha256": "6517b462333e8767dec27bc088f025eba7e7b68cc279cee56d42a8951093fe6d",
+   "prereg_sha256": "863212b565ffad33a361a5bde49f65bde7b173b2d82f2fc0f0a2b0556e4ece4d"
+  },
+  {
+   "u": "vrajik",
+   "player_id": "vrajik",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 229,
+   "speeds": {
+    "blitz": 229,
+    "bullet": 206,
+    "rapid": 1
+   },
+   "blitz_median": 1640.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_vrajik_COHORT",
+   "raw_sha256": "0b8911c99fac453ee89f0876e0afe2dea91c54ef1f772c557c576b17e8437eb5",
+   "manifest_sha256": "9060a77fd50db2c9eec69813378e414e724438c6c3e7b2dca894fd5764606144",
+   "prereg_sha256": "07bdafa882b721817fa6f0ab3c089763b4683853824e1a8a6437947c79a8c84c"
+  },
+  {
+   "u": "belichenkosw62",
+   "player_id": "belichenkosw62",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1655.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_belichenkosw62_COHORT",
+   "raw_sha256": "1f0b4a64c28d117977bc477a1d778e7d1a191fc1368b9c71b6ce100b59303424",
+   "manifest_sha256": "dfc0cb60e04c483f8e17d0b8b40dac700358a8ad58dc575b18b757da7331c331",
+   "prereg_sha256": "18b8e60ede78625b4455af42d4cfcf01d75d4f4dce67e3999da002fd80c3074d"
+  },
+  {
+   "u": "pumuckel",
+   "player_id": "pumuckel",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1668.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_pumuckel_COHORT",
+   "raw_sha256": "c60753c599d1f1140c7930e22a5207957f058e04c7adbf161ab88dabefb2213c",
+   "manifest_sha256": "a95971d2a95081391e033bc5a7bcd6ca4189e06bf8568507b5e6a60fbe7af504",
+   "prereg_sha256": "7180b95d9070cddc39406af6c5437a00df6bd579cebbe49eb46532355485e406"
+  },
+  {
+   "u": "szeka12",
+   "player_id": "szeka12",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 324,
+   "speeds": {
+    "blitz": 324,
+    "rapid": 126
+   },
+   "blitz_median": 1630.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_szeka12_COHORT",
+   "raw_sha256": "ed593b9c69206db3b94770c4e975760d8749b84b9710cf15801c38828e612d96",
+   "manifest_sha256": "23275b6b15e81227491ec2b15bc30a651b32e5f6bff678a6b0938e7e31593194",
+   "prereg_sha256": "df8857a5e687fb6f8fc668941840916bdd5a6daa0292c199a15f23fc0b27a9c2"
+  },
+  {
+   "u": "kosbog1977",
+   "player_id": "kosbog1977",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1635.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_kosbog1977_COHORT",
+   "raw_sha256": "d09520dcea1e27c9fba0154e97f96354b65a0eb15a465f4a6f936bc944fc20fc",
+   "manifest_sha256": "d6f763641d86c887aa413c300c2e494f4dd33a94bc3589eebcaecca7aa378f47",
+   "prereg_sha256": "b6f4c44fd946ae6605048be9d538fadf8fe0a2fb58a6af276945bc05828da834"
+  },
+  {
+   "u": "leoferrando",
+   "player_id": "leoferrando",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1637.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "run_dir": "research/mechanism/replications/lichess_leoferrando_COHORT",
+   "raw_sha256": "b16b009ee2b5e40f34700463ea4fff6c60351325f544cb31730da0211440b3a4",
+   "manifest_sha256": "b85b4abab035c099527084b100b461391b797ca4cd15e042f1734f1e02469c23",
+   "prereg_sha256": "793e247c80a0d13aedd325d4dfedc5cd942ec2971cfcde14b3abe8f252b63048"
+  },
+  {
+   "u": "madman1988",
+   "player_id": "madman1988",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1664.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_madman1988_COHORT",
+   "raw_sha256": "366e8e399473bda1ad07e5d80c3baafb08499ed9ad38866761494e3abd4f9b1e",
+   "manifest_sha256": "407b5646ab775288a3d2c0cc98791ecef968b4dbbd8bd5b58ee48162b9f79d4d",
+   "prereg_sha256": "ae11ea2c8e55d58a367deaaf11ec413774f1c5ca9d2b9fd0f93a13c010b64f07"
+  },
+  {
+   "u": "atheerjalilgalilshb",
+   "player_id": "atheerjalilgalilshb",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1642.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_atheerjalilgalilshb_COHORT",
+   "raw_sha256": "ccccb528d508f971733a668b7edfd71e4ff949574558123609b59d4208e17088",
+   "manifest_sha256": "bf76003fc4df52f0a2eb8bca043ee05004a3b7c0c1c4b483a1ecdebdbfb178d1",
+   "prereg_sha256": "1c57662ef4aa380724d09d7f9c8562f511a2e4043ecc624f2a75ddb15c2a7e2d"
+  },
+  {
+   "u": "win33r",
+   "player_id": "win33r",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 32,
+   "speeds": {
+    "blitz": 32,
+    "bullet": 418
+   },
+   "blitz_median": 1632.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_win33r_COHORT",
+   "raw_sha256": "b1677338e52c91f5ee1a13b34666ff9c4ef3ee01b1c577d05594ae2cf47c981d",
+   "manifest_sha256": "40d0d43afaf572f56f607082831983c2fa6314d6d0e67d40d12acdc9d3e90fec",
+   "prereg_sha256": "a308ded65063fbec1b31eea92d61652e5e2cf216d28608314224fb7ed8a48b6a"
+  },
+  {
+   "u": "kjcarranzap",
+   "player_id": "kjcarranzap",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_kjcarranzap_COHORT",
+   "raw_sha256": "2bf2f6fea2c87612db151cfe808bf16308a6cb048f8e6dd255cbab7c762ac146",
+   "manifest_sha256": "01ee718d24f2af1365317f4a39bdbe095a1de760041e155bbafc4c1ecfa54a71",
+   "prereg_sha256": "a9e1b32fca197e2301c22d24627842a7c2a52c5f4ca2b00278599e2dc854a609"
+  },
+  {
+   "u": "nerdstomper3",
+   "player_id": "nerdstomper3",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1670.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_nerdstomper3_COHORT",
+   "raw_sha256": "079cda94b79d3ffc4c724a9ee6d26a75106aba904fcb7c9cfa2d35cb7aa0e73a",
+   "manifest_sha256": "5907a034cbe3cf52f87098113e5b5ca826cb7bbef689f96423fb0d3b14f05509",
+   "prereg_sha256": "b03532b1c6fa18696c2fd575ba4202a570529a675a1d9f44354231dafbbbbf90"
+  },
+  {
+   "u": "chahinskandar",
+   "player_id": "chahinskandar",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 103,
+   "speeds": {
+    "blitz": 103,
+    "rapid": 347
+   },
+   "blitz_median": 1668.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_chahinskandar_COHORT",
+   "raw_sha256": "eef998227b9141f859208d280da22dc3f79094ee5021c0663dc4c535d3cdf436",
+   "manifest_sha256": "e5337bbfbfdddadd9f8e3a28cb26c1afe23369ba35f56eae6a7509d59eb0a69e",
+   "prereg_sha256": "e282b488f830f5889842c0fef55b5a73ddfd7dc29f8340c19b3402f50e14d31e"
+  },
+  {
+   "u": "a1alexch_122",
+   "player_id": "a1alexch_122",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1660.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_a1alexch_122_COHORT",
+   "raw_sha256": "9668ff01a69d53ad4ea22e103bdeb0a5ea8b41f49a9e9c7a2ebdd210175e7533",
+   "manifest_sha256": "2baee7327097c07c6bc7b390c4905bcfedf2be30763d0cdb53311183892a9a29",
+   "prereg_sha256": "6f913efdcf1dd4d8c7b2a2d2e434bc90ad296650d0d781ab105bdf5406a0851a"
+  },
+  {
+   "u": "pizeta",
+   "player_id": "pizeta",
+   "window": 450,
+   "window_class": "BROAD",
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1648.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "run_dir": "research/mechanism/replications/lichess_pizeta_COHORT",
+   "raw_sha256": "27b188bc2b8b14d522c7eea2bb1119ee62d9479d7b009a8876b9c1c136e7cb78",
+   "manifest_sha256": "9c6bee9d6a6dfaf77a9747214efb499d04558161ffbe8d76c0364b06ff12b134",
+   "prereg_sha256": "8e9236ee80cc1b981ab6049a07e5146e86895f2ccb3bfb9a7da3bc60c13bbd59"
+  }
+ ],
+ "cohort_hash": "42c6fb293623b7051bdb13ea4d3e01e03049ad477d881736603196d1629c2b49"
+}

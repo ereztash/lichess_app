@@ -1,0 +1,91 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 5391,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.8423493044822257
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 5419,
+   "winner": "n_captures>=3 AND own_overloaded_piece_count: [1:2[",
+   "jaccard": 0.3365539452495974
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 6376,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 7885,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6230366492146597
+  },
+  {
+   "variant": "drop eco_family=E",
+   "n": 7757,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=w",
+   "n": 4341,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6230366492146597
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 6966,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 6165,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6230366492146597
+  },
+  {
+   "variant": "drop speed=rapid",
+   "n": 8134,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6230366492146597
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 4360,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6230366492146597
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3847,
+   "winner": "n_captures>=3 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.37402190923317685
+  },
+  {
+   "variant": "random half 0",
+   "n": 4134,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 1",
+   "n": 3952,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 2",
+   "n": 4158,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  }
+ ]
+}

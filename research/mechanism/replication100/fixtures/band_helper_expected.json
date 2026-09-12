@@ -1,0 +1,11 @@
+{
+ "_what": "The answer the band rule must give on band_helper_games.ndjson, worked by hand. Counted: 1600 (white), 1700 (black), 1620 (id case differs), 1660 (anonymous opponent). Skipped: two non-blitz games the focal player is in at 900 and 2400, and one blitz game between two other players. Sorted 1600 1620 1660 1700, median (1620+1660)/2.",
+ "focal_player_id": "focal",
+ "expected_blitz_median": 1640.0,
+ "counted_ratings": [
+  1600,
+  1620,
+  1660,
+  1700
+ ]
+}

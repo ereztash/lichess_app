@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "nerdstomper3",
+ "player_id": "nerdstomper3",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 19372,
+    "rating": 2011
+   },
+   "blitz": {
+    "games": 16765,
+    "rating": 1641
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1709
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1208,
+    "rating": 1776
+   }
+  },
+  "createdAt": 1551360927574,
+  "seenAt": 1788883022337
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/nerdstomper3?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:20:06Z",
+  "http_status": 200,
+  "bytes": 3044779,
+  "sha256": "079cda94b79d3ffc4c724a9ee6d26a75106aba904fcb7c9cfa2d35cb7aa0e73a",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_nerdstomper3_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

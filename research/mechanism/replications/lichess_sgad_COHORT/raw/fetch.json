@@ -1,0 +1,72 @@
+{
+ "platform": "lichess",
+ "username": "sgad",
+ "player_id": "sgad",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1354
+   },
+   "bullet": {
+    "games": 11352,
+    "rating": 1753
+   },
+   "blitz": {
+    "games": 15948,
+    "rating": 1644
+   },
+   "rapid": {
+    "games": 41,
+    "rating": 1772
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 4,
+    "rating": 1494
+   },
+   "threeCheck": {
+    "games": 1,
+    "rating": 1384
+   },
+   "racingKings": {
+    "games": 1,
+    "rating": 1418
+   },
+   "puzzle": {
+    "games": 1048,
+    "rating": 2011
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1480858412753,
+  "seenAt": 1788827770986
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/sgad?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:13:46Z",
+  "http_status": 200,
+  "bytes": 3253485,
+  "sha256": "f2fce53b369ed75595b394162614eb9855f2802dcc9cb71d82c9c512f78e3366",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_sgad_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

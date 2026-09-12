@@ -1,0 +1,233 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 4.808190552920953,
+   "zs": [
+    2.939747840714924,
+    5.409897715757959,
+    4.995975747221826,
+    5.613259328702464,
+    5.082072132207588
+   ],
+   "regions": [
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3["
+   ]
+  },
+  "2": {
+   "mean_z": 3.4565766551814776,
+   "zs": [
+    2.2146605517960607,
+    5.662981930752758,
+    4.325301510650926,
+    1.8483281471496282,
+    3.2316111355580155
+   ],
+   "regions": [
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count: [1:2[ AND ply<20",
+    "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2["
+   ]
+  },
+  "3": {
+   "mean_z": 3.964623246477628,
+   "zs": [
+    2.271711729722633,
+    5.671846184482543,
+    4.548378402527794,
+    2.8292784028649915,
+    4.501901512790181
+   ],
+   "regions": [
+    "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[ AND ply<20",
+    "material_balance: [0:3[ AND opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count: [1:2[",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1 AND phase=='opening'",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1 AND phase=='opening'",
+    "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[ AND ply<20"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "material_balance: [0:3[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.3158178385433885,
+   "depth": 1,
+   "n_derive": 10844,
+   "derive_err_in": 0.12080413131685724,
+   "derive_err_out": 0.0754907317893321,
+   "derive_wg_est": 0.06047071708992119,
+   "derive_wg_z": 13.119004320938801,
+   "derive_resid_wg_in": 0.02223871250649401,
+   "stability_share_j60": 1.0,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 4382,
+    "n_out": 7421,
+    "p_in": 0.09995435874030123,
+    "p_out": 0.07815658267079909,
+    "diff": 0.021797776069502145,
+    "se": 0.005941157668770499,
+    "z": 3.668944216727565,
+    "games_in": 361,
+    "wg_est": 0.029575351058634885,
+    "wg_se": 0.007341850147067579,
+    "wg_z": 4.028323987305519,
+    "wg_games": 358,
+    "pass": false,
+    "region": "material_balance: [0:3[",
+    "resid_wg_est": 0.01778268665581047,
+    "resid_wg_z": 2.571797531956258,
+    "secondary_wg": {
+     "est": 0.08748400778929426,
+     "z": 8.348907063456954,
+     "n_games": 358
+    },
+    "wp_loss_wg": {
+     "est": 0.020529135820742145,
+     "z": 7.904308431175564
+    }
+   }
+  },
+  {
+   "region": "standing=='level'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.422099588168247,
+   "depth": 1,
+   "n_derive": 8290,
+   "derive_err_in": 0.10832328106151991,
+   "derive_err_out": 0.08381096982349592,
+   "derive_wg_est": 0.019635616844202414,
+   "derive_wg_z": 4.42356953947632,
+   "derive_resid_wg_in": 0.015618982754201092,
+   "stability_share_j60": 0.0,
+   "stability_median_j": 0.3132592849704964,
+   "validate": {
+    "n_in": 3185,
+    "n_out": 8618,
+    "p_in": 0.09481946624803768,
+    "p_out": 0.08308192155952657,
+    "diff": 0.011737544688511112,
+    "se": 0.0063141671792782605,
+    "z": 1.8589220645014295,
+    "games_in": 409,
+    "wg_est": 0.003037153339001454,
+    "wg_se": 0.0069432372026263876,
+    "wg_z": 0.43742612420797083,
+    "wg_games": 408,
+    "pass": false,
+    "region": "standing=='level'",
+    "resid_wg_est": 0.007890935151537055,
+    "resid_wg_z": 1.190557932703916,
+    "secondary_wg": {
+     "est": 0.07064612264228914,
+     "z": 6.3847016761703665,
+     "n_games": 408
+    },
+    "wp_loss_wg": {
+     "est": 0.009466770304070825,
+     "z": 3.799921135352774
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count: [1:2[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.181569316474893,
+   "depth": 1,
+   "n_derive": 10417,
+   "derive_err_in": 0.13967553038302774,
+   "derive_err_out": 0.06817243372697994,
+   "derive_wg_est": 0.06870566578782722,
+   "derive_wg_z": 17.263945976681722,
+   "derive_resid_wg_in": 0.011576782457332813,
+   "stability_share_j60": 0.0,
+   "stability_median_j": 0.1844213649851632,
+   "validate": {
+    "n_in": 3601,
+    "n_out": 8202,
+    "p_in": 0.12774229380727575,
+    "p_out": 0.06803218727139722,
+    "diff": 0.059710106535878535,
+    "se": 0.006380818269087576,
+    "z": 9.357750686169718,
+    "games_in": 434,
+    "wg_est": 0.05869278849748148,
+    "wg_se": 0.006349545100336345,
+    "wg_z": 9.243621010640974,
+    "wg_games": 434,
+    "pass": false,
+    "region": "own_overloaded_piece_count: [1:2[",
+    "resid_wg_est": 0.00424837122576122,
+    "resid_wg_z": 0.6829044233060914,
+    "secondary_wg": {
+     "est": 0.013075641628886064,
+     "z": 1.736865449156013,
+     "n_games": 434
+    },
+    "wp_loss_wg": {
+     "est": 0.0021710947564749046,
+     "z": 1.1706797397256852
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_balance: [0:3[": 30
+ }
+}

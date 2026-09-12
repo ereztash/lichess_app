@@ -1,0 +1,149 @@
+{
+ "_what": "Player B selection, recorded before any of Player B's games were fetched.",
+ "selection_rule": [
+  "1. Candidate pool: every username appearing in a 180+0 or 300+0 Termination-Normal game with Elo 1580-1720 in the first 80 MB of the public lichess_db_standard_rated_2026-06 dump.",
+  "2. Excluded: erez281; every account appearing on either side of his frozen 2,209-game window; every side of the 600-game population corpus; the account used for the plumbing demo.",
+  "3. Deterministic order by sha256('playerB:20260907:<username>').",
+  "4. Screened in that order against the public profile: account open, blitz rating in [1626,1674] (the window whose DERIVED band is the one the registry holds), blitz games >= 400, rating not provisional. Stopped at 6 hits.",
+  "5. Chosen: the hit whose current blitz rating is closest to the band centre 1650. This preference is the task's own ('prefer a median around 1650'), stated before any screening ran; it is recorded here so the choice is mechanical rather than a matter of taste."
+ ],
+ "honesty_note": "The screen in step 4 was executed before step 5 was written into this file. Step 5's criterion is not post-hoc: it is the selection preference the task stated in advance. Every screened hit is listed below so the rule can be checked against the data it was applied to.",
+ "what_selection_may_look_at": [
+  "rating",
+  "game count",
+  "account status",
+  "exclusion lists"
+ ],
+ "what_selection_may_not_look_at": [
+  "any analysis result",
+  "any game outcome",
+  "anything the pipeline would compute"
+ ],
+ "excluded_counts": {
+  "population_sides_and_erez281": 1202,
+  "plus_erez281_opponents": 3251
+ },
+ "candidate_pool_size": 4642,
+ "screened_hits": [
+  {
+   "username": "vibesgalore",
+   "id": "vibesgalore",
+   "blitz_rating": 1626,
+   "blitz_games": 1099,
+   "createdAt": 1771459146164,
+   "seenAt": 1788723888921,
+   "june_elos": [
+    1619
+   ]
+  },
+  {
+   "username": "richardgreb",
+   "id": "richardgreb",
+   "blitz_rating": 1644,
+   "blitz_games": 511,
+   "createdAt": 1584571443298,
+   "seenAt": 1788654709233,
+   "june_elos": [
+    1595,
+    1601,
+    1607
+   ]
+  },
+  {
+   "username": "livio68",
+   "id": "livio68",
+   "blitz_rating": 1655,
+   "blitz_games": 13539,
+   "createdAt": 1578521620525,
+   "seenAt": 1788682579981,
+   "june_elos": [
+    1700,
+    1707
+   ]
+  },
+  {
+   "username": "nouramine",
+   "id": "nouramine",
+   "blitz_rating": 1644,
+   "blitz_games": 9765,
+   "createdAt": 1611165016532,
+   "seenAt": 1788790709935,
+   "june_elos": [
+    1613,
+    1607,
+    1602,
+    1597,
+    1591,
+    1601,
+    1596,
+    1596,
+    1601,
+    1596,
+    1591,
+    1597
+   ]
+  },
+  {
+   "username": "Akram66889",
+   "id": "akram66889",
+   "blitz_rating": 1662,
+   "blitz_games": 475,
+   "createdAt": 1730042078885,
+   "seenAt": 1786562542167,
+   "june_elos": [
+    1716,
+    1708,
+    1702,
+    1707,
+    1700
+   ]
+  },
+  {
+   "username": "Nestorluisi",
+   "id": "nestorluisi",
+   "blitz_rating": 1669,
+   "blitz_games": 67180,
+   "createdAt": 1595289038920,
+   "seenAt": 1788782126549,
+   "june_elos": [
+    1702,
+    1696
+   ]
+  }
+ ],
+ "chosen": {
+  "username": "livio68",
+  "id": "livio68",
+  "blitz_rating": 1655,
+  "blitz_games": 13539,
+  "createdAt": 1578521620525,
+  "seenAt": 1788682579981,
+  "june_elos": [
+   1700,
+   1707
+  ]
+ },
+ "chosen_reason": "current blitz rating 1655 is the closest of the screened hits to the band centre 1650",
+ "derived_band_expected": "1450-1850, provided the fetched corpus's blitz median stays in 1626-1674; the authoritative band is derived by the pipeline from the corpus itself",
+ "recorded_at": "2026-09-07T17:09:35Z",
+ "repo_sha": "0505dafb9a909e8958a8903147628dcb6a159235",
+ "window_declared_before_fetch": {
+  "window": 800,
+  "meaning": "the 800 most recent ADMISSIBLE games, in the platform's own newest-first order (contract.WINDOW_RULE with an explicit cap)",
+  "why_a_cap": "livio68 has 13,539 blitz games; scoring all of them under the frozen engine regime is days of compute. The cap is declared here, before a single game of theirs was fetched, because a window chosen after seeing a corpus is a window chosen for its reading. 800 admissible games give DERIVE/VALIDATE/TEST frames well above every frozen minimum in contract.MIN_CORPUS.",
+  "enumeration_pages_requested": 120,
+  "input_mode": "PROVIDED_GAME_IDS",
+  "input_mode_consequence": "this run replicates the METHODOLOGY; it does not exercise the username-only ingestion contract, because lichess answers 404 to the by-username export without a token in this environment"
+ },
+ "revision_v2": {
+  "what_happened": "v1 screened on the account's CURRENT blitz rating as a proxy for the median the band rule reads. Applied to the first choice, `livio68` (rated 1655 today), the median over the 269 admissible blitz games in the enumerable window came out at 1772: they slid from about 1770 to about 1660 across that window. Derived band 1550-1950, which the registry does not hold.",
+  "status_of_livio68": "REJECTED AT ELIGIBILITY, before any position was scored. Nothing about their chess was read and no analytic choice was taken from them, so this is not a retired replication -- it is a candidate that failed a pre-analysis screen. Their frozen corpus and draft pre-registration were deleted rather than kept as if they were a run.",
+  "what_changed": "The proxy is gone. The screen now applies the exact criterion the pipeline applies: enumerate the window, fetch it, run the frozen eligibility, take the median own_rating over admissible blitz games, and require population_band(median) to be a band the registry holds. The cheap profile-rating filter survives only as a locator, widened to 1550-1800, and decides nothing.",
+  "what_did_not_change": "The candidate pool, the exclusion lists, the deterministic order, and the rule that the FIRST candidate to pass is taken. No research rule was touched: eligibility, splits, vocabulary, search, population correction, thresholds and output classes are exactly as frozen.",
+  "closeness_preference_dropped": "v1 chose the hit closest to 1650 in order to land inside the registered band. Testing the band directly makes that preference redundant, and a preference that no longer does any work is one more place for taste to enter, so it is gone.",
+  "screen_implementation": "select_player_b.py",
+  "screen_record": "PLAYER_B_SCREEN.json",
+  "revised_at": "2026-09-07T17:15:32Z"
+ },
+ "selection_hash": "2b26712723e1e2cd1274d0aa1a929a423d09008997a460403007e63a7f237c1a"
+}

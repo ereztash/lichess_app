@@ -1,0 +1,114 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.0,
+   "zs": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "regions": [
+    null,
+    null,
+    null,
+    "opp_last_spent_s<15",
+    "own_last_check==0"
+   ]
+  },
+  "2": {
+   "mean_z": 0.0,
+   "zs": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "regions": [
+    null,
+    null,
+    null,
+    "clock_own_ms>=60000 AND own_last_check==0",
+    "own_last_check==0"
+   ]
+  },
+  "3": {
+   "mean_z": 0.0,
+   "zs": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "regions": [
+    null,
+    null,
+    null,
+    "clock_own_ms>=60000 AND own_last_check==0",
+    "own_last_check==0"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [],
+ "bootstrap_winners": {
+  "opp_last_spent_s<15": 3,
+  "null": 13,
+  "clock_own_ms>=60000": 3,
+  "opp_last_check==0": 3,
+  "Dataset": 3,
+  "own_overloaded_piece_count<2": 1,
+  "opp_last_spent_s>=1": 1,
+  "own_last_check==0": 2,
+  "clock_frac>=0.50": 1
+ }
+}

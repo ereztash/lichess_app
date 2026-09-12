@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "ednardomarques134",
+ "player_id": "ednardomarques134",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 3,
+    "rating": 1464
+   },
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 21144,
+    "rating": 1660
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "crazyhouse": {
+    "games": 1,
+    "rating": 1202
+   },
+   "puzzle": {
+    "games": 2,
+    "rating": 1557
+   }
+  },
+  "createdAt": 1685214440167,
+  "seenAt": 1788867114658
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/ednardomarques134?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:06:36Z",
+  "http_status": 200,
+  "bytes": 3872877,
+  "sha256": "a56903aa3249ebebc7fb2d8bb8f2f23e1bf623e04b52cd4a34c0d40b9b0edde5",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_ednardomarques134_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

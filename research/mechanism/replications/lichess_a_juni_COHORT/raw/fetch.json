@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "a_juni",
+ "player_id": "a_juni",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 3884,
+    "rating": 1659
+   },
+   "rapid": {
+    "games": 166,
+    "rating": 2080
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 4,
+    "rating": 1308
+   },
+   "crazyhouse": {
+    "games": 2,
+    "rating": 1055
+   }
+  },
+  "createdAt": 1664762701178,
+  "seenAt": 1788834370430
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/a_juni?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T11:47:18Z",
+  "http_status": 200,
+  "bytes": 3640114,
+  "sha256": "80ee58574562caffea69b0ff3cbb2be905b40c7d8cc14893894f19b6e81d6895",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_a_juni_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

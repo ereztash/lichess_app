@@ -1,0 +1,98 @@
+{
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_medkol_COHORT",
+ "focal": {
+  "platform": "lichess",
+  "username": "medkol",
+  "player_id": "medkol",
+  "corpus": "lichess:medkol"
+ },
+ "contract_version": "replication-1.0.0",
+ "repo_sha": "56cb53623eb8fd2cd255c89b7e381c10a08d16fb",
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "corpus": {
+  "fetched": 950,
+  "admissible": 450,
+  "scorable": 450,
+  "eligible_decisions": 14927,
+  "exclusions": {
+   "outside-window": 339,
+   "termination:Insufficient material": 1,
+   "termination:Time forfeit": 143,
+   "under-20-plies": 17
+  },
+  "speeds": {
+   "blitz": 450
+  }
+ },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "NO_STABLE_STRUCTURE",
+ "failure_code": null,
+ "splits": {
+  "DERIVE_decisions": 8997,
+  "DERIVE_games": 270,
+  "VALIDATE_decisions": 3029,
+  "VALIDATE_games": 90,
+  "TEST_decisions": 2901,
+  "TEST_games": 90
+ },
+ "blitz_splits": {
+  "DERIVE_decisions": 8997,
+  "DERIVE_games": 270,
+  "VALIDATE_decisions": 3029,
+  "VALIDATE_games": 90,
+  "TEST_decisions": 2901,
+  "TEST_games": 90
+ },
+ "population": {
+  "status": "OK",
+  "focal_blitz_median_rating": 1642.0,
+  "band": [
+   1450,
+   1850
+  ]
+ },
+ "population_id": "population_2026-06",
+ "verdict": {
+  "output_class": "NO_STABLE_STRUCTURE",
+  "failure_code": null,
+  "reason": "no region of the frozen OBS vocabulary passes the VALIDATE judge (residual within-game z >= 3.5, n_in >= 100, raw within-game > 0) on the union class cls_tactical",
+  "broad_candidates_examined": 3
+ },
+ "evidence": {},
+ "finished_at": "2026-09-08T22:31:20Z"
+}

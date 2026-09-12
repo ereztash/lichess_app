@@ -308,7 +308,6 @@ describe("a press the hand can feel", () => {
         await page.getByRole("button", { name: "עמדה מהסט המשותף" }).click();
         await page.locator('[data-square="e4"]').waitFor({ timeout: 60_000 });
         await page.waitForTimeout(1200);
-        await decide(page);
 
         /*
          * THE WAIT DOES NOT HAPPEN ON EVERY DECISION, AND THAT IS WHY THIS LOOPS.
@@ -319,24 +318,55 @@ describe("a press the hand can feel", () => {
          * restored tree while passing under three of its own deliberate breaks -- a test that was
          * measuring the runner's cache, not the product.
          *
-         * So it polls at 10 ms and takes up to three decisions through the continuation. If the
-         * wait never renders across all three, that is reported as a failure to REACH the state
-         * rather than passed over: a case that quietly succeeds when the thing it checks did not
-         * occur is the failure this repository already shipped once.
+         * SAMPLING WAS STILL THE WRONG INSTRUMENT. A 10 ms poll then failed on CI with "reveal
+         * arrived at +0ms with no wait" on all three decisions, while passing here in 19 s. That
+         * is the same mistake as the pseudo-element one below -- an instrument that cannot see the
+         * thing it checks for is not evidence about the product.
+         *
+         * So it OBSERVES instead of sampling. A MutationObserver records the first appearance of
+         * the waiting state, with the busy and animation counts taken AT THAT INSTANT, because by
+         * the time any poll returns the state is gone. Polling remains only to decide when an
+         * attempt is over.
+         *
+         * OBSERVING WAS RIGHT AND THE TWO THINGS AROUND IT WERE WRONG, which is how this case went
+         * red on CI a second time carrying the same sentence -- and the sentence was false both
+         * times. Measured here on the built app at 10 ms resolution: `.reveal-waiting` mounts
+         * +10 ms after the commit and is still mounted 2.5 s later. The state renders. What could
+         * not see it was the probe.
+         *
+         *   1. THE COUNTERFACTUAL QUESTION IS A STAGE BEFORE THE REVEAL, AND WAS READ AS THE
+         *      REVEAL. `Home.tsx` calls `reveal(...)` with the alternative the player named, so in
+         *      the arm of the session that asks the question, nothing is sent to the engine until
+         *      it is answered -- and `.reveal-waiting` cannot exist yet. The loop's end condition
+         *      matched `מה כן היית עושה`, which is that question, and recorded "the reveal arrived
+         *      with no wait" at +0 ms about a reveal that had not been requested. Three of the
+         *      four strings it matched on are not the reveal: `בחרת את` is not in the product at
+         *      all, and `עומק \d+` is a new-game notice and `Value`'s provenance line. The reveal
+         *      has exactly two terminal states and both name themselves in the DOM, so
+         *      `.reveal-panel` and `.reveal-failure` are read instead of guessing at prose, and
+         *      the question is ANSWERED here rather than being mistaken for an answer.
+         *
+         *   2. RE-ARMING WIPED AN UNREAD SIGHTING. The probe was armed before every decision and
+         *      each arming reset it to null. So the waiting state that appeared once the question
+         *      was cleared -- after this loop had already given up on that attempt -- was recorded
+         *      by the observer, never read, and erased by the next attempt's arming. It is armed
+         *      ONCE for the whole case now: the first sighting survives to be read, whenever in
+         *      the three decisions it happens.
+         *
+         * The assertion is unchanged: the state must have existed, and while it existed the page
+         * must have declared itself busy and shown motion. If the wait never renders across all
+         * three decisions that is still reported as a failure to REACH the state rather than
+         * passed over: a case that quietly succeeds when the thing it checks did not occur is the
+         * failure this repository already shipped once. The trace names which terminal state ended
+         * each attempt, because `.reveal-failure` is a reason the wait could not render that says
+         * nothing about whether the product reports the wait it has.
          */
-        let seen: { busy: number; animating: number } | null = null;
-        const trace: string[] = [];
-        for (let attempt = 0; attempt < 3 && seen === null; attempt += 1) {
-          if (attempt > 0) {
-            const next = page.getByRole("button", { name: "לעמדה הבאה" });
-            if ((await next.count()) === 0) break;
-            await next.click();
-            await page.waitForFunction(() => /DECIDE/.test(document.body.innerText), null, { timeout: 30_000 });
-            await page.waitForTimeout(900);
-            await decide(page);
-          }
-          for (let i = 0; i < 400; i += 1) {
-            const now = await page.evaluate(() => ({
+        type Sighting = { busy: number; animating: number };
+        const armWaitProbe = () =>
+          page.evaluate(() => {
+            const w = window as unknown as { __waitProbe?: Sighting | null };
+            w.__waitProbe = null;
+            const sample = () => ({
               busy: document.querySelectorAll("[aria-busy='true']").length,
               /*
                * PSEUDO-ELEMENTS COUNT. The first version of this probe read only
@@ -346,27 +376,87 @@ describe("a press the hand can feel", () => {
                */
               animating: [...document.querySelectorAll("body *")].filter((e) =>
                 [null, "::before", "::after"].some(
-                  (pseudo) => getComputedStyle(e, pseudo).animationName !== "none",
+                  (pseudo) => getComputedStyle(e, pseudo as string | null).animationName !== "none",
                 ),
               ).length,
-              waiting: document.querySelectorAll(".reveal-waiting").length,
-              done: /עומק \d+|בחרת את|ס״פ|מה כן היית עושה/.test(document.body.innerText),
-            }));
-            if (now.waiting > 0) {
-              trace.push(`attempt ${attempt}: +${i * 10}ms busy=${now.busy} anim=${now.animating}`);
-              seen = now;
+            });
+            const record = () => {
+              if (w.__waitProbe) return true;
+              if (document.querySelectorAll(".reveal-waiting").length === 0) return false;
+              w.__waitProbe = sample();
+              return true;
+            };
+            if (record()) return;
+            const obs = new MutationObserver(() => {
+              if (record()) obs.disconnect();
+            });
+            obs.observe(document.body, { subtree: true, childList: true, attributes: true });
+          });
+        /** What the reveal column is doing, read from the DOM rather than inferred from prose. */
+        const readScreen = () =>
+          page.evaluate(() => ({
+            observed:
+              (window as unknown as { __waitProbe?: Sighting | null }).__waitProbe ?? null,
+            waiting: document.querySelectorAll(".reveal-waiting").length,
+            panel: document.querySelectorAll(".reveal-panel").length,
+            failure: document.querySelectorAll(".reveal-failure").length,
+            asking: document.querySelectorAll(".counterfactual-probe").length,
+          }));
+
+        await armWaitProbe();
+        let seen: Sighting | null = null;
+        const trace: string[] = [];
+        for (let attempt = 0; attempt < 3 && seen === null; attempt += 1) {
+          if (attempt > 0) {
+            const next = page.getByRole("button", { name: "לעמדה הבאה" });
+            if ((await next.count()) === 0) {
+              trace.push(`attempt ${attempt}: no control offered another position`);
               break;
             }
-            if (now.done) { trace.push(`attempt ${attempt}: reveal arrived at +${i * 10}ms with no wait`); break; }
+            await next.click();
+            await page.waitForFunction(() => /DECIDE/.test(document.body.innerText), null, { timeout: 30_000 });
+            await page.waitForTimeout(900);
+          }
+          await decide(page);
+          let answered = false;
+          let ended = "neither the waiting state nor a terminal reveal state inside 6 s";
+          for (let i = 0; i < 600; i += 1) {
+            const now = await readScreen();
+            if (now.observed) {
+              seen = now.observed;
+              ended = `observed at +${i * 10}ms busy=${now.observed.busy} anim=${now.observed.animating}`;
+              break;
+            }
+            if (now.panel) { ended = `.reveal-panel at +${i * 10}ms, no waiting state seen`; break; }
+            if (now.failure) {
+              ended = `.reveal-failure at +${i * 10}ms: the reveal failed, so it had no wait to report`;
+              break;
+            }
+            if (now.asking && !answered) {
+              /* Answer the question rather than wait it out: the reveal is not requested until it
+                 is answered, so nothing this case measures can happen while it stands. */
+              const none = page.getByRole("button", { name: "לא היה לי מהלך אחר" });
+              if ((await none.count()) > 0) { await none.click(); answered = true; continue; }
+            }
             await page.waitForTimeout(10);
           }
-          if (seen === null) {
-            /* Clear the one-time question if it is holding the screen, so the next attempt can run. */
-            const cf = page.getByRole("button", { name: "לא היה לי מהלך אחר" });
-            if ((await cf.count()) > 0) await cf.click();
-            await page
-              .waitForFunction(() => /עומק \d+|בחרת את|ס״פ/.test(document.body.innerText), null, { timeout: 60_000 })
-              .catch(() => undefined);
+          trace.push(`attempt ${attempt}: ${ended}`);
+          if (seen !== null) break;
+          /* Let the reveal settle so the next attempt starts from a position, and read the probe
+             once more: a sighting that arrived late is still evidence about the product. */
+          await page
+            .waitForFunction(
+              () => document.querySelectorAll(".reveal-panel, .reveal-failure").length > 0,
+              null,
+              { timeout: 60_000 },
+            )
+            .catch(() => undefined);
+          const settled = await readScreen();
+          if (settled.observed) {
+            seen = settled.observed;
+            trace.push(
+              `attempt ${attempt}: observed while the reveal settled busy=${settled.observed.busy} anim=${settled.observed.animating}`,
+            );
           }
         }
         expect(
@@ -374,11 +464,11 @@ describe("a press the hand can feel", () => {
           `the waiting state never rendered in three decisions, so this case could not test it :: ${trace.join(" | ")}`,
         ).not.toBeNull();
         expect(
-          (seen as { busy: number }).busy,
+          (seen as Sighting).busy,
           "the engine was working and nothing on the page declared itself busy",
         ).toBeGreaterThan(0);
         expect(
-          (seen as { animating: number }).animating,
+          (seen as Sighting).animating,
           "the page declared itself busy and showed nothing moving, which is the state that reads as a hang",
         ).toBeGreaterThan(0);
       } finally {

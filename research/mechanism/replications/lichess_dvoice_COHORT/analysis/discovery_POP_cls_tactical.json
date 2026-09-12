@@ -1,0 +1,120 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.6955447568576822,
+   "zs": [
+    2.3045833692010493,
+    2.1552678334935145,
+    3.284568232767584,
+    2.8724099450110208,
+    2.8608944038152435
+   ],
+   "regions": [
+    "ply<20",
+    "ply<20",
+    "ply<20",
+    "ply<20",
+    "ply<20"
+   ]
+  },
+  "2": {
+   "mean_z": 2.673524306454937,
+   "zs": [
+    2.046579072791521,
+    3.1463078259900596,
+    3.0390312274747013,
+    2.5845272199271747,
+    2.551176186091228
+   ],
+   "regions": [
+    "ply<20 AND standing=='level'",
+    "phase=='opening' AND standing=='level'",
+    "ply<20 AND standing=='level'",
+    "own_overloaded_piece_count: [1:2[ AND phase=='opening'",
+    "own_overloaded_piece_count: [1:2[ AND ply<20"
+   ]
+  },
+  "3": {
+   "mean_z": 2.947925691231542,
+   "zs": [
+    2.081211258779142,
+    3.3842433666273766,
+    3.5821867915676453,
+    3.3885589733671075,
+    2.303428065816439
+   ],
+   "regions": [
+    "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND ply<20",
+    "own_overloaded_piece_count: [1:2[ AND phase=='opening' AND standing=='level'",
+    "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND standing=='level'",
+    "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND ply<20",
+    "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND standing=='level'"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [],
+ "bootstrap_winners": {
+  "legal_moves<30.0 AND own_castling==1 AND own_hanging_piece_count: [1:2[": 2,
+  "own_overloaded_piece_count: [1:2[ AND phase=='opening' AND standing=='level'": 5,
+  "own_attacked_piece_count<3 AND own_overloaded_piece_count: [1:2[ AND ply<20": 1,
+  "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND standing=='level'": 4,
+  "legal_moves<30.0 AND own_overloaded_piece_count: [1:2[ AND ply<20": 2,
+  "new_attacks_on_own<1 AND own_overloaded_piece_count: [1:2[ AND phase=='opening'": 3,
+  "n_checks<1 AND own_hanging_piece_count: [1:2[ AND ply<20": 1,
+  "legal_moves<30.0 AND own_hanging_piece_count: [1:2[ AND ply<20": 1,
+  "own_overloaded_piece_count: [1:2[ AND ply<20 AND standing=='level'": 1,
+  "legal_moves<30.0 AND own_castling==1 AND own_overloaded_piece_count: [1:2[": 3,
+  "new_attacks_on_own<1 AND own_hanging_piece_count>=1 AND ply<20": 1,
+  "own_castling==1 AND own_overloaded_piece_count: [1:2[ AND standing=='level'": 1,
+  "n_checks<1 AND own_overloaded_piece_count>=1 AND ply<20": 2,
+  "new_attacks_on_own<1 AND own_overloaded_piece_count: [1:2[ AND ply<20": 2,
+  "own_overloaded_piece_count: [1:2[ AND own_prev_spent_s<1 AND standing=='level'": 1
+ }
+}
