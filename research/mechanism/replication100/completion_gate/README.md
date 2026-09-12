@@ -141,6 +141,32 @@ pablorocchi pass and are `PERSONAL_RESIDUAL_CANDIDATE`; maxkart19 does not pass 
 The strongest signal sits in the OBS stage, before the population correction. What survives the
 correction is thin: the two POP passes are 4.15 and 3.90 against a bar of 3.5.
 
+### The two anchors
+
+`erez281` is the run of record: R\* and R\*\* were found on it, and the whole programme rests on that
+discovery. `vibesgalore` is Player B, the first replication attempt. Neither is a cohort member.
+Both were run through the same null.
+
+| player | stage | observed | null p95 | null max | p | passed |
+|---|---|---|---|---|---|---|
+| erez281 | OBS cls_tactical | 8.56 | 1.74 | 2.35 | 0.005 | yes |
+| erez281 | POP cls_hung_material | 4.52 | 1.85 | 2.69 | 0.005 | yes |
+| erez281 | POP cls_tactical | 4.16 | 1.97 | 2.60 | 0.005 | yes |
+| vibesgalore | POP cls_hung_material | 1.01 | 1.84 | 2.75 | 0.29 | no |
+| vibesgalore | POP cls_tactical | 2.29 | 1.80 | 2.64 | 0.010 | no |
+
+**The original discovery holds against its own null.** All three of erez281's stages sit at the
+permutation floor, far above a null that tops out at 2.35 to 2.69. R\*\* is not a search artefact.
+
+**Player B did not replicate at the bar, and its corpus is 2,196 VALIDATE rows**, which is the BROAD
+arm's size rather than the RESIDUAL arm's 12,623 median. Its `cls_tactical` null p of 0.010 puts it
+above chance and below the bar. That is the signature of a real effect the corpus is too small to
+validate, which means the A-to-B replication may have failed on power rather than on substance. No
+one could have known that without a null, and none was run at the time.
+
+Partial results in `output/null_permutation_batch2_partial.json`; the run continues on `medkol` and
+`naughtrapier`.
+
 ## 5. What the flag actually caught
 
 Not a permissive judge: under permutation the 3.5 bar is crossed 0.06% of the time.
