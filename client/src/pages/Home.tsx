@@ -270,6 +270,16 @@ export default function Home() {
   // --- R3 state machine ------------------------------------------------------------------
   const [stage, setStage] = useState<SessionStage>("deciding");
   /**
+   * The engine has spoken about the decision on screen.
+   *
+   * ONE NAME FOR A COMPARISON THAT WAS WRITTEN FIVE TIMES, and it paid for itself: the fifth use
+   * below -- the one that tells `continuationAfter` a reveal is open -- put the entry chunk 26
+   * bytes over its raw ceiling, and folding the four that already existed took more than that
+   * back out. `docs/` doctrine is that a ceiling comes down or stays put; the weight has to be
+   * looked for before a constant is raised, and here it was found in the same expression.
+   */
+  const revealed = stage === "revealed";
+  /**
    * The decision waiting on the counterfactual question, with everything the reveal will need.
    *
    * Held as one object rather than five state variables because they are one fact: a decision is
@@ -1550,10 +1560,21 @@ export default function Home() {
     navigate,
   };
 
-  /** Where the next decision comes from, or null: `lib/continuation.ts`. */
+  /**
+   * Where the next decision comes from, or null: `lib/continuation.ts`.
+   *
+   * `stage` AND NOT A SENTINEL PLY. `revealAt` is never cleared, so its ply says nothing about
+   * whether a reveal is open; the one place that opens one sets both on adjacent lines. Passing
+   * the state explicitly is what lets `-1` mean the ply it is -- see the module header.
+   */
   const continuation = useMemo(
-    () => continuationAfter({ source, history, revealPly: revealAt.ply }),
-    [history, revealAt.ply, source],
+    () =>
+      continuationAfter({
+        source,
+        history,
+        revealPly: revealed ? revealAt.ply : null,
+      }),
+    [history, revealAt.ply, revealed, source],
   );
   /** A run has its own way forward; otherwise the game the board came from decides. */
   const canContinue = inDrill || inLearningTransfer || continuation !== null;
@@ -1817,7 +1838,7 @@ export default function Home() {
       transfer={learningTransfer}
       stage={learningTransferStage}
       index={learningTransferIndex}
-      revealed={stage === "revealed"}
+      revealed={revealed}
       recall={learningTransferRecall}
       applied={learningTransferApplied}
       verdict={learningTransferVerdict}
@@ -1857,7 +1878,7 @@ export default function Home() {
             * panel's survives because it sits under the sentence that says what taking it is for.
             * A transfer run keeps its own forward control here: it names a different experiment.
             */}
-          {stage === "revealed" &&
+          {revealed &&
             revealedDecisionId &&
             learningTransfer &&
             learningTransferStage === "running" && (
@@ -2304,7 +2325,7 @@ export default function Home() {
 
           <div className="board-assembly">
             {/* The evaluation bar does not exist while deciding. Not hidden -- absent. */}
-            {stage === "revealed" && <EvaluationBar analysis={analysis} currentFen={activeFen} />}
+            {revealed && <EvaluationBar analysis={analysis} currentFen={activeFen} />}
             <ChessBoard
               board={board}
               orientation={orientation}
@@ -2317,7 +2338,7 @@ export default function Home() {
               /* STALE ARTIFACT (section 4.3): a suggested move computed for another position
                  must not remain on the board, where drag-and-drop keeps it actionable. */
               suggestedMove={
-                stage === "revealed" && analysis && !isStale(analysis, activeFen)
+                revealed && analysis && !isStale(analysis, activeFen)
                   ? uciToSquares(analysis.bestMove)
                   : undefined
               }
