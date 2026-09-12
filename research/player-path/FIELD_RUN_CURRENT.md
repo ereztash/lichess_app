@@ -6,8 +6,13 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `claude/ux-ui-analysis-v6ao5u`.
-* Commit: `4c395637cd274c5faffb29ebb8429bfdac358eb1`. The commit that stamps this line into this file is its child and changes
-  nothing else, so the built bundle is the same bytes either way.
+* **Product source frozen at** `4c395637cd274c5faffb29ebb8429bfdac358eb1`.
+* Later commits on this branch change documentation only, and the build is content-hashed: the
+  page bundle stays `index-D_Il6CdA.js` across them, so the stimulus a participant sees is the same
+  bytes. The one file that does differ is `/build-identity.json`, which names the head commit and
+  the build time and is read only by the self-check overlay. Verify before a session that the
+  deployed bundle still carries that hash; if it does not, the stimulus has moved and the run is
+  against a different build.
 * What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
   repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen

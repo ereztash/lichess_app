@@ -11,9 +11,11 @@ does not restate it; it operationalises it.
 
 ## The build
 
-`4c395637cd274c5faffb29ebb8429bfdac358eb1`, deployed from
-[PR #105](https://github.com/ereztash/lichess_app/pull/105). Do not deploy anything else to the URL
-participants are given, and do not push to that branch while sessions are running.
+Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, deployed from
+[PR #105](https://github.com/ereztash/lichess_app/pull/105). **Before each session, check that the
+deployed page loads `assets/index-D_Il6CdA.js`.** The build is content-hashed, so that one string
+is the whole check: documentation commits on the branch do not move it, and anything that does move
+it has changed the stimulus. Do not push source to that branch while sessions are running.
 
 ## Order of use
 
