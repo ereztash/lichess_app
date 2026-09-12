@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "belichenkosw62",
+ "player_id": "belichenkosw62",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1333
+   },
+   "bullet": {
+    "games": 877,
+    "rating": 1289
+   },
+   "blitz": {
+    "games": 33365,
+    "rating": 1614
+   },
+   "rapid": {
+    "games": 45,
+    "rating": 1466
+   },
+   "classical": {
+    "games": 4,
+    "rating": 1623
+   },
+   "correspondence": {
+    "games": 3,
+    "rating": 1456
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1337
+   },
+   "crazyhouse": {
+    "games": 1,
+    "rating": 1433
+   },
+   "puzzle": {
+    "games": 72,
+    "rating": 1728
+   }
+  },
+  "createdAt": 1634661876641,
+  "seenAt": 1788803329945
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/belichenkosw62?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:33:56Z",
+  "http_status": 200,
+  "bytes": 3612216,
+  "sha256": "1f0b4a64c28d117977bc477a1d778e7d1a191fc1368b9c71b6ce100b59303424",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_belichenkosw62_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

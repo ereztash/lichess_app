@@ -1,0 +1,55 @@
+{
+ "platform": "lichess",
+ "username": "jskeens",
+ "player_id": "jskeens",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 1193,
+    "rating": 1654
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 275,
+    "rating": 1956
+   }
+  },
+  "createdAt": 1710892458642,
+  "seenAt": 1788827754346
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/jskeens?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc"
+  },
+  "fetched_at": "2026-09-08T09:40:34Z",
+  "http_status": 200,
+  "bytes": 4443985,
+  "sha256": "f6d0253b9513684be7bd802cdedaee0d673939310871b22a53e7ec3bde2c83a5",
+  "records": 1193,
+  "path": "/tmp/cohort_probes/lichess_jskeens_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

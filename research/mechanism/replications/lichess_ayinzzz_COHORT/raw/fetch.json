@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "ayinzzz",
+ "player_id": "ayinzzz",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 890,
+    "rating": 1748
+   },
+   "blitz": {
+    "games": 3342,
+    "rating": 1766
+   },
+   "rapid": {
+    "games": 132,
+    "rating": 1743
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 680,
+    "rating": 1951
+   }
+  },
+  "createdAt": 1748154986384,
+  "seenAt": 1788856343625
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/ayinzzz?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:55:50Z",
+  "http_status": 200,
+  "bytes": 3342346,
+  "sha256": "fafe38bb0dedfa85fd746500db8521ac5f76b3c8065a50b8521c15cf348c7d53",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_ayinzzz_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

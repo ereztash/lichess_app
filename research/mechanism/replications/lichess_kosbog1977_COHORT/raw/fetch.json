@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "kosbog1977",
+ "player_id": "kosbog1977",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 4,
+    "rating": 1331
+   },
+   "blitz": {
+    "games": 21039,
+    "rating": 1642
+   },
+   "rapid": {
+    "games": 4,
+    "rating": 1279
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1259
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 7,
+    "rating": 1564
+   }
+  },
+  "createdAt": 1644438033844,
+  "seenAt": 1788842982042
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/kosbog1977?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:06:07Z",
+  "http_status": 200,
+  "bytes": 3643147,
+  "sha256": "d09520dcea1e27c9fba0154e97f96354b65a0eb15a465f4a6f936bc944fc20fc",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_kosbog1977_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

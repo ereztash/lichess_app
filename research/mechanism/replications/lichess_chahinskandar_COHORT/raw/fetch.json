@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "chahinskandar",
+ "player_id": "chahinskandar",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 39,
+    "rating": 1383
+   },
+   "blitz": {
+    "games": 5618,
+    "rating": 1696
+   },
+   "rapid": {
+    "games": 3384,
+    "rating": 1889
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1297
+   },
+   "correspondence": {
+    "games": 2,
+    "rating": 1466
+   },
+   "puzzle": {
+    "games": 3624,
+    "rating": 1778
+   }
+  },
+  "createdAt": 1571511789170,
+  "seenAt": 1788873834765
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/chahinskandar?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:24:45Z",
+  "http_status": 200,
+  "bytes": 3598432,
+  "sha256": "eef998227b9141f859208d280da22dc3f79094ee5021c0663dc4c535d3cdf436",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_chahinskandar_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

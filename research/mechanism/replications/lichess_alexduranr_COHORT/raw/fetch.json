@@ -1,0 +1,84 @@
+{
+ "platform": "lichess",
+ "username": "alexduranr",
+ "player_id": "alexduranr",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1746,
+    "rating": 1743
+   },
+   "blitz": {
+    "games": 10340,
+    "rating": 1749
+   },
+   "rapid": {
+    "games": 131,
+    "rating": 1835
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1461
+   },
+   "horde": {
+    "games": 1,
+    "rating": 1397
+   },
+   "racingKings": {
+    "games": 2,
+    "rating": 1389
+   },
+   "crazyhouse": {
+    "games": 3,
+    "rating": 1405
+   },
+   "puzzle": {
+    "games": 38823,
+    "rating": 1908
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1591237600669,
+  "seenAt": 1788871619713
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/alexduranr?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:47:49Z",
+  "http_status": 200,
+  "bytes": 3630479,
+  "sha256": "c1b6d08e5738a8a143feb7f353f6be093f069b6a0ebbdaf57abeb52492aeb34a",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_alexduranr_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

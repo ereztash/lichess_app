@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "adrianoricardo-bra",
+ "player_id": "adrianoricardo-bra",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 2,
+    "rating": 1149
+   },
+   "bullet": {
+    "games": 2,
+    "rating": 1060
+   },
+   "blitz": {
+    "games": 8299,
+    "rating": 1628
+   },
+   "rapid": {
+    "games": 20,
+    "rating": 1197
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 3,
+    "rating": 1379
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1115
+   },
+   "puzzle": {
+    "games": 28,
+    "rating": 1273
+   }
+  },
+  "createdAt": 1696520732193,
+  "seenAt": 1788841427248
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/adrianoricardo-bra?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:28:30Z",
+  "http_status": 200,
+  "bytes": 3500885,
+  "sha256": "d306d038c7b84e59de7c881fad604c91b7f0bba6ce675e512e04d2442b27970e",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_adrianoricardo-bra_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

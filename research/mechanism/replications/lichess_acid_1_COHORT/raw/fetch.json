@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "acid_1",
+ "player_id": "acid_1",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1369
+   },
+   "bullet": {
+    "games": 77,
+    "rating": 1480
+   },
+   "blitz": {
+    "games": 10674,
+    "rating": 1635
+   },
+   "rapid": {
+    "games": 1,
+    "rating": 1316
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 600,
+    "rating": 1740
+   }
+  },
+  "createdAt": 1623503722834,
+  "seenAt": 1788043678312
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/acid_1?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T17:46:50Z",
+  "http_status": 200,
+  "bytes": 15911842,
+  "sha256": "0b68e0a0d3eaae12f034b7e7380f882fb14b01709a930b5a32186edd37464187",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_acid_1_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

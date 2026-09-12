@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "bmyers2015",
+ "player_id": "bmyers2015",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 9,
+    "rating": 1852
+   },
+   "blitz": {
+    "games": 8386,
+    "rating": 1680
+   },
+   "rapid": {
+    "games": 302,
+    "rating": 1700
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 92,
+    "rating": 1530
+   }
+  },
+  "createdAt": 1617209533823,
+  "seenAt": 1788883422696
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/bmyers2015?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T16:42:26Z",
+  "http_status": 200,
+  "bytes": 17834493,
+  "sha256": "3761d96f162897bb73a467718c04c300f70a32c87f69b98ca8552dfac2dba245",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

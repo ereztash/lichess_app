@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "bromptonymous",
+ "player_id": "bromptonymous",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 60,
+    "rating": 1564
+   },
+   "blitz": {
+    "games": 3713,
+    "rating": 1681
+   },
+   "rapid": {
+    "games": 272,
+    "rating": 1829
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 48,
+    "rating": 2128
+   },
+   "chess960": {
+    "games": 5,
+    "rating": 1774
+   },
+   "puzzle": {
+    "games": 663,
+    "rating": 1940
+   }
+  },
+  "createdAt": 1745291924504,
+  "seenAt": 1788847502008
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/bromptonymous?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:41:32Z",
+  "http_status": 200,
+  "bytes": 3266656,
+  "sha256": "b32ecc41ea8fc18670da066b9074b18afc4760485575f57afae1c83a98d3a865",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_bromptonymous_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

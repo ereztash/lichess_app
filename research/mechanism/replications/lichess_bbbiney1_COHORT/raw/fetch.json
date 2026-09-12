@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "bbbiney1",
+ "player_id": "bbbiney1",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 122,
+    "rating": 1594
+   },
+   "blitz": {
+    "games": 1583,
+    "rating": 1579
+   },
+   "rapid": {
+    "games": 706,
+    "rating": 1739
+   },
+   "classical": {
+    "games": 75,
+    "rating": 1716
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 4,
+    "rating": 1373
+   },
+   "threeCheck": {
+    "games": 14,
+    "rating": 1378
+   },
+   "puzzle": {
+    "games": 84,
+    "rating": 1944
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1756347916555,
+  "seenAt": 1788851588921
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/bbbiney1?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:18:44Z",
+  "http_status": 200,
+  "bytes": 3409646,
+  "sha256": "809f455d3441846a246cdb5cfc386b574aed09c9d0abdaf73905cdf0ed056f1a",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_bbbiney1_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

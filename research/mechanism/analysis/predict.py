@@ -77,16 +77,18 @@ def main():
     ap.add_argument("--target", default="err")
     ap.add_argument("--fit-on", default="derive", choices=["derive", "both"])
     ap.add_argument("--out", required=True)
+    ap.add_argument("--corpus", default=None, help="focal corpus label (default: the file's only corpus)")
     a = ap.parse_args()
     design = vocab.DESIGN
-    df = add_cols(chronological_split(eligible(load_decisions(a.decisions)), design["derive_frac"], design["validate_frac"]))
+    from common import AUTO_CORPUS
+    df = add_cols(chronological_split(eligible(load_decisions(a.decisions, corpus=a.corpus or AUTO_CORPUS)), design["derive_frac"], design["validate_frac"]))
     sg = ps.Conjunction.from_str(a.region)
     df["region"] = np.asarray(sg.covers(df), float)
     fit = df[df.split.isin(["DERIVE"] + (["VALIDATE"] if a.fit_on == "both" else []))].reset_index(drop=True)
     test = df[df.split == "TEST"].reset_index(drop=True)
     frames = {"TEST": test}
     if a.extra:
-        ex = add_cols(eligible(load_decisions(a.extra))); ex["region"] = np.asarray(sg.covers(ex), float); frames["EXTRA"] = ex
+        ex = add_cols(eligible(load_decisions(a.extra, corpus=a.corpus or AUTO_CORPUS))); ex["region"] = np.asarray(sg.covers(ex), float); frames["EXTRA"] = ex
     report = {"region": a.region, "fit_on": a.fit_on, "n_fit": len(fit), "frames": {}}
     for fname, fr in frames.items():
         metrics, preds = evaluate(fit, fr, "region", a.target)

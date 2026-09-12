@@ -1,0 +1,242 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.8149759563045784,
+   "zs": [
+    0.023362981140809858,
+    1.5694819532135076,
+    2.679780966142828,
+    1.9347253066317547,
+    2.867528574393991
+   ],
+   "regions": [
+    "clock_own_ms: [30000:60000[",
+    "clock_own_ms: [30000:60000[",
+    "clock_own_ms: [30000:60000[",
+    "clock_own_ms: [30000:60000[",
+    "clock_own_ms: [30000:60000["
+   ]
+  },
+  "2": {
+   "mean_z": 0.4751864836944625,
+   "zs": [
+    0.1007809755091387,
+    1.6286755629329042,
+    -0.30099997933821265,
+    1.8414589946333946,
+    -0.8939831352649121
+   ],
+   "regions": [
+    "clock_own_ms: [30000:60000[ AND opp_last_captured_value<3",
+    "clock_own_ms: [30000:60000[ AND opp_last_check==0",
+    "legal_moves: [31.0:39.0[ AND ply: [40:60[",
+    "clock_own_ms: [30000:60000[ AND opp_last_check==0",
+    "new_attacks_on_own<1 AND opp_king_ring_enemy_attacks>=3"
+   ]
+  },
+  "3": {
+   "mean_z": 0.724532208799309,
+   "zs": [
+    0.7210378541486191,
+    1.345122156693379,
+    -0.3828489642076792,
+    1.4084282152056118,
+    0.530921782156614
+   ],
+   "regions": [
+    "clock_own_ms: [30000:60000[ AND material_change_2ply>=-1 AND opp_last_check==0",
+    "legal_moves>=31.0 AND material_balance: [0:3[ AND ply: [40:60[",
+    "legal_moves: [31.0:39.0[ AND opp_last_spent_s<15 AND ply: [40:60[",
+    "clock_own_ms: [30000:60000[ AND opp_last_check==0 AND opp_last_spent_s<15",
+    "legal_moves>=31.0 AND material_balance: [0:3[ AND ply: [40:60["
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "clock_own_ms: [30000:60000[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.2379485517623707,
+   "depth": 1,
+   "n_derive": 343,
+   "derive_err_in": 0.2303206997084548,
+   "derive_err_out": 0.12813875226507895,
+   "derive_wg_est": 0.10987176730371244,
+   "derive_wg_z": 4.386745904117827,
+   "derive_resid_wg_in": 0.06684293885420006,
+   "stability_share_j60": 0.5666666666666667,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 199,
+    "n_out": 1897,
+    "p_in": 0.10552763819095477,
+    "p_out": 0.12071692145492884,
+    "diff": -0.015189283263974063,
+    "se": 0.025193038002311492,
+    "z": -0.6029159032975867,
+    "games_in": 25,
+    "wg_est": 0.0021730634857270135,
+    "wg_se": 0.02729275916305704,
+    "wg_z": 0.07962051299922915,
+    "wg_games": 25,
+    "pass": false,
+    "region": "clock_own_ms: [30000:60000[",
+    "resid_wg_est": 0.005261823131121451,
+    "resid_wg_z": 0.19453770587158858,
+    "secondary_wg": {
+     "est": 0.0034735449430833144,
+     "z": 0.10492869813328086,
+     "n_games": 25
+    },
+    "wp_loss_wg": {
+     "est": -0.002584905928097416,
+     "z": -0.3167178397134466
+    }
+   }
+  },
+  {
+   "region": "clock_own_ms<60000",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.0809431719346303,
+   "depth": 1,
+   "n_derive": 534,
+   "derive_err_in": 0.20224719101123595,
+   "derive_err_out": 0.12690631808278868,
+   "derive_wg_est": 0.08335248871323692,
+   "derive_wg_z": 4.296207179954153,
+   "derive_resid_wg_in": 0.04677698586139705,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.5852941176470589,
+   "validate": {
+    "n_in": 340,
+    "n_out": 1756,
+    "p_in": 0.08235294117647059,
+    "p_out": 0.1264236902050114,
+    "diff": -0.044070749028540815,
+    "se": 0.019830373713427104,
+    "z": -2.2223862074117444,
+    "games_in": 25,
+    "wg_est": -0.03151800654247699,
+    "wg_se": 0.02480407973668078,
+    "wg_z": -1.2706783269958417,
+    "wg_games": 25,
+    "pass": false,
+    "region": "clock_own_ms<60000",
+    "resid_wg_est": -0.007480953265739747,
+    "resid_wg_z": -0.3309379627065503,
+    "secondary_wg": {
+     "est": -0.016015393012852434,
+     "z": -0.4779126068834551,
+     "n_games": 25
+    },
+    "wp_loss_wg": {
+     "est": -0.0051878530550538175,
+     "z": -0.5420703405198998
+    }
+   }
+  },
+  {
+   "region": "clock_frac<0.50",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.8141565475105649,
+   "depth": 1,
+   "n_derive": 1041,
+   "derive_err_in": 0.17483189241114314,
+   "derive_err_out": 0.12385466034755134,
+   "derive_wg_est": 0.05509600375270727,
+   "derive_wg_z": 3.6215515243912333,
+   "derive_resid_wg_in": 0.025233794104210366,
+   "stability_share_j60": 0.03333333333333333,
+   "stability_median_j": 0.33671742808798644,
+   "validate": {
+    "n_in": 591,
+    "n_out": 1505,
+    "p_in": 0.11336717428087986,
+    "p_out": 0.12159468438538205,
+    "diff": -0.008227510104502192,
+    "se": 0.01858902907135422,
+    "z": -0.44260031403043115,
+    "games_in": 44,
+    "wg_est": 0.012477461337950567,
+    "wg_se": 0.021558452446610497,
+    "wg_z": 0.5787735167378548,
+    "wg_games": 44,
+    "pass": false,
+    "region": "clock_frac<0.50",
+    "resid_wg_est": 0.013758111403793852,
+    "resid_wg_z": 0.8004594118038794,
+    "secondary_wg": {
+     "est": 0.016389486548686206,
+     "z": 0.592616665721245,
+     "n_games": 44
+    },
+    "wp_loss_wg": {
+     "est": 0.00940786280835098,
+     "z": 1.02463576415122
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "clock_own_ms: [30000:60000[": 17,
+  "own_king_ring_enemy_attacks>=3": 4,
+  "clock_own_ms<60000": 2,
+  "own_passed>=1": 1,
+  "opp_hanging_piece_count: [1:2[": 1,
+  "ply: [40:60[": 1,
+  "new_attacks_on_own<1": 1,
+  "material_balance>=3": 1,
+  "clock_frac<0.50": 1,
+  "opp_king_ring_enemy_attacks>=3": 1
+ }
+}

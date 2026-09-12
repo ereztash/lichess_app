@@ -1,0 +1,240 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.04785758498297,
+   "zs": [
+    1.9039397991611176,
+    3.570751250477355,
+    1.5942037348977505,
+    1.9689186706214756,
+    1.201474469757153
+   ],
+   "regions": [
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3[",
+    "material_balance: [0:3["
+   ]
+  },
+  "2": {
+   "mean_z": 1.2223091108899107,
+   "zs": [
+    1.49462003869001,
+    1.422529923203371,
+    0.8093913890151164,
+    1.4472048749938067,
+    0.9377993285472489
+   ],
+   "regions": [
+    "own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "own_overloaded_piece_count: [1:2[ AND own_prev_spent_s<1",
+    "own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "own_overloaded_piece_count: [1:2[ AND ply<20"
+   ]
+  },
+  "3": {
+   "mean_z": 1.878449906375991,
+   "zs": [
+    1.627872275024629,
+    3.768956515654992,
+    1.8117699342235325,
+    1.6268452271992027,
+    0.5568055797775993
+   ],
+   "regions": [
+    "legal_moves>=29.0 AND own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "legal_moves>=30.0 AND own_overloaded_piece_count: [1:2[ AND ply<20",
+    "legal_moves>=29.0 AND own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "legal_moves>=29.0 AND own_hanging_piece_count: [1:2[ AND phase=='opening'",
+    "n_captures<3 AND own_overloaded_piece_count>=1 AND ply<20"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "material_balance: [0:3[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.1020824456115372,
+   "depth": 1,
+   "n_derive": 2544,
+   "derive_err_in": 0.17806603773584906,
+   "derive_err_out": 0.1730820995962315,
+   "derive_wg_est": 0.02018826585627755,
+   "derive_wg_z": 1.582770904267112,
+   "derive_resid_wg_in": 0.021850205777108996,
+   "stability_share_j60": 0.6,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 932,
+    "n_out": 1349,
+    "p_in": 0.17167381974248927,
+    "p_out": 0.1497405485544848,
+    "diff": 0.021933271188004477,
+    "se": 0.020557688516235205,
+    "z": 1.0669132947842324,
+    "games_in": 66,
+    "wg_est": 0.026681891027913435,
+    "wg_se": 0.02277175651671714,
+    "wg_z": 1.1717098331139189,
+    "wg_games": 66,
+    "pass": false,
+    "region": "material_balance: [0:3[",
+    "resid_wg_est": 0.028821941726725895,
+    "resid_wg_z": 1.5324827259080736,
+    "secondary_wg": {
+     "est": 0.10365364875666158,
+     "z": 3.977971213011245,
+     "n_games": 66
+    },
+    "wp_loss_wg": {
+     "est": 0.024187728686628215,
+     "z": 3.9681740150640294
+    }
+   }
+  },
+  {
+   "region": "standing=='level'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.8738025974680826,
+   "depth": 1,
+   "n_derive": 1929,
+   "derive_err_in": 0.17470191809227578,
+   "derive_err_out": 0.17528868360277136,
+   "derive_wg_est": -0.0037296302496047894,
+   "derive_wg_z": -0.2938406801747986,
+   "derive_resid_wg_in": 0.019895149984848842,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.38330341113105926,
+   "validate": {
+    "n_in": 609,
+    "n_out": 1672,
+    "p_in": 0.15599343185550082,
+    "p_out": 0.159688995215311,
+    "diff": -0.0036955633598101667,
+    "se": 0.020507680339619166,
+    "z": -0.18020386989700826,
+    "games_in": 71,
+    "wg_est": -0.013487285541451646,
+    "wg_se": 0.02210048948319748,
+    "wg_z": -0.6102708970181739,
+    "wg_games": 71,
+    "pass": false,
+    "region": "standing=='level'",
+    "resid_wg_est": 0.017787377605517237,
+    "resid_wg_z": 0.9545215700763513,
+    "secondary_wg": {
+     "est": 0.08241396105554655,
+     "z": 2.854471612730561,
+     "n_games": 71
+    },
+    "wp_loss_wg": {
+     "est": 0.015023713160143858,
+     "z": 2.146650012004382
+    }
+   }
+  },
+  {
+   "region": "own_prev_spent_s<1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.7105897332481225,
+   "depth": 1,
+   "n_derive": 1376,
+   "derive_err_in": 0.16351744186046513,
+   "derive_err_out": 0.1783739504403031,
+   "derive_wg_est": -0.0071881725722606656,
+   "derive_wg_z": -0.6116114544546495,
+   "derive_resid_wg_in": 0.01915621538650915,
+   "stability_share_j60": 0.13333333333333333,
+   "stability_median_j": 0.20992676973148902,
+   "validate": {
+    "n_in": 555,
+    "n_out": 1726,
+    "p_in": 0.13153153153153152,
+    "p_out": 0.16743916570104286,
+    "diff": -0.03590763416951134,
+    "se": 0.020928891930637586,
+    "z": -1.7156968600399973,
+    "games_in": 75,
+    "wg_est": -0.026633656964140426,
+    "wg_se": 0.01729784434253854,
+    "wg_z": -1.5397095983019935,
+    "wg_games": 75,
+    "pass": false,
+    "region": "own_prev_spent_s<1",
+    "resid_wg_est": 0.002835079790325875,
+    "resid_wg_z": 0.1716337315692431,
+    "secondary_wg": {
+     "est": -0.0019657367795210003,
+     "z": -0.15838250888377733,
+     "n_games": 75
+    },
+    "wp_loss_wg": {
+     "est": -0.0062587963967570305,
+     "z": -1.912975052078839
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_balance: [0:3[": 18,
+  "own_prev_spent_s<1": 4,
+  "legal_moves: [30.0:37.0[": 1,
+  "ply>=60": 1,
+  "clock_own_ms: [30000:60000[": 2,
+  "standing=='level'": 2,
+  "legal_moves: [30.0:38.0[": 1,
+  "own_hanging_piece_count: [1:2[": 1
+ }
+}

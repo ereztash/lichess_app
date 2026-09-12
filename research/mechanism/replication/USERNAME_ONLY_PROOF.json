@@ -1,0 +1,53 @@
+{
+ "_what": "Proof that the runner ingests from a username alone, with no token and no supplied id list, through the same code path a cohort run would use.",
+ "_why": "The package claimed this was impossible and worked around it for the whole of Player B. The claim was inherited from a comment the repository had already corrected. This is the measurement that should have been taken before believing it.",
+ "run_at": "2026-09-07T19:46:17Z",
+ "repo_sha": "fca7bde6b19397fbd8cd758765b54ee39ebf1c34",
+ "invocation": "run.py --platform lichess --username vibesgalore --ingest-mode api-user-export --stop-after FREEZE",
+ "authorization_header": false,
+ "ids_file": null,
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/vibesgalore?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+  "http_status": 200,
+  "records": 1224,
+  "bytes": 4661217,
+  "sha256": "9d650b7e3ac177861c7b2bce12086764405e96b57072a307e5d3cd0662713b77",
+  "fetched_at": "2026-09-07T19:44:50Z"
+ },
+ "eligibility": {
+  "fetched": 1224,
+  "admissible": 940,
+  "scorable": 940,
+  "exclusions": {
+   "termination:Time forfeit": 249,
+   "under-20-plies": 35
+  },
+  "speeds": {
+   "blitz": 838,
+   "bullet": 36,
+   "rapid": 66
+  }
+ },
+ "against_the_frozen_player_b_corpus": {
+  "_what": "The same account, the same eligibility rules, two ingestion routes.",
+  "provided_game_ids": {
+   "fetched": 480,
+   "admissible": 358,
+   "blitz": 313,
+   "route": "public HTML game list, capped at 40 pages x 12"
+  },
+  "username_only": {
+   "fetched": 1224,
+   "admissible": 940,
+   "blitz": 838,
+   "route": "GET /api/games/user/<name>, no Authorization header"
+  },
+  "ratio_admissible": 2.63,
+  "reading": "The cap cost Player B roughly two thirds of their admissible corpus. Even so, vibesgalore holds 1,099 rated blitz games in total, below the 1,786-game residual floor, so full enumeration would have made them better powered for the BROAD question and still not powered for the RESIDUAL one."
+ },
+ "what_this_does_not_do": [
+  "It does not re-run Player B. Their corpus is frozen and their result stands; refetching would replace a frozen corpus with a different one, which is not a repair.",
+  "It does not change any research rule. Eligibility, thresholds, splits, the population contract, the judge and the classifier are untouched."
+ ]
+}

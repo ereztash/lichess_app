@@ -1,0 +1,257 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.093200597924388,
+   "zs": [
+    2.2703344762847153,
+    0.4963852430404187,
+    0.32613065679141195,
+    1.9155182954188086,
+    0.45763431808658533
+   ],
+   "regions": [
+    "material_balance>=3",
+    "material_balance>=3",
+    "clock_own_ms<15000",
+    "clock_own_ms<15000",
+    "clock_frac<0.10"
+   ]
+  },
+  "2": {
+   "mean_z": 1.4480328885437805,
+   "zs": [
+    2.7490558926255266,
+    1.427991160771359,
+    1.0005479616756572,
+    1.2926675776664607,
+    0.7699018499798995
+   ],
+   "regions": [
+    "n_good_captures>=1 AND own_lost_material==0",
+    "own_overloaded_piece_count>=1 AND phase=='opening'",
+    "n_good_captures>=1 AND own_lost_material==0",
+    "own_overloaded_piece_count>=1 AND phase=='opening'",
+    "own_overloaded_piece_count>=2 AND standing=='level'"
+   ]
+  },
+  "3": {
+   "mean_z": 1.5186265145503623,
+   "zs": [
+    1.6646164421566325,
+    1.5929104524106277,
+    1.0188464775013608,
+    1.8082445291593428,
+    1.5085146715238487
+   ],
+   "regions": [
+    "n_captures<3 AND n_good_captures>=1 AND own_lost_material==0",
+    "material_balance: [0:3[ AND own_overloaded_piece_count>=1 AND phase=='opening'",
+    "n_good_captures>=1 AND opp_last_captured_value<1 AND standing=='winning'",
+    "own_lost_material==0 AND own_overloaded_piece_count>=1 AND phase=='opening'",
+    "n_good_captures>=1 AND opp_last_captured_value<1 AND standing=='winning'"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [
+  {
+   "region": "n_good_captures>=1 AND standing=='winning'",
+   "region_depth3": "n_good_captures>=1 AND opp_last_captured_value<1 AND standing=='winning'",
+   "collapse_jaccard": 0.6655815972222222,
+   "quality": 2.3315044641698175,
+   "depth": 2,
+   "n_derive": 4608,
+   "derive_err_in": 0.2306857638888889,
+   "derive_err_out": 0.1490107493379031,
+   "derive_wg_est": 0.11390947201966671,
+   "derive_wg_z": 15.666762680890006,
+   "derive_resid_wg_in": 0.02609176145196061,
+   "stability_share_j60": 0.1,
+   "stability_median_j": 0.042716514474337074,
+   "validate": {
+    "n_in": 2295,
+    "n_out": 9266,
+    "p_in": 0.21830065359477124,
+    "p_out": 0.13317504856464493,
+    "diff": 0.08512560503012631,
+    "se": 0.012167240046601552,
+    "z": 6.996295355732943,
+    "games_in": 356,
+    "wg_est": 0.12453924528927941,
+    "wg_se": 0.011135530633096259,
+    "wg_z": 11.183952466452961,
+    "wg_games": 356,
+    "pass": true,
+    "region": "n_good_captures>=1 AND standing=='winning'",
+    "resid_wg_est": 0.04888212647846908,
+    "resid_wg_z": 4.741818663961677,
+    "secondary_wg": {
+     "est": 0.05821066646484408,
+     "z": 5.370704901010003,
+     "n_games": 356
+    },
+    "wp_loss_wg": {
+     "est": 0.018777236310154505,
+     "z": 5.269108840003498
+    }
+   }
+  },
+  {
+   "region": "n_good_captures>=1 AND standing=='winning'",
+   "region_depth3": "n_good_captures>=1 AND opp_last_capture==0 AND standing=='winning'",
+   "collapse_jaccard": 0.6655815972222222,
+   "quality": 2.3315044641698175,
+   "depth": 2,
+   "n_derive": 4608,
+   "derive_err_in": 0.2306857638888889,
+   "derive_err_out": 0.1490107493379031,
+   "derive_wg_est": 0.11390947201966671,
+   "derive_wg_z": 15.666762680890006,
+   "derive_resid_wg_in": 0.02609176145196061,
+   "stability_share_j60": 0.1,
+   "stability_median_j": 0.042716514474337074,
+   "validate": {
+    "n_in": 2295,
+    "n_out": 9266,
+    "p_in": 0.21830065359477124,
+    "p_out": 0.13317504856464493,
+    "diff": 0.08512560503012631,
+    "se": 0.012167240046601552,
+    "z": 6.996295355732943,
+    "games_in": 356,
+    "wg_est": 0.12453924528927941,
+    "wg_se": 0.011135530633096259,
+    "wg_z": 11.183952466452961,
+    "wg_games": 356,
+    "pass": true,
+    "region": "n_good_captures>=1 AND standing=='winning'",
+    "resid_wg_est": 0.04888212647846908,
+    "resid_wg_z": 4.741818663961677,
+    "secondary_wg": {
+     "est": 0.05821066646484408,
+     "z": 5.370704901010003,
+     "n_games": 356
+    },
+    "wp_loss_wg": {
+     "est": 0.018777236310154505,
+     "z": 5.269108840003498
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count>=1 AND phase=='opening'",
+   "region_depth3": "material_balance: [0:3[ AND own_overloaded_piece_count>=1 AND phase=='opening'",
+   "collapse_jaccard": 0.7127031019202363,
+   "quality": 2.305342885536771,
+   "depth": 2,
+   "n_derive": 1354,
+   "derive_err_in": 0.258493353028065,
+   "derive_err_out": 0.15689595575527135,
+   "derive_wg_est": 0.08656567791298275,
+   "derive_wg_z": 6.669561985014166,
+   "derive_resid_wg_in": 0.045371247360018296,
+   "stability_share_j60": 0.16666666666666666,
+   "stability_median_j": 0.04525935545161673,
+   "validate": {
+    "n_in": 416,
+    "n_out": 11145,
+    "p_in": 0.22596153846153846,
+    "p_out": 0.14724091520861374,
+    "diff": 0.07872062325292473,
+    "se": 0.020990473664105887,
+    "z": 3.750302375860079,
+    "games_in": 230,
+    "wg_est": 0.06692494486120049,
+    "wg_se": 0.02251755397883101,
+    "wg_z": 2.9721232121445045,
+    "wg_games": 230,
+    "pass": false,
+    "region": "own_overloaded_piece_count>=1 AND phase=='opening'",
+    "resid_wg_est": 0.03364549202303118,
+    "resid_wg_z": 1.566082065037227,
+    "secondary_wg": {
+     "est": 0.054058782585193886,
+     "z": 2.6196978353913747,
+     "n_games": 230
+    },
+    "wp_loss_wg": {
+     "est": 0.010989211489081066,
+     "z": 2.1110918500560834
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_balance>=-2 AND n_good_captures>=1 AND ply<20": 1,
+  "own_overloaded_piece_count>=1 AND own_queen==1 AND standing=='level'": 1,
+  "n_good_captures>=1 AND opp_last_captured_value<1 AND standing=='winning'": 1,
+  "new_attacks_on_own<1 AND opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count: [1:2[": 1,
+  "material_balance: [0:3[ AND own_overloaded_piece_count>=1 AND phase=='opening'": 4,
+  "clock_frac<0.10 AND own_overloaded_piece_count<2 AND own_prev_spent_s>=1": 1,
+  "opp_hanging_piece_count>=1 AND opp_king_ring_enemy_attacks<1 AND own_lost_material==0": 1,
+  "n_captures<3 AND n_good_captures>=1 AND standing=='winning'": 1,
+  "material_balance: [0:3[ AND opp_hanging_piece_count>=1 AND ply<20": 1,
+  "n_good_captures>=1 AND recapture_available==0 AND standing=='winning'": 2,
+  "n_good_captures>=1 AND own_attacked_piece_count>=3 AND own_lost_material==0": 1,
+  "n_captures<3 AND n_good_captures>=1 AND own_lost_material==0": 2,
+  "opp_last_pawn==1 AND own_overloaded_piece_count: [1:2[ AND ply<20": 1,
+  "opp_last_spent_s>=1 AND own_overloaded_piece_count>=2 AND standing=='level'": 1,
+  "new_attacks_on_own>=1 AND opp_last_pawn==1 AND own_lost_material==0": 1,
+  "clock_frac<0.50 AND own_last_check==1 AND own_queen==1": 1,
+  "opp_last_spent_s<1 AND own_overloaded_piece_count>=1 AND ply<20": 1,
+  "clock_own_ms>=60000 AND n_good_captures>=1 AND opp_last_spent_s<1": 1,
+  "material_change_2ply: [-1:1[ AND own_overloaded_piece_count: [1:2[ AND own_prev_spent_s<1": 1,
+  "own_lost_material==0 AND own_overloaded_piece_count>=1 AND phase=='opening'": 1,
+  "clock_frac<0.50 AND opp_queen==1 AND own_overloaded_piece_count<2": 1,
+  "own_hanging_piece_count<1 AND own_overloaded_piece_count>=1 AND phase=='opening'": 1,
+  "own_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1 AND standing=='level'": 1,
+  "clock_frac<0.50 AND legal_moves>=32.0 AND own_king_ring_enemy_attacks: [1:3[": 1,
+  "clock_diff_s<-30 AND n_good_captures>=1 AND own_king_ring_enemy_attacks>=1": 1
+ }
+}

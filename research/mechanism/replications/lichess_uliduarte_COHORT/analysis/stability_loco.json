@@ -1,0 +1,97 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 6997,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 5458,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 6833,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=b",
+   "n": 3959,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 6289,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 5928,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.7943615257048093
+  },
+  {
+   "variant": "drop speed=bullet",
+   "n": 7334,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop speed=rapid",
+   "n": 7396,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop speed=ultraBullet",
+   "n": 7689,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop era=2025",
+   "n": 5009,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.7943615257048093
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 3792,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.7943615257048093
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3908,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 0",
+   "n": 3893,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.7943615257048093
+  },
+  {
+   "variant": "random half 1",
+   "n": 3900,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 2",
+   "n": 3901,
+   "winner": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5477178423236515
+  }
+ ]
+}

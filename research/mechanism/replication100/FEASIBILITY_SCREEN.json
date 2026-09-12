@@ -1,0 +1,119 @@
+{
+ "_what": "Metadata-only feasibility. How many Lichess players the frozen instrument can reach at all, and how many of those it can reach for the RESIDUAL question.",
+ "_method": "Public game headers give an unfiltered frame of blitz players; the public bulk user endpoint gives their profile metadata. No game is fetched, no position is scored, no analysis result is read.",
+ "screened_at": "2026-09-07T19:51:46Z",
+ "instrument_hash": "caf572562b9500f63dde5f0eb49d02a7fd2a8656612a6cdd467dd5bc2070e5e0",
+ "repo_sha": "cb3b4699a84c86e0cad98b4995a50ac7b8b07438",
+ "seed": 20260907,
+ "frame": {
+  "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-06.pgn.zst",
+  "prefix_mb": 80,
+  "games_seen": 256754,
+  "blitz_games_seen": 61084,
+  "blitz_time_controls": [
+   "180+0",
+   "300+0"
+  ],
+  "distinct_players": 34629,
+  "pre_filter": "NONE. Rating is deliberately not filtered here: filtering the frame by rating would bake the band gate into the denominator and make the reported yield circular.",
+  "sampled": 3000
+ },
+ "registry": {
+  "bands": [
+   [
+    1450,
+    1850
+   ]
+  ],
+  "band_centres": [
+   1650
+  ],
+  "band_halfwidth": 200,
+  "band_rule": "round(median blitz rating / 50) * 50 +/- 200",
+  "median_window_that_lands_in_a_registered_band": [
+   [
+    1625,
+    1675
+   ]
+  ],
+  "_note": "The registry holds 1 band(s). A player is reachable only if their OWN derived band is one of them, which is a 50-point window on the median, not a 400-point one."
+ },
+ "gates": {
+  "band": "derived band in registry",
+  "volume_broad": ">= 364 admissible games (POWER_PLAN.broad_minimum)",
+  "volume_residual_judge": ">= 1173 admissible blitz games (judge stage only)",
+  "volume_residual": ">= 1786 admissible blitz games (judge AND search floor)",
+  "volume_proxy": "lifetime blitz game count x 0.7680. This is an UPPER BOUND: it assumes the whole lifetime is enumerable and admissible at the observed rate. Real windows are smaller, so every volume yield below is optimistic."
+ },
+ "counts": {
+  "sampled": 3000,
+  "not_found": 1,
+  "closed_or_flagged": 78,
+  "no_rated_blitz": 42,
+  "screenable": 2879,
+  "band_registered": 146,
+  "volume_broad": 2639,
+  "volume_residual_judge": 2237,
+  "volume_residual": 2014,
+  "band_and_broad": 143,
+  "band_and_residual_judge": 123,
+  "band_and_residual": 113
+ },
+ "rates": {
+  "band_registered": 0.05071,
+  "band_and_broad": 0.04967,
+  "band_and_residual_judge": 0.04272,
+  "band_and_residual": 0.03925
+ },
+ "band_proxy_reliability": {
+  "_what": "The screen can only see a CURRENT rating; the instrument reads the median over the fetched window. This measures how often the two disagree about the band, using each player's own June games as the second observation.",
+  "current_vs_june_band_disagreement": 223,
+  "disagreement_rate": 0.07746,
+  "band_registered_under_both": 40,
+  "screen_hits": 146,
+  "screen_hits_confirmed_by_june": 40,
+  "hit_confirmation_rate": 0.274,
+  "hits_with_5plus_june_games": 38,
+  "hits_with_5plus_june_games_confirmed": 8,
+  "hit_confirmation_rate_5plus": 0.2105,
+  "_confirmation_caveat": "The June reading is itself a median over however many June games the player appears in; for most that is a handful, so part of the disagreement is sampling error in the SECOND reading, not proxy error in the first. The 5+ figure is the less noisy of the two and is still not the pipeline's own median over the fetched window.",
+  "abs_drift_median": 46.0,
+  "abs_drift_p90": 118,
+  "_direction_of_the_error": "June is three months stale, and the pipeline reads a RECENT window, so the current rating is nearer the pipeline's median than June is. The confirmation rate here is therefore pessimistic: it is a floor on how often a hit survives, not an estimate of it.",
+  "_what_it_does_establish": "Median absolute drift (46.0) is of the same order as the 50-point bucket the band rule quantises to. A rating that moves by a bucket width between two readings cannot decide the band from either reading alone.",
+  "consequence": "A screened hit is a CANDIDATE, never a confirmed eligible. The band is authoritative only once the pipeline derives it from the fetched corpus, so eligibility confirmation costs a fetch per candidate and cannot be bought with metadata."
+ },
+ "reachable_cohort_size": {
+  "_what": "How large a cohort each question can actually support, per 1000 screened.",
+  "per_1000_screened": {
+   "broad_powered": 50,
+   "residual_powered": 39,
+   "residual_powered_judge_only": 43
+  },
+  "screens_needed_for_100_broad": 2014,
+  "screens_needed_for_100_residual": 2548
+ },
+ "ingestion_reach_applied": {
+  "_what": "Whether the pipeline can actually obtain the volume the gates require.",
+  "route": "GET /api/games/user/<name> with the frozen export query, NO Authorization header. Returns the player's rated history as a stream.",
+  "ceiling": "NONE imposed by ingestion. The binding constraints are the player's own history length and engine time.",
+  "broad_minimum": 364,
+  "residual_minimum": 1786,
+  "broad_reachable": true,
+  "residual_reachable": true,
+  "consequence": "Volume is a property of the player's own history, not of the client. A null from an eligible member therefore says something about that player, which is the condition the cohort needs to mean anything.",
+  "_superseded": {
+   "said": "the by-username export answers 404 unauthenticated, so enumeration is capped at 480 games by the public HTML game list, which puts 368 admissible and 328 blitz games out of reach of both minimums",
+   "why_it_was_wrong": "inherited from a stale comment in scripts/build_import_corpus.ts that the repository had already corrected in docs/research/ACCOUNT_BRIDGE_PREREG.md. Never measured before it was believed.",
+   "what_it_cost": "Player B was ingested through the HTML cap and holds 358 admissible games where the export gives 940 for the same account; the 100-player cohort was stopped at PENDING_RESOURCE for a token it never needed.",
+   "html_route_cap_still_real_for": "--ids-file replays of a frozen window, and Player B's frozen corpus, which is not refetched",
+   "html_raw_ids_max": 480,
+   "html_max_admissible_games": 368,
+   "html_max_blitz_games": 328
+  }
+ },
+ "screened_frame": {
+  "path": "SCREENED_FRAME.json",
+  "frame_hash": "34191d96f7731295cfca3ad3252ad5c2d0b4e3b96a950f0e36977e0bd8f13165"
+ }
+}

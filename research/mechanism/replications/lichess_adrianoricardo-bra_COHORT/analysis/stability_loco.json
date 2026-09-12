@@ -1,0 +1,79 @@
+{
+ "region": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 6268,
+   "winner": "opp_attacked_piece_count>=3 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.3492286115007013
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 5487,
+   "winner": "opp_last_captured_value<3 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6458797327394209
+  },
+  {
+   "variant": "drop eco_family=E",
+   "n": 7488,
+   "winner": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=b",
+   "n": 3963,
+   "winner": "n_captures>=3 AND own_hanging_piece_count>=1",
+   "jaccard": 0.3513909224011713
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 6900,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6673960612691466
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 5693,
+   "winner": "n_captures>=3 AND opp_last_pawn==1",
+   "jaccard": 0.10790464240903387
+  },
+  {
+   "variant": "drop speed=bullet",
+   "n": 7619,
+   "winner": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 3979,
+   "winner": "own_hanging_piece_count>=1 AND own_lost_material==0",
+   "jaccard": 0.5034802784222738
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3702,
+   "winner": "n_captures>=3 AND opp_last_pawn==1",
+   "jaccard": 0.10790464240903387
+  },
+  {
+   "variant": "random half 0",
+   "n": 3883,
+   "winner": "own_lost_material==0 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6069819819819819
+  },
+  {
+   "variant": "random half 1",
+   "n": 3779,
+   "winner": "own_attacked_piece_count>=3 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.3961290322580645
+  },
+  {
+   "variant": "random half 2",
+   "n": 3750,
+   "winner": "n_captures>=3 AND opp_last_pawn==1",
+   "jaccard": 0.10790464240903387
+  }
+ ]
+}

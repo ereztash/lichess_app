@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "abdohassan11",
+ "player_id": "abdohassan11",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 4,
+    "rating": 1273
+   },
+   "bullet": {
+    "games": 649,
+    "rating": 1571
+   },
+   "blitz": {
+    "games": 5201,
+    "rating": 1590
+   },
+   "rapid": {
+    "games": 9,
+    "rating": 1458
+   },
+   "classical": {
+    "games": 16,
+    "rating": 1434
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 81,
+    "rating": 1454
+   }
+  },
+  "createdAt": 1590696842761,
+  "seenAt": 1788704448477
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/abdohassan11?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T19:18:11Z",
+  "http_status": 200,
+  "bytes": 15986728,
+  "sha256": "da14789789d04573b254d8c685577b8208af88a5b70ae8f431eca3166d6aec31",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

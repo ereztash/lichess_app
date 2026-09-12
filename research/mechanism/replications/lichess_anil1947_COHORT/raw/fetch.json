@@ -1,0 +1,92 @@
+{
+ "platform": "lichess",
+ "username": "anil1947",
+ "player_id": "anil1947",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 6,
+    "rating": 950
+   },
+   "bullet": {
+    "games": 2333,
+    "rating": 1387
+   },
+   "blitz": {
+    "games": 5744,
+    "rating": 1651
+   },
+   "rapid": {
+    "games": 3908,
+    "rating": 2011
+   },
+   "classical": {
+    "games": 304,
+    "rating": 1775
+   },
+   "correspondence": {
+    "games": 5,
+    "rating": 1433
+   },
+   "kingOfTheHill": {
+    "games": 2,
+    "rating": 1129
+   },
+   "threeCheck": {
+    "games": 2,
+    "rating": 1228
+   },
+   "atomic": {
+    "games": 23,
+    "rating": 892
+   },
+   "horde": {
+    "games": 4,
+    "rating": 1095
+   },
+   "racingKings": {
+    "games": 1,
+    "rating": 1086
+   },
+   "puzzle": {
+    "games": 386,
+    "rating": 1871
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1580655908897,
+  "seenAt": 1788839785375
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/anil1947?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:50:10Z",
+  "http_status": 200,
+  "bytes": 3194757,
+  "sha256": "753f42d61977fda210508b182f8da636bbf4144a79e38286277cc5a94d13fc99",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_anil1947_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

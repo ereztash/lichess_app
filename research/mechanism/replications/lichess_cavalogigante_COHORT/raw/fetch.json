@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "cavalogigante",
+ "player_id": "cavalogigante",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 800
+   },
+   "bullet": {
+    "games": 104,
+    "rating": 1353
+   },
+   "blitz": {
+    "games": 5645,
+    "rating": 1693
+   },
+   "rapid": {
+    "games": 4072,
+    "rating": 1863
+   },
+   "classical": {
+    "games": 7,
+    "rating": 1785
+   },
+   "correspondence": {
+    "games": 5,
+    "rating": 1703
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1364
+   },
+   "crazyhouse": {
+    "games": 1,
+    "rating": 1603
+   },
+   "puzzle": {
+    "games": 952,
+    "rating": 1890
+   }
+  },
+  "createdAt": 1470503627930,
+  "seenAt": 1788829318948
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/cavalogigante?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:23:44Z",
+  "http_status": 200,
+  "bytes": 3414796,
+  "sha256": "182b0095046b585fd94a36b3c9f67f4afd6cfc8df16c58f27a3e399cfe68b20a",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_cavalogigante_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

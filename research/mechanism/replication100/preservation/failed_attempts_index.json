@@ -1,0 +1,1244 @@
+{
+ "_what": "Append-only index of infrastructure execution attempts that did not reach a canonical terminal state. The evidence itself is beside this file and is not recreatable.",
+ "research_identity": {
+  "cohort_hash": "42c6fb293623b7051bdb13ea4d3e01e03049ad477d881736603196d1629c2b49",
+  "prereg_hash": "3aa7e5335942c860922454939003cb0256817f8b8a92c5414d25a2ae8af31a0d",
+  "instrument_hash": "b75d31cc8f07f9453098d7c7f7fcffa037cf8c2aeec3a4478fa19272a03aa677",
+  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+  "protocol_hash": "7d2dcfbfeb1f7bf14822d8478f04e48a5278d8623400569439a3da7a7a0238dc"
+ },
+ "attempts": [
+  {
+   "attempt_id": "engine-path-failure/adrianoricardo-bra",
+   "player_id": "adrianoricardo-bra",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/adrianoricardo-bra/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "96a57444d2a21c29c95ae80a8365e65afdd8e6d0199dcc1bc7cea7bfb0afd031",
+     "bytes": 1839
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/ajshaz17",
+   "player_id": "ajshaz17",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/ajshaz17/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "d36de1c9f05ccadd8073a7fbe23ba6b4d90d9d2542b88cebe917896d23b0aac1",
+     "bytes": 1874
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "c31c266e2c48a1b8eae4835bd32ce1f363aca2e6f6119d3672bc8036c92fb33c",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/bbbiney1",
+   "player_id": "bbbiney1",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/bbbiney1/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "bdde451ef6560e7d2797f48bbfad7200395e5d265ad8804fd788d25d1f1b6466",
+     "bytes": 1816
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "5943d1fff5c1bd6930aadbfbb6352c0f4a94e1842d2d10ae1a9b939d8fe66e5c",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "7fc557b5605032a65d9c57116bdec55b8b5eda2c8279e4f9b362b857c76dfe58",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "f82be1e88f5cfea52b69dda3f61fcfbb6697cfc2133f633aeffd11cf6087f7ec",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "ad30e7c96570a4b2ec791fdd6a96f582001174251a550682c9aa4b0bf4c921ec",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/bmyers2015",
+   "player_id": "bmyers2015",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/bmyers2015/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "f198aee5593ea8f1390e449159d9278cb4db00cd6af5333d923ca7b6318477ff",
+     "bytes": 1762
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/cavalogigante",
+   "player_id": "cavalogigante",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/cavalogigante/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "c2b64315daf9e5a2f214d7edf2a94d1b7ef01b3a6ed5f4b1fe980032eb21535a",
+     "bytes": 1800
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/cesarau",
+   "player_id": "cesarau",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/cesarau/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "58c37fabffaaaf0889a2ef8553582ecffa2b106dd2229677f2e3dc9f74638492",
+     "bytes": 1746
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/christianjessen",
+   "player_id": "christianjessen",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/christianjessen/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "756debf7e35f7a6b89beba78c980234755752d638d7f573b7b37d1f35be53b0e",
+     "bytes": 1838
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/dvoice",
+   "player_id": "dvoice",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/dvoice/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "56cf8c7f6345dcb5957283989a5d3af2226f1a9d7f24767ec8fd6a0cf959b860",
+     "bytes": 1796
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/franckzurita18",
+   "player_id": "franckzurita18",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/franckzurita18/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "680916c59699851c92fb9846b0d993f06532e053ec0458ded6de4cffe5d3a4b5",
+     "bytes": 1756
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "2dcd267c72304b485e4442548dc4c73c80f69dc1183c64d81fe685fe989c6db2",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/goshich",
+   "player_id": "goshich",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/goshich/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "718e2740713585b6a2e9886a72d48daa2fb8bbced8c5e7a1f4452113f3575a67",
+     "bytes": 1734
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/grebmesorchess",
+   "player_id": "grebmesorchess",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/grebmesorchess/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "e1b4b3c15f37c3961d9ee5d37c51d50ca5253712935315e809c8d56368939686",
+     "bytes": 1756
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/imfrei",
+   "player_id": "imfrei",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/imfrei/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "dbae9f5f5d39a3631266506192b915261bd3ad1989d168440683e4a1787a3757",
+     "bytes": 1797
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/malaikat_izroil58",
+   "player_id": "malaikat_izroil58",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/malaikat_izroil58/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "615f437c8bdc5461f006ba3c73bb35b1c3facadfc21f1caff34c367aa7f76406",
+     "bytes": 1768
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/maxkart19",
+   "player_id": "maxkart19",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/maxkart19/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "8b1f665e51494c0f2ee5697b6fb94f5ea8e2284bf63317c3d5ee0a8daad229bf",
+     "bytes": 1757
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "bce8af02f7516be1e7389b4a71f91d70494474cee595439e9123835cbaca3890",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/medkol",
+   "player_id": "medkol",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/medkol/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "a869973d34ab6c14c7f6af9f3b10edca033994997b4a4ab3e498b58c66d21f3b",
+     "bytes": 1767
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/millerglua",
+   "player_id": "millerglua",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/millerglua/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "62bf2d7d0f65448599c593fda36d1ab1c44a83c971af9dd2f1693571e36334a4",
+     "bytes": 1916
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "997d6019352160201956b8fb979ca1eb5207b71d5d75b73038d037646cd8e6f4",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "3f878592705fddc18c152aa7715883bcc3bf435624076390cb092d09aa90b915",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "2a84c9c8ea8fb926123bc73e74745b2ced94b0cbec1e0b21a1a33d78676f2363",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "ecc42958b97a1828e361b363236ab84639ded02cfee9d96ddc83ccc1e135ddd6",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/naa12",
+   "player_id": "naa12",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/naa12/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "68bcc1dda868dbbf792e856ff32c74204d7c6542b8ddcbe843a0548d1c086007",
+     "bytes": 1720
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/naughtrapier",
+   "player_id": "naughtrapier",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/naughtrapier/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "26bdf2acd409b0f1b8db05a8893105676b5ae661f1774f05f7449de2c7daf5cb",
+     "bytes": 1778
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/nouramine",
+   "player_id": "nouramine",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/nouramine/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "bb86a8cf3d47471c8df4c02fded131b4d4c25a9df4e8d128442f5e3ef3090d4c",
+     "bytes": 1736
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/original-chess",
+   "player_id": "original-chess",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/original-chess/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "ba929555c6792f95559d21e05746f964d4fd9b12f4b75fe8e9cbcf5dfb8895b1",
+     "bytes": 1772
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/pablorocchi",
+   "player_id": "pablorocchi",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/pablorocchi/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "eca9218b38c4eb52b3c95d8dd11a3528b68934ce213d2beb78fe32b841c6f877",
+     "bytes": 1839
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/pratamaok",
+   "player_id": "pratamaok",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/pratamaok/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "d24d411f325160f7a39b279da6f719c7d0f830dcd94e98fcacbf132a9ef972d4",
+     "bytes": 1767
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/rdumalig",
+   "player_id": "rdumalig",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/rdumalig/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "e03f63efdc200057dfee53eec315f2cf03a90b6377397efd4fce621e4292281f",
+     "bytes": 1747
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/sgad",
+   "player_id": "sgad",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/sgad/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "6e17f82a2d7310d1c3843c37c9eb0bf31675e34b65c9be2fc149c3ddceaac086",
+     "bytes": 1733
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/sumanbala",
+   "player_id": "sumanbala",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/sumanbala/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "32a0ecdd97c7fde08f0828b7a077788aff34d3fd4267abd28aa1cf0cd162654d",
+     "bytes": 1736
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/superchango99",
+   "player_id": "superchango99",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/superchango99/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "ad6c9bfdc428af1479d37a51b4c9ccc9a36d6c285c5df0fb3f3b79c096b7840e",
+     "bytes": 1773
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0df1a7759393f0ddac7f40b86da1bdd7f830b2051560a094f6008b96a8aefa3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "5490ffd20e6c739359e8c807dae5e8be269f250073f59900e0e30cc59c4f6459",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "20c7f7dd86b70f26c53b07ca91aa54922cd38b193dda9580610a49ae09fa6490",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/williamsrya94",
+   "player_id": "williamsrya94",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/williamsrya94/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "ae919feff5a54fa93c8763692ab92be8a33846531e1c5e49f3363fe0b5043094",
+     "bytes": 1837
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "b6259a69aba9b47316c7d94119220124b2dd4f8d83062d1363e9b51e2091e248",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "367d07fa62270cef470412e32750b8a27497f78e2455b4b1915c20580c549d0b",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8b3b5ecb1c749f2bfa9dd583544edbe52321035d237a0f8ed79a185087933872",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "c31c266e2c48a1b8eae4835bd32ce1f363aca2e6f6119d3672bc8036c92fb33c",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  },
+  {
+   "attempt_id": "engine-path-failure/yeliangel20",
+   "player_id": "yeliangel20",
+   "timestamp_utc": "UNKNOWN",
+   "failure_classification": "INFRASTRUCTURE / ENGINE_NOT_ON_PATH",
+   "status": "ENGINE_FAILURE",
+   "detail": "score_games.py workers exited [1, 1, 1, 1]; see analysis/score_w*.log",
+   "error_log_location": "preservation/failed_attempts/yeliangel20/",
+   "input_corpus_identity": "UNKNOWN",
+   "pipeline_identity": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+   "engine_identity": "UNKNOWN (the engine was never launched)",
+   "any_positions_scored": false,
+   "_scored_basis": "worker logs end in FileNotFoundError before the first search",
+   "disposition": "retry",
+   "reason": "same frozen player and frozen corpus retried after the PATH repair; the member was not replaced",
+   "evidence_files": [
+    {
+     "file": "RESULT.json",
+     "sha256": "15e113e750f2107a959549ae334b9777e0d6164ecdaf7b40d7d719a866356f12",
+     "bytes": 1744
+    },
+    {
+     "file": "score_w0.log",
+     "sha256": "6e44f576343fe9e44a11e98e6dff630346ee5ad80c9de2a9981d3579ca8e763f",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w1.log",
+     "sha256": "0deb43a7859197711f0d63778e72483429e4e66d2ab7c43207cb318890b75d3d",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w2.log",
+     "sha256": "8ba5c5e271d75568017de9b874bfb6941780b3032cb50523b0e74450acd57d89",
+     "bytes": 3519
+    },
+    {
+     "file": "score_w3.log",
+     "sha256": "030b1f525cee2f435271b82c87fef0ecb736b462c38db7193c4d1384f2cc8364",
+     "bytes": 3519
+    }
+   ],
+   "artifact_class": "OUR_PROVENANCE"
+  }
+ ]
+}

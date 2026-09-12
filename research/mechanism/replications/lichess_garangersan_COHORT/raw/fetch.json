@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "garangersan",
+ "player_id": "garangersan",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 365,
+    "rating": 1743
+   },
+   "blitz": {
+    "games": 551,
+    "rating": 1557
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1758942597565,
+  "seenAt": 1787139053070
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/garangersan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:04:29Z",
+  "http_status": 200,
+  "bytes": 3275430,
+  "sha256": "c9e7edff47568a66efee290b583b76413061c470636d653baa87a19edb0d5034",
+  "records": 916,
+  "path": "/tmp/cohort_probes/lichess_garangersan_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

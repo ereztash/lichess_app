@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from common import load_decisions, eligible, chronological_split, resample_by_game, region_contrast, jaccard, clustered_rate_se, within_game_contrast
+from focal import exclude_focal
 from search import build_selectors, search, judge_region, residualize, add_within_game_targets
 import vocab
 
@@ -83,15 +84,24 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--population", default=None, help="population decisions parquet: use the population model as the baseline (v1.8)")
     ap.add_argument("--blitz-only", type=int, default=0)
+    ap.add_argument("--corpus", default=None, help="corpus label of the FOCAL player's decisions (default: the file's only corpus)")
+    ap.add_argument("--focal-player-key", default=None, help="focal player_key excluded from the population frame (leakage guard)")
     a = ap.parse_args()
     design = vocab.DESIGN.copy(); design["vocab"] = vocab.VOCAB[a.vocab]; design["residual"] = bool(a.residual)
     target = a.target or design["target"]
     depths = [int(d) for d in a.depths.split(",")]
-    df = chronological_split(eligible(load_decisions(a.decisions)), design["derive_frac"], design["validate_frac"])
+    from common import AUTO_CORPUS
+    focal_corpus = a.corpus or AUTO_CORPUS
+    df = chronological_split(eligible(load_decisions(a.decisions, corpus=focal_corpus)), design["derive_frac"], design["validate_frac"])
+    focal_corpus_label = str(df["corpus"].iloc[0]) if "corpus" in df.columns and len(df) else None
+    focal_keys = set(df["player_key"].dropna().unique()) if "player_key" in df.columns else set()
+    if a.focal_player_key:
+        focal_keys.add(a.focal_player_key)
     if a.blitz_only:
         df = df[df.speed == "blitz"]
     if a.population:
-        pop = eligible(load_decisions(a.population, corpus=None)); pop = pop[pop["corpus"] != "erez281"].reset_index(drop=True)
+        pop = eligible(load_decisions(a.population, corpus=None))
+        pop = exclude_focal(pop, focal_corpus_label, focal_keys).reset_index(drop=True)
         POP["df"] = pop; design["residual"] = True; design["population"] = a.population
         print(f"POPULATION baseline: {len(pop)} decisions, {pop.game_id.nunique()} games", file=sys.stderr)
     dv = df[df.split == "DERIVE"].reset_index(drop=True); va = df[df.split == "VALIDATE"].reset_index(drop=True)

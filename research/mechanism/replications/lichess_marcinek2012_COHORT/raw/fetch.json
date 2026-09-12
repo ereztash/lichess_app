@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "marcinek2012",
+ "player_id": "marcinek2012",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 929,
+    "rating": 1789
+   },
+   "blitz": {
+    "games": 7199,
+    "rating": 1583
+   },
+   "rapid": {
+    "games": 10,
+    "rating": 1329
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 507,
+    "rating": 1482
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1494961885142,
+  "seenAt": 1788015973123
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/marcinek2012?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:16:16Z",
+  "http_status": 200,
+  "bytes": 3543921,
+  "sha256": "354303e23575e4a1069da1c9cefefb2eb4399b1c669d6515ee5a2272db3b072b",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_marcinek2012_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

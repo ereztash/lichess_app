@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "rdumalig",
+ "player_id": "rdumalig",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1424,
+    "rating": 1836
+   },
+   "blitz": {
+    "games": 14750,
+    "rating": 1695
+   },
+   "rapid": {
+    "games": 3132,
+    "rating": 1621
+   },
+   "classical": {
+    "games": 69,
+    "rating": 1324
+   },
+   "correspondence": {
+    "games": 7,
+    "rating": 1201
+   },
+   "puzzle": {
+    "games": 2394,
+    "rating": 1482
+   }
+  },
+  "createdAt": 1533878272547,
+  "seenAt": 1788761851332
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/rdumalig?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:28:01Z",
+  "http_status": 200,
+  "bytes": 3678502,
+  "sha256": "539a6dd251fda7f4674f77ed032ea4c652923f0aeec99962e91beebcfa77fad3",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_rdumalig_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

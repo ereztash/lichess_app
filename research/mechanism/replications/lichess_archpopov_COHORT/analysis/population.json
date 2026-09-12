@@ -1,0 +1,71 @@
+{
+ "region": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+ "frame": "VALIDATE",
+ "population": {
+  "n": 34794,
+  "games": 600,
+  "sides": 1200,
+  "base_err": 0.14439271138702076,
+  "raw": {
+   "n_in": 0,
+   "n_out": 34794,
+   "p_in": NaN,
+   "p_out": 0.14439271138702076,
+   "diff": NaN,
+   "se": NaN,
+   "z": NaN,
+   "games_in": 0
+  },
+  "resid": {
+   "resid_in": NaN,
+   "resid_out": 3.057389688643448e-05,
+   "diff": NaN,
+   "z": null,
+   "n_in": 0
+  }
+ },
+ "focal": {
+  "corpus": "lichess:archpopov",
+  "player_keys": [
+   "archpopov"
+  ],
+  "n": 14047,
+  "raw": {
+   "n_in": 1614,
+   "n_out": 12433,
+   "p_in": 0.23543990086741015,
+   "p_out": 0.12265744389930025,
+   "diff": 0.1127824569681099,
+   "se": 0.012443132051262852,
+   "z": 9.063831879584017,
+   "games_in": 392
+  },
+  "resid_under_population_baseline": {
+   "resid_in": 0.07974019588480777,
+   "resid_out": -0.0008131829047485211,
+   "diff": 0.08055337878955629,
+   "z": 6.815031325219734,
+   "n_in": 1614
+  }
+ },
+ "leakage_guard": {
+  "population_rows_before": 34794,
+  "population_rows_after": 34794,
+  "focal_rows_removed": 0,
+  "focal_corpus": "lichess:archpopov",
+  "focal_keys": [
+   "archpopov"
+  ]
+ },
+ "per_side": {
+  "n_sides": 0,
+  "elev_mean": null,
+  "elev_sd": null,
+  "elev_q": null,
+  "focal_elev": 0.08055337878955629,
+  "focal_percentile": null,
+  "raw_q": null,
+  "focal_raw_elev": 0.1127824569681099,
+  "focal_raw_percentile": null
+ }
+}

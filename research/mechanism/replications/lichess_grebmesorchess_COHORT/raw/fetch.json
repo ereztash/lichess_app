@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "grebmesorchess",
+ "player_id": "grebmesorchess",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1323
+   },
+   "bullet": {
+    "games": 12453,
+    "rating": 1310
+   },
+   "blitz": {
+    "games": 11292,
+    "rating": 1578
+   },
+   "rapid": {
+    "games": 89,
+    "rating": 1898
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 13,
+    "rating": 1354
+   },
+   "puzzle": {
+    "games": 7668,
+    "rating": 1821
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1588981489542,
+  "seenAt": 1787958525625
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/grebmesorchess?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:30:29Z",
+  "http_status": 200,
+  "bytes": 2953411,
+  "sha256": "304aaddc1a3fe5d997854a5e63e3cba8f3762ce8b0083a2f217804f88913ff80",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_grebmesorchess_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

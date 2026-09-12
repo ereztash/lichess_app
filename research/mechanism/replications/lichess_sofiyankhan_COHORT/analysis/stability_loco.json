@@ -1,0 +1,85 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 37785,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 34193,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 43982,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=b",
+   "n": 23136,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 39788,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 34937,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop speed=rapid",
+   "n": 44931,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop era=2025",
+   "n": 34101,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 21870,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 23095,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.764772470002264
+  },
+  {
+   "variant": "random half 0",
+   "n": 22527,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 1",
+   "n": 22185,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.764772470002264
+  },
+  {
+   "variant": "random half 2",
+   "n": 22459,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.764772470002264
+  }
+ ]
+}

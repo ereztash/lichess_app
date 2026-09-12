@@ -1,0 +1,72 @@
+{
+ "platform": "lichess",
+ "username": "pablorocchi",
+ "player_id": "pablorocchi",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1238
+   },
+   "bullet": {
+    "games": 218,
+    "rating": 1367
+   },
+   "blitz": {
+    "games": 8114,
+    "rating": 1664
+   },
+   "rapid": {
+    "games": 402,
+    "rating": 1810
+   },
+   "classical": {
+    "games": 7,
+    "rating": 1889
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 1,
+    "rating": 1410
+   },
+   "threeCheck": {
+    "games": 1,
+    "rating": 1164
+   },
+   "puzzle": {
+    "games": 887,
+    "rating": 1616
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1548305703198,
+  "seenAt": 1788881584340
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/pablorocchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "4584"
+  },
+  "fetched_at": "2026-09-08T16:45:35Z",
+  "http_status": 200,
+  "bytes": 14440245,
+  "sha256": "2ad47ff32017fc117016ae97f79fa7b8f0218dad3cfd9b37560703cfe18c6ce5",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_pablorocchi_COHORTR/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

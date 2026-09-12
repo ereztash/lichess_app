@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "wildhorse420",
+ "player_id": "wildhorse420",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 2895,
+    "rating": 1257
+   },
+   "blitz": {
+    "games": 16764,
+    "rating": 1634
+   },
+   "rapid": {
+    "games": 1078,
+    "rating": 1585
+   },
+   "classical": {
+    "games": 2,
+    "rating": 1414
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 657,
+    "rating": 1698
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1686170205516,
+  "seenAt": 1788808052105
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/wildhorse420?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:13:24Z",
+  "http_status": 200,
+  "bytes": 3269049,
+  "sha256": "98c6ca5bd64af4523c4c0c988b53fd68eb60f1d3e4d00359172b8dc63edb073b",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_wildhorse420_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

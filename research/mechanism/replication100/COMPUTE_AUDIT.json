@@ -1,0 +1,443 @@
+{
+ "_what": "READ-ONLY audit of redundant engine work over the cohort corpora already on disk. No engine was run. No frozen artefact was read for anything but its positions, and none was written.",
+ "audited_at": "2026-09-08T07:50:45Z",
+ "members_audited": 16,
+ "members_in_selection": 16,
+ "engine_unit": {
+  "per_ply": "analyse(depth=12, multipv=3, ucinewgame before each) on the position BEFORE the move",
+  "terminal": "analyse(depth=12, multipv=1) on the final position, only when the game is not already over",
+  "_note": "two regimes. An mpv3 result answers an mpv1 request; the converse is false. They are never pooled below."
+ },
+ "totals": {
+  "games": 7186,
+  "games_unparsable": 0,
+  "ply_searches": 485429,
+  "ply_first": 484033,
+  "ply_repeat": 1396,
+  "terminal_searches": 5078
+ },
+ "occurrence_split": {
+  "_why": "python-chess sends the move history, so Stockfish can see a repetition. Two occurrences of one FEN are interchangeable only when neither had already occurred in its own game. REPEAT occurrences are counted and never claimed.",
+  "ply_first_occurrence": 484033,
+  "ply_repeat_occurrence": 1396,
+  "repeat_share": 0.0028758067606179274
+ },
+ "distinct_positions": {
+  "FEN_FULL": 426031,
+  "FEN_NO_FULLMOVE": 426005,
+  "EPD_no_halfmove_clock": 423729,
+  "_sound": "FEN_FULL and FEN_NO_FULLMOVE. EPD is a ceiling: dropping the halfmove clock changes what is a draw, so it is not a keying anyone may use."
+ },
+ "unique_fen_move_pairs": 436073,
+ "_pairs_note": "the DECISION unit, not the engine unit. The engine is called on the position; the move is what the player then played. Reuse is keyed on the position alone, so this number bounds decisions, not searches.",
+ "duplication": {
+  "_decomposition": "FIRST-occurrence searches = distinct positions + within-player duplicates + cross-player duplicates. The three sum to ply_first_occurrence exactly.",
+  "distinct_positions_FEN_FULL": 426031,
+  "within_player_duplicate_searches": 50263,
+  "cross_player_duplicate_searches": 7739,
+  "positions_held_by_more_than_one_member": 4076,
+  "cross_player_occurrences_of_shared_positions": 56369,
+  "games_held_by_more_than_one_member": 1,
+  "_games_note": "a game appearing in two members' corpora means those two played each other. Every position of it is scored twice today."
+ },
+ "overlap_with_existing_scored_corpora": {
+  "sources": [
+   {
+    "source": "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst",
+    "read": true,
+    "ply_positions": 118804
+   },
+   {
+    "source": "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst",
+    "read": true,
+    "ply_positions": 38580
+   },
+   {
+    "source": "research/mechanism/data/scored_post_freeze.jsonl.zst",
+    "read": true,
+    "ply_positions": 723
+   },
+   {
+    "source": "research/mechanism/replications/lichess_erez281_RUNOFRECORD/scored",
+    "read": true,
+    "ply_positions": 118804
+   },
+   {
+    "source": "research/mechanism/replications/lichess_vibesgalore_B/scored",
+    "read": true,
+    "ply_positions": 25249
+   }
+  ],
+  "distinct_cohort_positions_already_scored": 3217,
+  "cohort_ply_searches_those_cover": 48875
+ },
+ "upper_bound_on_reusable_engine_work": {
+  "_definition": "searches the cohort would issue today, minus the searches a perfect position cache would issue. FIRST occurrences only; REPEAT occurrences and terminal mpv1 searches are excluded from the saving.",
+  "ply_searches_today": 485429,
+  "terminal_searches_today": 5078,
+  "searches_today_total": 490507,
+  "by_FEN_FULL": {
+   "searches_needed": 427427,
+   "searches_saved": 58002,
+   "share_saved": 0.11948606284338183
+  },
+  "by_FEN_NO_FULLMOVE": {
+   "searches_needed": 427401,
+   "searches_saved": 58028,
+   "share_saved": 0.11953962371428159
+  },
+  "with_existing_corpora_reused_too": {
+   "_note": "adds the FIRST-occurrence positions already scored at d12 mpv3 elsewhere in the tree. Keyed on FEN_FULL.",
+   "searches_needed": 424210,
+   "searches_saved": 61219
+  },
+  "ceiling_by_EPD_not_sound": {
+   "searches_needed": 425125,
+   "searches_saved": 60304
+  }
+ },
+ "where_the_duplication_is": {
+  "_what": "FIRST-occurrence searches banded by how deep into the game the position first appears. A saving concentrated in the opening plies is an opening book, not a general position cache, and those are different pieces of software with different risks.",
+  "bands": [
+   {
+    "plies": "0-5",
+    "searches": 43116,
+    "distinct_positions": 3049,
+    "duplicate_searches": 40067,
+    "share_of_all_duplicates": 0.6907865246025999
+   },
+   {
+    "plies": "6-11",
+    "searches": 43116,
+    "distinct_positions": 26965,
+    "duplicate_searches": 16151,
+    "share_of_all_duplicates": 0.2784559153132651
+   },
+   {
+    "plies": "12-19",
+    "searches": 57480,
+    "distinct_positions": 55793,
+    "duplicate_searches": 1687,
+    "share_of_all_duplicates": 0.029085203958484192
+   },
+   {
+    "plies": "20-29",
+    "searches": 69892,
+    "distinct_positions": 69850,
+    "duplicate_searches": 42,
+    "share_of_all_duplicates": 0.000724112961622013
+   },
+   {
+    "plies": "30+",
+    "searches": 270429,
+    "distinct_positions": 270374,
+    "duplicate_searches": 55,
+    "share_of_all_duplicates": 0.0009482431640288266
+   }
+  ],
+  "positions_searched_exactly_once": 418474,
+  "singleton_share_of_distinct": 0.9822618541843199,
+  "_singleton_note": "a cache must hold these too, and never answers from them. They set the memory cost against which the saving is bought."
+ },
+ "saturation_curve": {
+  "_what": "cumulative distinct positions as members are added in acceptance order. The marginal column is what each additional member costs in NEW searches; it falls as the shared opening tree fills in, and that fall is the only measured basis for saying anything about a hundred members.",
+  "points": [
+   {
+    "members": 1,
+    "cumulative_ply_first": 34774,
+    "cumulative_distinct": 31845,
+    "cumulative_saved": 2929,
+    "marginal_new_positions": 31845
+   },
+   {
+    "members": 2,
+    "cumulative_ply_first": 67725,
+    "cumulative_distinct": 61017,
+    "cumulative_saved": 6708,
+    "marginal_new_positions": 29172
+   },
+   {
+    "members": 3,
+    "cumulative_ply_first": 96660,
+    "cumulative_distinct": 86545,
+    "cumulative_saved": 10115,
+    "marginal_new_positions": 25528
+   },
+   {
+    "members": 4,
+    "cumulative_ply_first": 128745,
+    "cumulative_distinct": 115419,
+    "cumulative_saved": 13326,
+    "marginal_new_positions": 28874
+   },
+   {
+    "members": 5,
+    "cumulative_ply_first": 161570,
+    "cumulative_distinct": 144895,
+    "cumulative_saved": 16675,
+    "marginal_new_positions": 29476
+   },
+   {
+    "members": 6,
+    "cumulative_ply_first": 187409,
+    "cumulative_distinct": 167418,
+    "cumulative_saved": 19991,
+    "marginal_new_positions": 22523
+   },
+   {
+    "members": 7,
+    "cumulative_ply_first": 218684,
+    "cumulative_distinct": 195641,
+    "cumulative_saved": 23043,
+    "marginal_new_positions": 28223
+   },
+   {
+    "members": 8,
+    "cumulative_ply_first": 244236,
+    "cumulative_distinct": 217281,
+    "cumulative_saved": 26955,
+    "marginal_new_positions": 21640
+   },
+   {
+    "members": 9,
+    "cumulative_ply_first": 276954,
+    "cumulative_distinct": 246014,
+    "cumulative_saved": 30940,
+    "marginal_new_positions": 28733
+   },
+   {
+    "members": 10,
+    "cumulative_ply_first": 306126,
+    "cumulative_distinct": 271551,
+    "cumulative_saved": 34575,
+    "marginal_new_positions": 25537
+   },
+   {
+    "members": 11,
+    "cumulative_ply_first": 335836,
+    "cumulative_distinct": 297502,
+    "cumulative_saved": 38334,
+    "marginal_new_positions": 25951
+   },
+   {
+    "members": 12,
+    "cumulative_ply_first": 366485,
+    "cumulative_distinct": 324031,
+    "cumulative_saved": 42454,
+    "marginal_new_positions": 26529
+   },
+   {
+    "members": 13,
+    "cumulative_ply_first": 391092,
+    "cumulative_distinct": 344405,
+    "cumulative_saved": 46687,
+    "marginal_new_positions": 20374
+   },
+   {
+    "members": 14,
+    "cumulative_ply_first": 423941,
+    "cumulative_distinct": 373681,
+    "cumulative_saved": 50260,
+    "marginal_new_positions": 29276
+   },
+   {
+    "members": 15,
+    "cumulative_ply_first": 453921,
+    "cumulative_distinct": 399986,
+    "cumulative_saved": 53935,
+    "marginal_new_positions": 26305
+   },
+   {
+    "members": 16,
+    "cumulative_ply_first": 484033,
+    "cumulative_distinct": 426031,
+    "cumulative_saved": 58002,
+    "marginal_new_positions": 26045
+   }
+  ]
+ },
+ "terminal_positions": {
+  "_what": "the mpv1 terminal search is a second regime. An mpv3 entry for the same FEN would answer it; the converse would not.",
+  "terminal_searches": 5078,
+  "terminal_fens_also_seen_as_a_ply_position": 1,
+  "_note": "the remainder are genuinely new positions and no keying removes them."
+ },
+ "per_member": [
+  {
+   "u": "nouramine",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 34885,
+   "ply_first_occurrence": 34774,
+   "ply_repeat_occurrence": 111,
+   "terminal_searches": 284,
+   "distinct_FEN_FULL_first": 31845,
+   "within_player_duplicate_searches": 2929
+  },
+  {
+   "u": "maxkart19",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 33148,
+   "ply_first_occurrence": 32951,
+   "ply_repeat_occurrence": 197,
+   "terminal_searches": 338,
+   "distinct_FEN_FULL_first": 29243,
+   "within_player_duplicate_searches": 3708
+  },
+  {
+   "u": "original-chess",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 29053,
+   "ply_first_occurrence": 28935,
+   "ply_repeat_occurrence": 118,
+   "terminal_searches": 333,
+   "distinct_FEN_FULL_first": 25638,
+   "within_player_duplicate_searches": 3297
+  },
+  {
+   "u": "franckzurita18",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 32177,
+   "ply_first_occurrence": 32085,
+   "ply_repeat_occurrence": 92,
+   "terminal_searches": 277,
+   "distinct_FEN_FULL_first": 29108,
+   "within_player_duplicate_searches": 2977
+  },
+  {
+   "u": "medkol",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 32938,
+   "ply_first_occurrence": 32825,
+   "ply_repeat_occurrence": 113,
+   "terminal_searches": 344,
+   "distinct_FEN_FULL_first": 29926,
+   "within_player_duplicate_searches": 2899
+  },
+  {
+   "u": "millerglua",
+   "corpus_present": true,
+   "games": 445,
+   "ply_searches": 25884,
+   "ply_first_occurrence": 25839,
+   "ply_repeat_occurrence": 45,
+   "terminal_searches": 331,
+   "distinct_FEN_FULL_first": 22919,
+   "within_player_duplicate_searches": 2920
+  },
+  {
+   "u": "bmyers2015",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 31343,
+   "ply_first_occurrence": 31275,
+   "ply_repeat_occurrence": 68,
+   "terminal_searches": 284,
+   "distinct_FEN_FULL_first": 28685,
+   "within_player_duplicate_searches": 2590
+  },
+  {
+   "u": "pablorocchi",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 25602,
+   "ply_first_occurrence": 25552,
+   "ply_repeat_occurrence": 50,
+   "terminal_searches": 314,
+   "distinct_FEN_FULL_first": 21952,
+   "within_player_duplicate_searches": 3600
+  },
+  {
+   "u": "yeliangel20",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 32830,
+   "ply_first_occurrence": 32718,
+   "ply_repeat_occurrence": 112,
+   "terminal_searches": 348,
+   "distinct_FEN_FULL_first": 29460,
+   "within_player_duplicate_searches": 3258
+  },
+  {
+   "u": "naughtrapier",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 29261,
+   "ply_first_occurrence": 29172,
+   "ply_repeat_occurrence": 89,
+   "terminal_searches": 337,
+   "distinct_FEN_FULL_first": 26323,
+   "within_player_duplicate_searches": 2849
+  },
+  {
+   "u": "malaikat_izroil58",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 29772,
+   "ply_first_occurrence": 29710,
+   "ply_repeat_occurrence": 62,
+   "terminal_searches": 313,
+   "distinct_FEN_FULL_first": 26482,
+   "within_player_duplicate_searches": 3228
+  },
+  {
+   "u": "bbbiney1",
+   "corpus_present": true,
+   "games": 441,
+   "ply_searches": 30805,
+   "ply_first_occurrence": 30649,
+   "ply_repeat_occurrence": 156,
+   "terminal_searches": 342,
+   "distinct_FEN_FULL_first": 27164,
+   "within_player_duplicate_searches": 3485
+  },
+  {
+   "u": "cesarau",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 24665,
+   "ply_first_occurrence": 24607,
+   "ply_repeat_occurrence": 58,
+   "terminal_searches": 335,
+   "distinct_FEN_FULL_first": 21134,
+   "within_player_duplicate_searches": 3473
+  },
+  {
+   "u": "rdumalig",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 32889,
+   "ply_first_occurrence": 32849,
+   "ply_repeat_occurrence": 40,
+   "terminal_searches": 297,
+   "distinct_FEN_FULL_first": 29831,
+   "within_player_duplicate_searches": 3018
+  },
+  {
+   "u": "imfrei",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 30032,
+   "ply_first_occurrence": 29980,
+   "ply_repeat_occurrence": 52,
+   "terminal_searches": 296,
+   "distinct_FEN_FULL_first": 27062,
+   "within_player_duplicate_searches": 2918
+  },
+  {
+   "u": "superchango99",
+   "corpus_present": true,
+   "games": 450,
+   "ply_searches": 30145,
+   "ply_first_occurrence": 30112,
+   "ply_repeat_occurrence": 33,
+   "terminal_searches": 305,
+   "distinct_FEN_FULL_first": 26998,
+   "within_player_duplicate_searches": 3114
+  }
+ ]
+}

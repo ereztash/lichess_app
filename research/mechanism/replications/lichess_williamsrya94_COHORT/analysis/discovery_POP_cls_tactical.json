@@ -1,0 +1,244 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.162270843342188,
+   "zs": [
+    1.5667540375489384,
+    3.651441139374837,
+    0.2620238482573661,
+    2.393417567148675,
+    2.9377176243811234
+   ],
+   "regions": [
+    "clock_own_ms<15000",
+    "clock_own_ms<15000",
+    "standing=='winning'",
+    "clock_own_ms<15000",
+    "clock_own_ms<15000"
+   ]
+  },
+  "2": {
+   "mean_z": 2.337548519134663,
+   "zs": [
+    1.8794679231630669,
+    2.9557005197470074,
+    2.0962341093000783,
+    1.4978503484589776,
+    3.258489695004187
+   ],
+   "regions": [
+    "clock_own_ms<15000 AND n_checks>=1",
+    "clock_own_ms<15000 AND n_checks>=1",
+    "n_good_captures>=1 AND standing=='winning'",
+    "n_good_captures>=1 AND standing=='winning'",
+    "n_good_captures>=1 AND standing=='winning'"
+   ]
+  },
+  "3": {
+   "mean_z": 1.8646387050000328,
+   "zs": [
+    1.5658139524636656,
+    2.0029602801354787,
+    2.244592804735842,
+    0.6813291268749381,
+    2.8284973607902404
+   ],
+   "regions": [
+    "clock_own_ms<15000 AND n_checks>=1 AND own_attacked_piece_count>=1",
+    "clock_own_ms<15000 AND n_checks>=1 AND own_attacked_piece_count>=1",
+    "n_good_captures>=1 AND own_lost_material==0 AND standing=='winning'",
+    "opp_passed<1 AND opp_queen==1 AND ply>=60",
+    "n_good_captures>=1 AND own_lost_material==0 AND standing=='winning'"
+   ]
+  }
+ },
+ "depth": 2,
+ "frozen": [
+  {
+   "region": "n_good_captures>=1 AND standing=='winning'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.1494485444444904,
+   "depth": 2,
+   "n_derive": 3880,
+   "derive_err_in": 0.22783505154639175,
+   "derive_err_out": 0.14043091853688125,
+   "derive_wg_est": 0.11344089005617324,
+   "derive_wg_z": 14.214701316998426,
+   "derive_resid_wg_in": 0.03450731673950393,
+   "stability_share_j60": 0.3,
+   "stability_median_j": 0.03122043519394513,
+   "validate": {
+    "n_in": 1190,
+    "n_out": 13361,
+    "p_in": 0.20756302521008405,
+    "p_out": 0.1353192126337849,
+    "diff": 0.07224381257629914,
+    "se": 0.01506026712195914,
+    "z": 4.796980823199449,
+    "games_in": 257,
+    "wg_est": 0.09879356403830569,
+    "wg_se": 0.015295474598718297,
+    "wg_z": 6.459006119795997,
+    "wg_games": 257,
+    "pass": false,
+    "region": "n_good_captures>=1 AND standing=='winning'",
+    "resid_wg_est": 0.03760805597495236,
+    "resid_wg_z": 2.7630175794014735,
+    "secondary_wg": {
+     "est": 0.03945595005165743,
+     "z": 2.9497538132311054,
+     "n_games": 257
+    },
+    "wp_loss_wg": {
+     "est": 0.015706785991904185,
+     "z": 3.6259581812471695
+    }
+   }
+  },
+  {
+   "region": "clock_own_ms<15000 AND n_checks>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.1360870536088044,
+   "depth": 2,
+   "n_derive": 841,
+   "derive_err_in": 0.18668252080856124,
+   "derive_err_out": 0.14776112114849357,
+   "derive_wg_est": 0.06200750220840479,
+   "derive_wg_z": 3.3757403248561086,
+   "derive_resid_wg_in": 0.07365817426237256,
+   "stability_share_j60": 0.3333333333333333,
+   "stability_median_j": 0.03052805280528053,
+   "validate": {
+    "n_in": 259,
+    "n_out": 14292,
+    "p_in": 0.1776061776061776,
+    "p_out": 0.14056815001399384,
+    "diff": 0.037038027592183775,
+    "se": 0.029684522201436123,
+    "z": 1.2477218713795533,
+    "games_in": 55,
+    "wg_est": 0.03625655892900007,
+    "wg_se": 0.03455857392676084,
+    "wg_z": 1.0491335379126967,
+    "wg_games": 55,
+    "pass": false,
+    "region": "clock_own_ms<15000 AND n_checks>=1",
+    "resid_wg_est": 0.03848648306689382,
+    "resid_wg_z": 1.3710074058883155,
+    "secondary_wg": {
+     "est": -0.008690146537056772,
+     "z": -0.3004507821517424,
+     "n_games": 55
+    },
+    "wp_loss_wg": {
+     "est": 0.0034760038964042894,
+     "z": 0.3622173446070862
+    }
+   }
+  },
+  {
+   "region": "clock_frac<0.10 AND n_checks>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.049209592302642,
+   "depth": 2,
+   "n_derive": 1095,
+   "derive_err_in": 0.18538812785388128,
+   "derive_err_out": 0.14755306603773585,
+   "derive_wg_est": 0.05921637689884633,
+   "derive_wg_z": 3.708563376644216,
+   "derive_resid_wg_in": 0.06192689719755163,
+   "stability_share_j60": 0.3333333333333333,
+   "stability_median_j": 0.04097714736012608,
+   "validate": {
+    "n_in": 331,
+    "n_out": 14220,
+    "p_in": 0.1903323262839879,
+    "p_out": 0.140084388185654,
+    "diff": 0.050247938098333916,
+    "se": 0.02970230732609915,
+    "z": 1.6917183418333803,
+    "games_in": 62,
+    "wg_est": 0.05442628586318871,
+    "wg_se": 0.03284103398005639,
+    "wg_z": 1.6572646858878,
+    "wg_games": 62,
+    "pass": false,
+    "region": "clock_frac<0.10 AND n_checks>=1",
+    "resid_wg_est": 0.05643975809463647,
+    "resid_wg_z": 2.082171427483023,
+    "secondary_wg": {
+     "est": 0.024264980284894048,
+     "z": 0.8742471688632673,
+     "n_games": 62
+    },
+    "wp_loss_wg": {
+     "est": 0.007645249035370543,
+     "z": 0.8442558055391665
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "opp_queen==1 AND ply>=60": 3,
+  "n_good_captures>=1 AND standing=='winning'": 9,
+  "clock_own_ms<15000 AND n_checks>=1": 9,
+  "phase=='middlegame' AND ply>=60": 1,
+  "clock_own_ms<15000 AND opp_king_ring_enemy_attacks>=3": 1,
+  "clock_own_ms<15000 AND own_attacked_piece_count>=1": 1,
+  "own_queen==1 AND ply>=60": 1,
+  "own_overloaded_piece_count>=1 AND standing=='winning'": 1,
+  "clock_own_ms<60000 AND own_attacked_piece_count>=3": 1,
+  "clock_frac<0.10 AND n_checks>=1": 1,
+  "legal_moves>=24.0 AND opp_hanging_piece_count>=2": 1,
+  "legal_moves>=25.0 AND opp_hanging_piece_count>=2": 1
+ }
+}

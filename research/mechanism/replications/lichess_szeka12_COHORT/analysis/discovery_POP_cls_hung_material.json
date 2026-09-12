@@ -1,0 +1,238 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.5307254969920285,
+   "zs": [
+    1.919311881239202,
+    2.6052118518511467,
+    0.8095319441614554,
+    1.464477689855095,
+    0.8550941178532429
+   ],
+   "regions": [
+    "n_captures>=3",
+    "n_captures>=3",
+    "n_captures>=3",
+    "opp_attacked_piece_count>=3",
+    "n_captures>=3"
+   ]
+  },
+  "2": {
+   "mean_z": 0.7897539164083947,
+   "zs": [
+    1.6040564274336115,
+    1.8406647429758396,
+    1.323991834435605,
+    -1.4075039132508702,
+    0.5875604904477874
+   ],
+   "regions": [
+    "n_captures>=3 AND opp_last_spent_s: [5:15[",
+    "n_captures>=3 AND own_prev_spent_s<15",
+    "material_balance>=-2 AND n_captures>=3",
+    "opp_attacked_piece_count>=3 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND opp_last_spent_s: [5:15["
+   ]
+  },
+  "3": {
+   "mean_z": 1.1441707229597875,
+   "zs": [
+    1.0637042203354736,
+    1.9169209342891487,
+    2.20138501057431,
+    -0.2609964153918238,
+    0.7998398649918294
+   ],
+   "regions": [
+    "n_captures>=3 AND opp_last_spent_s: [5:15[ AND own_prev_spent_s<15",
+    "material_balance>=-2 AND n_captures>=3 AND own_prev_spent_s<15",
+    "material_balance>=-2 AND n_captures>=3 AND opp_last_pawn==0",
+    "color=='w' AND opp_attacked_piece_count>=3 AND own_attacked_piece_count>=3",
+    "material_balance>=-2 AND n_captures>=3 AND opp_last_spent_s: [5:15["
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "n_captures>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.0090212511986845,
+   "depth": 1,
+   "n_derive": 2075,
+   "derive_err_in": 0.11951807228915663,
+   "derive_err_out": 0.05778432094221568,
+   "derive_wg_est": 0.06657316533898129,
+   "derive_wg_z": 6.76587838255027,
+   "derive_resid_wg_in": 0.022150894190339013,
+   "stability_share_j60": 0.5666666666666667,
+   "stability_median_j": 0.8739130434782609,
+   "validate": {
+    "n_in": 435,
+    "n_out": 1195,
+    "p_in": 0.07126436781609195,
+    "p_out": 0.06527196652719665,
+    "diff": 0.005992401288895305,
+    "se": 0.01646962172770658,
+    "z": 0.36384571473274246,
+    "games_in": 53,
+    "wg_est": 0.006585939258170602,
+    "wg_se": 0.016763284862008086,
+    "wg_z": 0.39287880104554085,
+    "wg_games": 53,
+    "pass": false,
+    "region": "n_captures>=3",
+    "resid_wg_est": -0.026861312352799874,
+    "resid_wg_z": -1.5429840412239226,
+    "secondary_wg": {
+     "est": 0.002226173542461905,
+     "z": 0.14134498721317684,
+     "n_games": 53
+    },
+    "wp_loss_wg": {
+     "est": 0.0009252978573134632,
+     "z": 0.20138571339859987
+    }
+   }
+  },
+  {
+   "region": "opp_attacked_piece_count>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.8745708899825227,
+   "depth": 1,
+   "n_derive": 1740,
+   "derive_err_in": 0.11839080459770115,
+   "derive_err_out": 0.06170913503206795,
+   "derive_wg_est": 0.06563626486274175,
+   "derive_wg_z": 6.403111024921155,
+   "derive_resid_wg_in": 0.02096623231470155,
+   "stability_share_j60": 0.5666666666666667,
+   "stability_median_j": 0.7478260869565218,
+   "validate": {
+    "n_in": 369,
+    "n_out": 1261,
+    "p_in": 0.07859078590785908,
+    "p_out": 0.063441712926249,
+    "diff": 0.01514907298161007,
+    "se": 0.01818493858870323,
+    "z": 0.8330560429288947,
+    "games_in": 52,
+    "wg_est": 0.01769349233456722,
+    "wg_se": 0.019638534991434392,
+    "wg_z": 0.9009578536425691,
+    "wg_games": 52,
+    "pass": false,
+    "region": "opp_attacked_piece_count>=3",
+    "resid_wg_est": -0.018372678178221614,
+    "resid_wg_z": -0.9052268025238392,
+    "secondary_wg": {
+     "est": 0.007152712887387229,
+     "z": 0.36149272619692574,
+     "n_games": 52
+    },
+    "wp_loss_wg": {
+     "est": 0.0055420950743856655,
+     "z": 1.1256981374507684
+    }
+   }
+  },
+  {
+   "region": "opp_last_spent_s: [5:15[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.7768766686738426,
+   "depth": 1,
+   "n_derive": 1962,
+   "derive_err_in": 0.10499490316004077,
+   "derive_err_out": 0.06417883540652605,
+   "derive_wg_est": 0.03935102237215002,
+   "derive_wg_z": 4.591392877501081,
+   "derive_resid_wg_in": 0.017538909101823937,
+   "stability_share_j60": 0.23333333333333334,
+   "stability_median_j": 0.21398002853067047,
+   "validate": {
+    "n_in": 416,
+    "n_out": 1214,
+    "p_in": 0.052884615384615384,
+    "p_out": 0.07166392092257001,
+    "diff": -0.01877930553795463,
+    "se": 0.01586698537000278,
+    "z": -1.183545903650842,
+    "games_in": 51,
+    "wg_est": -0.01668567626778402,
+    "wg_se": 0.017230254609293245,
+    "wg_z": -0.9683940630096376,
+    "wg_games": 51,
+    "pass": false,
+    "region": "opp_last_spent_s: [5:15[",
+    "resid_wg_est": -0.027201245592733497,
+    "resid_wg_z": -1.6354620096113919,
+    "secondary_wg": {
+     "est": 0.004926547922903329,
+     "z": 0.25177711297360245,
+     "n_games": 51
+    },
+    "wp_loss_wg": {
+     "est": 0.005360665641745017,
+     "z": 1.171449053374244
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "n_captures>=3": 15,
+  "opp_attacked_piece_count>=3": 2,
+  "clock_frac: [0.25:0.50[": 3,
+  "opp_king_ring_enemy_attacks>=3": 1,
+  "opp_last_spent_s>=15": 2,
+  "opp_last_spent_s: [5:15[": 7
+ }
+}

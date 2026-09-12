@@ -12,5 +12,19 @@ finding, `FIELD_STOP`, validated by `Product-Perception-Sensemaking-Architect/sc
 | `nodeB/` | every run's JSON, archived failed designs (`nodeB_v13_stalehistory`, `nodeB_v15_hypergeom`), derivation-only logs of stopped runs |
 | `data/` | decision tables (owner, population, post-freeze), compressed engine lines for all three, the shipped-engine VALIDATE re-score, manifests and game lists |
 | `FIELD_PROTOCOL_TEMPLATE.md` | the Node L template; the instantiated protocol is in the ledger |
+| `replication/` | the generic harness: the same frozen pipeline taking `platform + username` instead of one account. `PROTOCOL.md` (the frozen replication protocol), `HARDCODE_AUDIT.md` (what was hard-coded and what was generalised), `BASELINE_EREZ281.json` (the old pipeline's canonical outputs, frozen before the refactor) and `EQUIVALENCE_REPORT.md` (the proof that the refactor did not move the research) |
+| `replications/` | one directory per player run, written by `replication/run.py` |
 
 Nothing here touches product code, thresholds, prompts or the detector.
+
+## Running the pipeline on another player
+
+```bash
+npm run replicate:player -- --platform lichess --username SOMEUSER
+```
+
+The research rules are unchanged; the focal player is a parameter instead of a string literal. The
+run ends in one of `NO_STABLE_STRUCTURE`, `LEVEL_TYPICAL_ONLY`, `PERSONAL_RESIDUAL_CANDIDATE` or
+`INSUFFICIENT_EVIDENCE` — the third is never forced, and the first two are ordinary results. Before
+running a new player, `npm run replicate:gate` must be GREEN and
+`npm run replicate:gate:controls` must PASS. See `replication/README.md`.

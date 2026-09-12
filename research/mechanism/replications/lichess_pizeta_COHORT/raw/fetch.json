@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "pizeta",
+ "player_id": "pizeta",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 182,
+    "rating": 1533
+   },
+   "blitz": {
+    "games": 22219,
+    "rating": 1616
+   },
+   "rapid": {
+    "games": 95,
+    "rating": 1766
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1412,
+    "rating": 1901
+   }
+  },
+  "createdAt": 1600536415027,
+  "seenAt": 1788878813911
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/pizeta?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:28:31Z",
+  "http_status": 200,
+  "bytes": 3671139,
+  "sha256": "27b188bc2b8b14d522c7eea2bb1119ee62d9479d7b009a8876b9c1c136e7cb78",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_pizeta_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,57 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "fit_on": "derive",
+ "n_fit": 7755,
+ "frames": {
+  "TEST": {
+   "n": 2778,
+   "games": 90,
+   "base_err": 0.14758819294456443,
+   "region_contrast": {
+    "n_in": 699,
+    "n_out": 2079,
+    "p_in": 0.21602288984263232,
+    "p_out": 0.12457912457912458,
+    "diff": 0.09144376526350774,
+    "se": 0.02090314073613768,
+    "z": 4.374642376368749,
+    "games_in": 88
+   },
+   "baseline_gap_in_region": {
+    "gap_in": 0.031727623935714565,
+    "gap_out": -0.025098084989693438,
+    "diff": 0.056825708925408,
+    "z": 2.812621827067585
+   },
+   "models": {
+    "M0_history": {
+     "logloss": 0.4187451351628082,
+     "auc": 0.5
+    },
+    "M1_six_buckets": {
+     "logloss": 0.4133536235177252,
+     "auc": 0.5723524019446276
+    },
+    "M2_context": {
+     "logloss": 0.4146030921298266,
+     "auc": 0.5746518622280817
+    },
+    "M3_baseline": {
+     "logloss": 0.4001827722784917,
+     "auc": 0.6557782630191167
+    },
+    "M4_baseline_region": {
+     "logloss": 0.3982784092925539,
+     "auc": 0.6633765243902439
+    },
+    "M5_context_region": {
+     "logloss": 0.4095164641759587,
+     "auc": 0.6151501730388925
+    }
+   },
+   "region_logloss_gain_over_baseline": 0.0019043629859377686,
+   "shuffled_gain_p": 0.0,
+   "shuffled_gain_max": -0.00020607578302489493
+  }
+ }
+}

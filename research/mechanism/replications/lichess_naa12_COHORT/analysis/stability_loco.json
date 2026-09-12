@@ -1,0 +1,79 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 4798,
+   "winner": "opp_hanging_piece_count<2 AND own_overloaded_piece_count>=2",
+   "jaccard": 0.18497913769123783
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 5291,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 6815,
+   "winner": "opp_last_captured_value<3 AND own_overloaded_piece_count>=2",
+   "jaccard": 0.1988388969521045
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 6568,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.7705521472392638
+  },
+  {
+   "variant": "drop color=b",
+   "n": 4017,
+   "winner": "own_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.24242424242424243
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 7355,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.7705521472392638
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 5590,
+   "winner": "opp_last_captured_value<3 AND own_overloaded_piece_count>=2",
+   "jaccard": 0.1988388969521045
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 4151,
+   "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3673,
+   "winner": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.512258064516129
+  },
+  {
+   "variant": "random half 0",
+   "n": 3867,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.7705521472392638
+  },
+  {
+   "variant": "random half 1",
+   "n": 4000,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.7705521472392638
+  },
+  {
+   "variant": "random half 2",
+   "n": 4033,
+   "winner": "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5822942643391521
+  }
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 4638,
+   "winner": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6363636363636364
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 4290,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 5405,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.47262247838616717
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 6862,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=w",
+   "n": 3779,
+   "winner": "material_balance>=-2 AND own_hanging_piece_count>=1",
+   "jaccard": 0.5538243626062322
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 6543,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 5024,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop speed=bullet",
+   "n": 4556,
+   "winner": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6363636363636364
+  },
+  {
+   "variant": "drop era=2025",
+   "n": 6065,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 3572,
+   "winner": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6363636363636364
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 3493,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.47262247838616717
+  },
+  {
+   "variant": "random half 0",
+   "n": 3508,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.47262247838616717
+  },
+  {
+   "variant": "random half 1",
+   "n": 3569,
+   "winner": "clock_frac>=0.50 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.5634920634920635
+  },
+  {
+   "variant": "random half 2",
+   "n": 3622,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  }
+ ]
+}

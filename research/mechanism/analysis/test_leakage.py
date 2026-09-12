@@ -9,9 +9,9 @@ Leakage test in the B3 style (research/b3_population_expertise/tests/test_leakag
 Post-move columns (prefixed y_) are allowed, and expected, to change.
 """
 from __future__ import annotations
-import glob, json, sys, copy, random
+import glob, json, os, sys, copy, random
 import chess
-sys.path.insert(0, "/tmp/claude-0/-home-user/ee69b5a4-c8fc-5a0f-a62b-0e04fcb5bda2/scratchpad/pipeline")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pipeline"))
 import features as F
 
 
@@ -33,7 +33,7 @@ def main(parts_glob="scored/part00.jsonl", n_games=40, seed=0):
     checked = 0; bad = []
     for rec in recs:
         base = rows_for(rec, sessions)
-        own = [p for p in rec["plies"] if (p["stm"] == rec["erez_color"])]
+        own = [p for p in rec["plies"] if (p["stm"] == F.focal_color_of(rec))]
         if len(own) < 6:
             continue
         for p in rng.sample(own[2:], min(3, len(own) - 2)):

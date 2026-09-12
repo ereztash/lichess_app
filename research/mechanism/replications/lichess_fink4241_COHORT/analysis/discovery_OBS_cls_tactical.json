@@ -1,0 +1,233 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 5.9027768204951085,
+   "zs": [
+    5.449971155897294,
+    5.627957711705423,
+    4.9884978583616375,
+    8.053602538942277,
+    5.393854837568908
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 6.6002519947158635,
+   "zs": [
+    6.957218271427581,
+    7.601907916826206,
+    4.974017889573156,
+    7.5190628119169665,
+    5.949053083835406
+   ],
+   "regions": [
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 6.309769740726295,
+   "zs": [
+    6.0814255885403785,
+    7.427375024584066,
+    4.831767563193774,
+    7.26707139921493,
+    5.941209128098325
+   ],
+   "regions": [
+    "material_balance<3 AND material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND opp_last_check==0 AND own_overloaded_piece_count>=1",
+    "clock_own_ms>=15000 AND material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND opp_last_check==0 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND opp_last_check==0 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 2,
+ "frozen": [
+  {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.892104724054039,
+   "depth": 2,
+   "n_derive": 9130,
+   "derive_err_in": 0.24446878422782037,
+   "derive_err_out": 0.14032057482382201,
+   "derive_wg_est": 0.10873077812684656,
+   "derive_wg_z": 21.173544281446954,
+   "derive_resid_wg_in": 0.051198867721675076,
+   "stability_share_j60": 0.9666666666666667,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 3126,
+    "n_out": 10277,
+    "p_in": 0.2456813819577735,
+    "p_out": 0.14323246083487398,
+    "diff": 0.10244892112289952,
+    "se": 0.00900895321409869,
+    "z": 11.371900673495631,
+    "games_in": 421,
+    "wg_est": 0.1095935229096861,
+    "wg_se": 0.008601571410705415,
+    "wg_z": 12.74110481409098,
+    "wg_games": 421,
+    "pass": true,
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.07060492733432959,
+    "resid_wg_z": 8.602571627694461,
+    "secondary_wg": {
+     "est": 0.07778053843342429,
+     "z": 9.068744888052771,
+     "n_games": 421
+    },
+    "wp_loss_wg": {
+     "est": 0.020262014660767345,
+     "z": 9.41494588924282
+    }
+   }
+  },
+  {
+   "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.506001944561879,
+   "depth": 2,
+   "n_derive": 11909,
+   "derive_err_in": 0.23469644806448905,
+   "derive_err_out": 0.1337078222324124,
+   "derive_wg_est": 0.09717695762796151,
+   "derive_wg_z": 21.276862238380104,
+   "derive_resid_wg_in": 0.04129084086948436,
+   "stability_share_j60": 1.0,
+   "stability_median_j": 0.7012652296157451,
+   "validate": {
+    "n_in": 4135,
+    "n_out": 9268,
+    "p_in": 0.22974607013301088,
+    "p_out": 0.13918860595597757,
+    "diff": 0.09055746417703331,
+    "se": 0.0080191956473259,
+    "z": 11.292586957549892,
+    "games_in": 434,
+    "wg_est": 0.08987986928942451,
+    "wg_se": 0.007794409644894094,
+    "wg_z": 11.531324806401773,
+    "wg_games": 434,
+    "pass": true,
+    "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.05399163083634264,
+    "resid_wg_z": 7.214572220139427,
+    "secondary_wg": {
+     "est": 0.038230004586901865,
+     "z": 5.319069953818101,
+     "n_games": 434
+    },
+    "wp_loss_wg": {
+     "est": 0.011329938081530797,
+     "z": 6.239453892388971
+    }
+   }
+  },
+  {
+   "region": "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.256110329920251,
+   "depth": 2,
+   "n_derive": 9512,
+   "derive_err_in": 0.2368587047939445,
+   "derive_err_out": 0.1414618777567738,
+   "derive_wg_est": 0.09001151219561941,
+   "derive_wg_z": 17.843498961536916,
+   "derive_resid_wg_in": 0.04363921771282873,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.5649828347229033,
+   "validate": {
+    "n_in": 3256,
+    "n_out": 10147,
+    "p_in": 0.22358722358722358,
+    "p_out": 0.1490095594757071,
+    "diff": 0.07457766411151648,
+    "se": 0.008511723823608257,
+    "z": 8.761757977234488,
+    "games_in": 430,
+    "wg_est": 0.07263519085822202,
+    "wg_se": 0.008586453132635561,
+    "wg_z": 8.459277624441778,
+    "wg_games": 430,
+    "pass": true,
+    "region": "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.04323723840256235,
+    "resid_wg_z": 5.273357898984674,
+    "secondary_wg": {
+     "est": 0.028832370436733458,
+     "z": 3.7686358963880933,
+     "n_games": 430
+    },
+    "wp_loss_wg": {
+     "est": 0.007817456591782459,
+     "z": 4.17900057922186
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_balance>=-2 AND own_overloaded_piece_count>=1": 28,
+  "material_change_2ply>=-1 AND own_overloaded_piece_count>=1": 1,
+  "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1": 1
+ }
+}

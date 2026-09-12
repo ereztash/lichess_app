@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "naa12",
+ "player_id": "naa12",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 16,
+    "rating": 1684
+   },
+   "blitz": {
+    "games": 9993,
+    "rating": 1645
+   },
+   "rapid": {
+    "games": 1,
+    "rating": 2013
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1645392582353,
+  "seenAt": 1784911529177
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/naa12?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:57:39Z",
+  "http_status": 200,
+  "bytes": 3332318,
+  "sha256": "24db3f061d6f65af1c66879aedd8f38e17269b3a2162d45e6f1ee80128e1e60c",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_naa12_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

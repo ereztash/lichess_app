@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "pumuckel",
+ "player_id": "pumuckel",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 129577,
+    "rating": 1672
+   },
+   "rapid": {
+    "games": 294,
+    "rating": 1895
+   },
+   "classical": {
+    "games": 10,
+    "rating": 978
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 2,
+    "rating": 1296
+   },
+   "antichess": {
+    "games": 2,
+    "rating": 1318
+   }
+  },
+  "createdAt": 1477743565035,
+  "seenAt": 1788828454337
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/pumuckel?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:44:49Z",
+  "http_status": 200,
+  "bytes": 2934101,
+  "sha256": "c60753c599d1f1140c7930e22a5207957f058e04c7adbf161ab88dabefb2213c",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_pumuckel_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

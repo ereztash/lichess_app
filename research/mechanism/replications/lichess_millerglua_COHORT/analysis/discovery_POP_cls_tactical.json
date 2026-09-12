@@ -1,0 +1,239 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/home/user/lichess_app/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.7034336670599466,
+   "zs": [
+    1.3078283808275903,
+    1.1658774787398651,
+    2.544355686469798,
+    1.5613786541237795,
+    1.9377281351386997
+   ],
+   "regions": [
+    "ply<20",
+    "ply<20",
+    "ply<20",
+    "ply<20",
+    "ply<20"
+   ]
+  },
+  "2": {
+   "mean_z": 0.6497795770443494,
+   "zs": [
+    -0.3992052560016433,
+    1.1830110252094723,
+    0.4495480294645033,
+    0.622640253327542,
+    1.3929038332218726
+   ],
+   "regions": [
+    "n_captures>=3 AND standing=='level'",
+    "new_attacks_on_own>=1 AND phase=='opening'",
+    "legal_moves>=30.0 AND own_hanging_piece_count<1",
+    "new_attacks_on_own>=1 AND phase=='opening'",
+    "new_attacks_on_own>=1 AND phase=='opening'"
+   ]
+  },
+  "3": {
+   "mean_z": 1.1171533338522435,
+   "zs": [
+    1.7053735982977452,
+    0.9216746855576428,
+    1.262608470993366,
+    0.5582826674034751,
+    1.1378272470089892
+   ],
+   "regions": [
+    "legal_moves>=29.0 AND n_good_captures<1 AND ply<20",
+    "n_captures>=1 AND new_attacks_on_own>=1 AND phase=='opening'",
+    "legal_moves>=30.0 AND opp_last_captured_value<1 AND own_overloaded_piece_count<1",
+    "n_captures>=1 AND new_attacks_on_own>=1 AND phase=='opening'",
+    "material_balance: [0:3[ AND new_attacks_on_own>=1 AND own_king_ring_enemy_attacks<1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "ply<20",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.9216045401306032,
+   "depth": 1,
+   "n_derive": 1315,
+   "derive_err_in": 0.12091254752851711,
+   "derive_err_out": 0.13671512527064647,
+   "derive_wg_est": -0.019781417881424,
+   "derive_wg_z": -1.6598684435752988,
+   "derive_resid_wg_in": 0.025414509319407814,
+   "stability_share_j60": 0.5666666666666667,
+   "stability_median_j": 0.9682203389830508,
+   "validate": {
+    "n_in": 442,
+    "n_out": 1368,
+    "p_in": 0.07239819004524888,
+    "p_out": 0.14327485380116958,
+    "diff": -0.07087666375592071,
+    "se": 0.01758470028123693,
+    "z": -4.030586966076806,
+    "games_in": 64,
+    "wg_est": -0.08238402452744704,
+    "wg_se": 0.01710757567504024,
+    "wg_z": -4.815645775435289,
+    "wg_games": 64,
+    "pass": false,
+    "region": "ply<20",
+    "resid_wg_est": 0.010518789612875197,
+    "resid_wg_z": 0.6375149675370783,
+    "secondary_wg": {
+     "est": -0.06764231830426823,
+     "z": -4.661681560478303,
+     "n_games": 64
+    },
+    "wp_loss_wg": {
+     "est": -0.01680099629041638,
+     "z": -5.2964996529220905
+    }
+   }
+  },
+  {
+   "region": "phase=='opening'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.8496419831362025,
+   "depth": 1,
+   "n_derive": 1408,
+   "derive_err_in": 0.12144886363636363,
+   "derive_err_out": 0.13694267515923567,
+   "derive_wg_est": -0.019266259713254383,
+   "derive_wg_z": -1.6264260062175793,
+   "derive_resid_wg_in": 0.02264303493130498,
+   "stability_share_j60": 0.5666666666666667,
+   "stability_median_j": 0.9364406779661016,
+   "validate": {
+    "n_in": 472,
+    "n_out": 1338,
+    "p_in": 0.07838983050847458,
+    "p_out": 0.14275037369207771,
+    "diff": -0.06436054318360314,
+    "se": 0.01817069664952572,
+    "z": -3.5419964586378714,
+    "games_in": 64,
+    "wg_est": -0.07607089188509837,
+    "wg_se": 0.01671209247422778,
+    "wg_z": -4.551847232918893,
+    "wg_games": 64,
+    "pass": false,
+    "region": "phase=='opening'",
+    "resid_wg_est": 0.009131372287157647,
+    "resid_wg_z": 0.5370929894508708,
+    "secondary_wg": {
+     "est": -0.06584897207433012,
+     "z": -4.5079337027764765,
+     "n_games": 64
+    },
+    "wp_loss_wg": {
+     "est": -0.017220508478539814,
+     "z": -5.335385488796534
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count<1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.6212162667534431,
+   "depth": 1,
+   "n_derive": 3003,
+   "derive_err_in": 0.11122211122211122,
+   "derive_err_out": 0.17281553398058253,
+   "derive_wg_est": -0.050097073552418,
+   "derive_wg_z": -4.212517235702985,
+   "derive_resid_wg_in": 0.01133613875992956,
+   "stability_share_j60": 0.16666666666666666,
+   "stability_median_j": 0.2725118483412322,
+   "validate": {
+    "n_in": 1169,
+    "n_out": 641,
+    "p_in": 0.09666381522668947,
+    "p_out": 0.1794071762870515,
+    "diff": -0.08274336106036202,
+    "se": 0.0200537768777787,
+    "z": -4.12607368500488,
+    "games_in": 64,
+    "wg_est": -0.08100495883520326,
+    "wg_se": 0.019324234781883554,
+    "wg_z": -4.191884426448043,
+    "wg_games": 62,
+    "pass": false,
+    "region": "own_overloaded_piece_count<1",
+    "resid_wg_est": 0.017290669105646472,
+    "resid_wg_z": 0.946389934274808,
+    "secondary_wg": {
+     "est": -0.017240159287476506,
+     "z": -1.1636576066100677,
+     "n_games": 62
+    },
+    "wp_loss_wg": {
+     "est": -0.007661067036234022,
+     "z": -1.9794751950402387
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "own_overloaded_piece_count<1": 5,
+  "ply<20": 15,
+  "own_prev_spent_s: [5:15[": 2,
+  "clock_diff_s: [-30:0[": 2,
+  "opp_last_pawn==1": 1,
+  "phase=='opening'": 2,
+  "material_balance: [0:3[": 3
+ }
+}

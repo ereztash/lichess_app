@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "josephm613",
+ "player_id": "josephm613",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 14,
+    "rating": 1022
+   },
+   "bullet": {
+    "games": 43,
+    "rating": 1606
+   },
+   "blitz": {
+    "games": 8729,
+    "rating": 1619
+   },
+   "rapid": {
+    "games": 15,
+    "rating": 1723
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "kingOfTheHill": {
+    "games": 1,
+    "rating": 1258
+   },
+   "puzzle": {
+    "games": 15,
+    "rating": 1260
+   }
+  },
+  "createdAt": 1597378133085,
+  "seenAt": 1788823766284
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/josephm613?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:07:46Z",
+  "http_status": 200,
+  "bytes": 3710283,
+  "sha256": "54bb8b1c14108c5fac26aa4bf4e6c4ddef7191113d07a80ef87c4599dea2561c",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_josephm613_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

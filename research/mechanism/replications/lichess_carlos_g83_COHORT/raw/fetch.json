@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "carlos_g83",
+ "player_id": "carlos_g83",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1122,
+    "rating": 1503
+   },
+   "blitz": {
+    "games": 4711,
+    "rating": 1658
+   },
+   "rapid": {
+    "games": 7,
+    "rating": 1471
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "crazyhouse": {
+    "games": 1,
+    "rating": 1269
+   },
+   "puzzle": {
+    "games": 116,
+    "rating": 1911
+   }
+  },
+  "createdAt": 1641571622493,
+  "seenAt": 1788829361680
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/carlos_g83?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T11:52:38Z",
+  "http_status": 200,
+  "bytes": 3215425,
+  "sha256": "819f4469c4f561fff5c5f8ccb7844141161338c1e4a20ab9831fb865fbdef6d3",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_carlos_g83_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

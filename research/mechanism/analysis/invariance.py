@@ -84,9 +84,11 @@ def main():
     ap.add_argument("--frame", default="VALIDATE", choices=["VALIDATE", "TEST", "DERIVE"])
     ap.add_argument("--target", default="err")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--corpus", default=None, help="focal corpus label (default: the file's only corpus)")
     a = ap.parse_args()
     design = vocab.DESIGN
-    df = chronological_split(eligible(load_decisions(a.decisions)), design["derive_frac"], design["validate_frac"])
+    from common import AUTO_CORPUS
+    df = chronological_split(eligible(load_decisions(a.decisions, corpus=a.corpus or AUTO_CORPUS)), design["derive_frac"], design["validate_frac"])
     dv = df[df.split == "DERIVE"].reset_index(drop=True)
     fr = df[df.split == a.frame].reset_index(drop=True)
     _, (dv, fr) = residualize(dv, [fr], a.target, design["baseline_cols"], design["baseline_cat"])

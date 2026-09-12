@@ -1,0 +1,241 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.2955333196582532,
+   "zs": [
+    1.217334589556225,
+    1.0561711384712034,
+    1.55322529703552,
+    0.24691067514503276,
+    2.4040248980832852
+   ],
+   "regions": [
+    "standing=='level'",
+    "standing=='level'",
+    "standing=='level'",
+    "phase=='opening'",
+    "material_balance: [0:3["
+   ]
+  },
+  "2": {
+   "mean_z": 1.0242255811466157,
+   "zs": [
+    -0.48300046809383573,
+    1.9796592449239874,
+    0.6267666059433246,
+    1.0369054306462726,
+    1.9607970923133298
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1 AND standing=='level'",
+    "material_balance: [0:3[ AND own_prev_spent_s<1",
+    "own_prev_spent_s<1 AND standing=='level'",
+    "material_balance: [0:3[ AND ply<20",
+    "material_balance: [0:3[ AND own_prev_spent_s<1"
+   ]
+  },
+  "3": {
+   "mean_z": 0.70138938263648,
+   "zs": [
+    -0.6529308225873958,
+    1.043485572029762,
+    -0.5467170565311537,
+    1.3064968152880667,
+    2.356612404983121
+   ],
+   "regions": [
+    "own_last_capture==0 AND own_overloaded_piece_count>=1 AND standing=='level'",
+    "legal_moves>=34.0 AND ply<20 AND standing=='level'",
+    "n_captures>=3 AND n_checks<1 AND own_attacked_piece_count>=3",
+    "material_balance: [0:3[ AND opp_last_captured_value<1 AND ply<20",
+    "material_balance: [0:3[ AND opp_last_captured_value<1 AND own_prev_spent_s<1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "standing=='level'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.9639601517128222,
+   "depth": 1,
+   "n_derive": 2480,
+   "derive_err_in": 0.0846774193548387,
+   "derive_err_out": 0.05665210185324695,
+   "derive_wg_est": 0.02989177622246271,
+   "derive_wg_z": 3.527094629319871,
+   "derive_resid_wg_in": 0.0193567856536881,
+   "stability_share_j60": 0.36666666666666664,
+   "stability_median_j": 0.5205387205387205,
+   "validate": {
+    "n_in": 902,
+    "n_out": 1902,
+    "p_in": 0.07095343680709534,
+    "p_out": 0.054153522607781286,
+    "diff": 0.016799914199314057,
+    "se": 0.010766044774570625,
+    "z": 1.5604536810951612,
+    "games_in": 75,
+    "wg_est": 0.030607285137645986,
+    "wg_se": 0.013032421378384453,
+    "wg_z": 2.348549379197573,
+    "wg_games": 75,
+    "pass": false,
+    "region": "standing=='level'",
+    "resid_wg_est": 0.03851087364382815,
+    "resid_wg_z": 3.314807390997153,
+    "secondary_wg": {
+     "est": 0.022766459021404492,
+     "z": 1.0336715826002638,
+     "n_games": 75
+    },
+    "wp_loss_wg": {
+     "est": 0.008264400651132285,
+     "z": 1.5672141648633782
+    }
+   }
+  },
+  {
+   "region": "material_balance: [0:3[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.8642636754236548,
+   "depth": 1,
+   "n_derive": 3516,
+   "derive_err_in": 0.08873720136518772,
+   "derive_err_out": 0.04891983574361721,
+   "derive_wg_est": 0.05404301058494535,
+   "derive_wg_z": 7.701725726699034,
+   "derive_resid_wg_in": 0.014575445134519848,
+   "stability_share_j60": 0.2,
+   "stability_median_j": 0.5205387205387205,
+   "validate": {
+    "n_in": 1356,
+    "n_out": 1448,
+    "p_in": 0.0752212389380531,
+    "p_out": 0.04488950276243094,
+    "diff": 0.03033173617562216,
+    "se": 0.009478774307344808,
+    "z": 3.1999639607537693,
+    "games_in": 79,
+    "wg_est": 0.06373881013085658,
+    "wg_se": 0.012399897097770545,
+    "wg_z": 5.140269280324639,
+    "wg_games": 72,
+    "pass": true,
+    "region": "material_balance: [0:3[",
+    "resid_wg_est": 0.04441727585122045,
+    "resid_wg_z": 3.5918919760464405,
+    "secondary_wg": {
+     "est": 0.11515855281664315,
+     "z": 6.499821743566591,
+     "n_games": 72
+    },
+    "wp_loss_wg": {
+     "est": 0.0219642280980047,
+     "z": 5.742513068706959
+    }
+   }
+  },
+  {
+   "region": "phase=='opening'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.7115007360227417,
+   "depth": 1,
+   "n_derive": 2067,
+   "derive_err_in": 0.07498790517658442,
+   "derive_err_out": 0.061134751773049646,
+   "derive_wg_est": 0.01011761075755329,
+   "derive_wg_z": 1.4215522023828335,
+   "derive_resid_wg_in": 0.015649667521920048,
+   "stability_share_j60": 0.13333333333333333,
+   "stability_median_j": 0.3291139240506329,
+   "validate": {
+    "n_in": 673,
+    "n_out": 2131,
+    "p_in": 0.07578008915304606,
+    "p_out": 0.05443453777569216,
+    "diff": 0.021345551377353895,
+    "se": 0.011233782848705895,
+    "z": 1.900121416341322,
+    "games_in": 90,
+    "wg_est": 0.016276942950013217,
+    "wg_se": 0.011383818965807578,
+    "wg_z": 1.4298315002111872,
+    "wg_games": 89,
+    "pass": false,
+    "region": "phase=='opening'",
+    "resid_wg_est": 0.03240968489736379,
+    "resid_wg_z": 2.914567322604217,
+    "secondary_wg": {
+     "est": -0.025013117810830425,
+     "z": -1.3349730254042578,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": -0.004954668519119367,
+     "z": -1.2509319754954586
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "standing=='level'": 11,
+  "material_balance: [0:3[": 6,
+  "phase=='opening'": 4,
+  "own_overloaded_piece_count>=2": 1,
+  "own_castling==1": 1,
+  "own_hanging_piece_count>=2": 4,
+  "legal_moves: [26.0:34.0[": 1,
+  "n_captures>=3": 1,
+  "own_prev_spent_s: [5:15[": 1
+ }
+}
