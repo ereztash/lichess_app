@@ -790,9 +790,38 @@ const INDEX = `${ROOT}/index.html`;
  * is the argument the RecordExplorer note above makes, applied to the surface beside it.
  *
  * 675, 212 AND 766 LEAVE 0.9, 0.8 AND 1.5 kB, the headroom every move in this file has taken.
+*
+ * ---
+ *
+ * 675 -> 677 and 766 -> 769: the journey layer. The gzip ceiling did not fire and keeps its number,
+ * which is the rule this file has followed every time.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              674.1      211.2       764.5
+ *     + the layer, imported statically     682.2      213.6       774.5   +8.1 / +2.4 / +10.0
+ *     + JourneyLedger/GoalNote lazy        680.6      213.2       772.9   -1.6 / -0.4 /  -1.6
+ *     + the adapter behind the boundary    677.1      212.0       769.4   -3.5 / -1.2 /  -3.5
+ *     + the rules query behind it          677.0      212.0       769.3   -0.1 / -0.0 /  -0.1
+ *     + GoalNote owning its own storage    676.4      211.8       768.7   -0.6 / -0.2 /  -0.6
+ *
+ * THE FIRST MEASUREMENT IS WHY THIS IS A RAISE OF 2 AND 3 RATHER THAN OF 8 AND 10. Statically
+ * imported, the layer cost 8.1 kB of the first byte of every visit for a surface that renders below
+ * the readings, on a record that mostly has nothing in it yet. Four moves took 5.8 kB of that back,
+ * and each one is a thing that genuinely belongs behind the boundary rather than a trick: the
+ * components, the adapter that pulls in the learning-record schemas, the query for rules nothing
+ * else on the page reads, and the goal's own storage.
+ *
+ * WHAT THE REMAINING 2.3 kB AND 4.2 kB BUY. Of the initial-download growth, 2.4 kB is the stylesheet
+ * for a new surface, which cannot be deferred: CSS that arrives after first paint is a layout shift.
+ * The entry residue is the two `lazyChunk` call sites, the `<Suspense>` boundary and the section
+ * markup in `Record.tsx` -- the irreducible cost of a surface existing at all, since something in
+ * the entry has to know how to reach it.
+ *
+ * 677 AND 769 LEAVE 0.6 kB AND 0.3 kB, which is less headroom than any raise above has taken, and
+ * deliberately so: the next thing added here has to pay for itself on the first measurement.
  */
 
-const ENTRY_RAW_KB = 675;
+const ENTRY_RAW_KB = 677;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 212;
@@ -981,7 +1010,7 @@ const ENTRY_GZIP_KB = 212;
  * number that ships is 778, and it leaves 0.5 kB.
  */
 
-const INITIAL_RAW_KB = 766;
+const INITIAL_RAW_KB = 769;
 
 interface Asset {
   name: string;

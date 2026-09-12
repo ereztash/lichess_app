@@ -7081,3 +7081,114 @@ summary:focus-visible,
     border-color: Highlight;
   }
 }
+
+/* ── The journey layer: what this product has learned, and why you are here ──────────────────
+   THE GOAL AND THE COUNTS ARE VISUALLY SEPARATE BECAUSE THEY ARE EPISTEMICALLY SEPARATE.
+   `GATE-GOAL-NOT-A-DENOMINATOR` refuses them in one element; this is the same refusal in pixels,
+   so a reader whose eye is doing the arithmetic has to cross a rule to do it. */
+.journey-layer {
+  /* The same card as every other region, written out rather than borrowed from `.record-layer`:
+     that class means "a measurement" on this page and this is a summary of what the measurements
+     produced. Same pixels, different claim. */
+  display: grid;
+  gap: var(--s4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: var(--s5);
+}
+.goal-note {
+  padding-block-end: var(--s4);
+  border-block-end: 1px solid var(--hairline);
+}
+.goal-note__lead {
+  margin: 0 0 4px;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.goal-note__text {
+  margin: 0 0 var(--s3);
+  padding: 0;
+  border: 0;
+  font-size: var(--panel-data);
+  line-height: 1.35;
+}
+.goal-note__limit {
+  margin: 0 0 var(--s3);
+  color: var(--muted);
+  /* A SENTENCE, SO IT SITS ON THE SENTENCE FLOOR. `--panel-fine` is for kickers and counters and
+     is explicitly never load-bearing; this line is the whole reason the goal is safe to render. */
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}
+.goal-note__input {
+  inline-size: 100%;
+  margin-block-end: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+/* NOT A PRIMARY ACTION, and it does not look like one. LAW 2 permits one primary action per screen
+   and on the record screen that is not "write down why you are here". */
+.goal-note__open,
+.goal-note__save {
+  padding: var(--s2) var(--s4);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  cursor: pointer;
+  min-block-size: 44px;
+}
+.journey__title {
+  margin: 0 0 var(--s3);
+  font-size: var(--panel-title);
+  line-height: 1.25;
+}
+.journey__stage {
+  padding-block: var(--s3);
+  border-block-start: 1px solid var(--hairline);
+}
+.journey__stage:first-of-type {
+  border-block-start: 0;
+}
+/* A HEADING IS NOT SMALLER THAN WHAT IT HEADS, which is a repository law with a layout test behind
+   it and which this rule broke: the question sat at 14px above a 16px figure, so the eye ranked the
+   number first and the question it answers second. That is the wrong way round for a surface whose
+   entire argument is that a number means nothing without the question it answers. */
+.journey__question {
+  margin: 0 0 var(--s2);
+  font-size: var(--panel-title);
+  line-height: 1.35;
+}
+/* THE NUMBER AND WHAT IT COUNTS ARE ONE LINE AND ONE THOUGHT. Splitting them onto separate rows is
+   how a construct label becomes a caption somebody later decides is redundant. */
+.journey__count {
+  margin: 0 0 var(--s2);
+  line-height: 1.4;
+}
+.journey__n {
+  font: var(--panel-data) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+}
+.journey__construct {
+  color: var(--muted);
+  /* A LABEL AND NOT A SENTENCE: it names what the number counts. */
+  font-size: var(--panel-label);
+}
+.journey__next {
+  margin: 0 0 var(--s2);
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}
+.journey__limit {
+  margin: 0;
+  color: var(--muted);
+  /* A SENTENCE. The limit is part of the reading, not a footnote to it. */
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}

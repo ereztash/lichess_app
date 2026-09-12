@@ -36,6 +36,13 @@ export const STORAGE_KEYS = {
   usage: { key: "decision-lab-usage-v1", area: "localStorage", content: "bookkeeping" },
   chunkReload: { key: "decision-lab.chunk-reload", area: "sessionStorage", content: "bookkeeping" },
   theme: { key: "theme", area: "localStorage", content: "preference" },
+  /*
+   * `record` RATHER THAN `preference`, because it holds the player's own words. Nothing computes
+   * over it and nothing is measured against it -- that is the whole design of `shared/goal.ts` --
+   * but the content class is about what a key CAN carry, not about what reads it, and a sentence a
+   * person wrote about themselves is not a theme setting.
+   */
+  goal: { key: "decision-lab:goal", area: "localStorage", content: "record" },
 } as const satisfies Record<string, StorageKeyEntry>;
 
 export type StorageKeyName = keyof typeof STORAGE_KEYS;
@@ -52,6 +59,7 @@ export const STORAGE_KEY_NOTES: Record<StorageKeyName, string> = {
   usage: "how many visits, and the last one, for the presentation context",
   chunkReload: "a mark that this tab already reloaded once after a stale build, so it does not loop",
   theme: "light or dark",
+  goal: "one sentence you wrote about why you are here. Nothing in the app measures distance to it",
 };
 
 /** Every registered key, for a test that walks the source. */

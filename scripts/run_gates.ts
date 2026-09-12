@@ -38,6 +38,7 @@ import {
   findScreensWithTwoBoards,
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
+import { findGoalBesideACount, findUnnamedConstructs } from "./journey-scan";
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
 import { findUnobservableCues } from "./cue-scan.js";
@@ -170,6 +171,7 @@ const INERTIA_FIXTURES = "tests/fixtures/inertia";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
+const JOURNEY_FIXTURES = "tests/fixtures/journey";
 
 /** A whole repository in miniature, carrying the drifts the real registers actually had. */
 const REGISTER_FIXTURES = "tests/fixtures/registers";
@@ -198,6 +200,18 @@ const readingsOutside = (roots: string[]) =>
   fromFindings(
     findReadingsOutsideTheirSurface(roots),
     "every reading of the record renders from a surface whose mode permits one",
+  );
+
+const goalBesideACount = (roots: string[]) =>
+  fromFindings(
+    findGoalBesideACount(roots),
+    "the goal renders with nothing countable beside it",
+  );
+
+const unnamedConstructs = (roots: string[]) =>
+  fromFindings(
+    findUnnamedConstructs(roots),
+    "every stage number renders with the construct it counts",
   );
 
 const quietWindowLineage = (roots: string[]) =>
@@ -860,6 +874,29 @@ export const GATES: Gate[] = [
       "A reading of the record renders only from a surface whose mode permits prior evidence.",
     run: () => readingsOutside(["client/src"]),
     positiveControl: () => readingsOutside([INERTIA_FIXTURES]),
+  },
+  /*
+   * TWO CLAIMS THE LEARNING LAYER MAKES THAT NO EXISTING GATE CAN SEE.
+   *
+   * `GATE-DENOM` reads a paragraph for a percentage rendered without its denominator. Neither
+   * defect below contains a percentage, and the first contains no arithmetic at all: it is two
+   * numbers and a direction in one element, which the reader turns into a progress bar the product
+   * never computed. A safeguard that lives in a comment is not a safeguard.
+   */
+  {
+    id: "GATE-GOAL-NOT-A-DENOMINATOR",
+    rule: "R1",
+    description:
+      "The goal renders in its own element, with nothing countable in it for a reader to divide by.",
+    run: () => goalBesideACount(["client/src"]),
+    positiveControl: () => goalBesideACount([JOURNEY_FIXTURES]),
+  },
+  {
+    id: "GATE-CONSTRUCT-NAMED",
+    rule: "R1",
+    description: "A journey stage's number renders with the construct it counts, or not at all.",
+    run: () => unnamedConstructs(["client/src"]),
+    positiveControl: () => unnamedConstructs([JOURNEY_FIXTURES]),
   },
   {
     id: "GATE-QUIET-WINDOW-LINEAGE",
