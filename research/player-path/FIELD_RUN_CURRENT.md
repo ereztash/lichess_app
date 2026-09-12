@@ -18,8 +18,11 @@ any participant was recruited, and is not to be edited after the first session.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
   states are `NOT_REACHABLE` because `EXPERIMENTAL_LEARNING_ENABLED` is off. **Do not turn it on
   for this run.** A run against a different stimulus is a different run.
-* Deployment: the production deployment of this commit, phone-first. Participants use their own
-  phone where possible; record the device and viewport.
+* Deployment: phone-first, participants on their own device; record the device and viewport.
+  **The URL is not settled and the run cannot start until it is.** The PR #105 preview redirects a
+  signed-out visitor to `vercel.com/sso-api`, and the open production URL serves `main` rather than
+  this commit. `field/README.md` measures both and lists the three ways out; choosing is the
+  owner's. Check the URL from a signed-out browser, not from the moderator's own.
 
 ## Owner decisions recorded before the run
 

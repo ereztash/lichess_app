@@ -240,7 +240,16 @@ What that changes in the rows above, and only this:
 **RESEARCH** — none open that a repository run could close. The Calibration Loop result on the
 orchestration surface stands.
 
-**ENVIRONMENT** — none. The `503` on `/api` is the deployment the front door describes.
+**ENVIRONMENT**
+
+* **B-5. A cold participant cannot open the frozen build.** Found while preparing the FIELD
+  package, by fetching the URL rather than by assuming it worked. The PR #105 preview answers a
+  signed-out visitor with `302` to `vercel.com/sso-api`; the open production URL serves `main`,
+  bundle `index-D4R4s45s.js`, which is not the stimulus. The project has SSO protection on
+  `all_except_custom_domains` and no custom domain. `research/player-path/field/README.md` carries
+  the measurement and the three ways out. The run cannot start until one is chosen, and choosing is
+  the owner's.
+* The `503` on `/api` is not a blocker: it is the deployment the front door describes.
 
 **FIELD** — everything else, and it is the larger half: whether a cold player understands the value
 contract, whether `עוד 30 משחקים` reads as a promise or a wall, whether the negative states land as

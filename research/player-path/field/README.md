@@ -12,10 +12,42 @@ does not restate it; it operationalises it.
 ## The build
 
 Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, deployed from
-[PR #105](https://github.com/ereztash/lichess_app/pull/105). **Before each session, check that the
-deployed page loads `assets/index-D_Il6CdA.js`.** The build is content-hashed, so that one string
+[PR #105](https://github.com/ereztash/lichess_app/pull/105). **Before each session, from a browser not signed in
+to Vercel, check that the page opens at all and loads `assets/index-D_Il6CdA.js`.** The build is content-hashed, so that one string
 is the whole check: documentation commits on the branch do not move it, and anything that does move
 it has changed the stimulus. Do not push source to that branch while sessions are running.
+
+## Blocker: participants cannot open the frozen build
+
+Measured on 2026-09-12, not inferred.
+
+| URL | What a participant gets |
+|---|---|
+| The PR #105 preview, `lichessapp-git-claude-ux-ui-analysis-v6ao5u-ereztashs-projects.vercel.app` | **HTTP 302 to `vercel.com/sso-api`.** A Vercel login wall |
+| Production, `lichessapp.vercel.app` | HTTP 200, the real page, loading `assets/index-D4R4s45s.js`. That is `main`, **not** the frozen stimulus |
+
+The Vercel project carries `ssoProtection: enabled, all_except_custom_domains` and has no custom
+domain, so the only deployment a stranger can open is the one that is not under test.
+
+**The run cannot start until this is resolved, and resolving it is the owner's call.** Three ways,
+narrowest first:
+
+1. **A protection-bypass share link for that one preview deployment.** Changes nothing about any
+   other deployment, and the link can be revoked after the last session. This is the option that
+   keeps the freeze and the privacy.
+2. **A custom domain pointed at the preview.** `all_except_custom_domains` exempts it by
+   definition.
+3. **Turning SSO protection off for previews.** Simplest, and it makes every future preview of this
+   project public, which is a standing change to pay for a five-session study.
+
+Merging #105 so that production serves the frozen build is **not** on this list: the owner froze
+the PR as the stimulus, and merging it is a different decision that should not be taken to unblock
+a URL.
+
+Whichever is chosen, run the bundle check below on the URL participants will actually be given,
+from a browser that is not signed in to Vercel. A moderator's own laptop is signed in and will load
+the page whatever the setting says, which is exactly how this would have gone unnoticed until
+participant 1 was sitting there.
 
 ## Order of use
 
