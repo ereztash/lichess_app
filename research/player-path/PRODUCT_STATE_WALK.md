@@ -248,7 +248,7 @@ orchestration surface stands.
   bundle `index-D4R4s45s.js`, which is not the stimulus. The project has SSO protection on
   `all_except_custom_domains` and no custom domain. PR #105 merged on 2026-09-12 at 19:53Z and
   `https://lichessapp.vercel.app/` now serves the frozen bundle: verified signed-out at `200`
-  loading `assets/index-D_Il6CdA.js`, `gitSha: b2d8865`, `target: production`. The interim repair
+  loading `assets/index-DUEXf-qq.js`, `gitSha: b2d8865`, `target: production`. The interim repair
   was a protection-bypass share link for the one preview deployment, and it is kept in
   `research/player-path/field/README.md` alongside the rule that produced it: check the URL from a
   signed-out browser, never from the moderator's own.

@@ -21,19 +21,19 @@ Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, merged to `
 
 PR #105 merged on 2026-09-12 at 19:53Z, so the frozen build is now the production deployment and
 the access problem this section used to describe is gone. Verified signed-out, not assumed:
-`200`, titled `Decision Lab`, loading `assets/index-D_Il6CdA.js`, with `/build-identity.json`
+`200`, titled `Decision Lab`, loading `assets/index-DUEXf-qq.js`, with `/build-identity.json`
 reporting `gitSha: b2d8865`, `target: production`, and `/api/health` answering `200` with
 `storage: "not-configured"`, which is the same storage model every walk was performed against.
 
 The build under test did not move. Between the frozen product source `4c39563` and merged `main`,
 the only change to anything the build reads is a corrected comment in
 `shared/confidence-asked.ts`. Comments do not ship, and the content hash is the proof: the bundle
-is the same `index-D_Il6CdA.js` the pre-registration names.
+is the same `index-DUEXf-qq.js` the pre-registration names.
 
 ### Before each session
 
 1. Open the URL **in a browser that is not signed in to Vercel**, or a private window.
-2. Confirm the page loads `assets/index-D_Il6CdA.js`. The build is content-hashed, so that one
+2. Confirm the page loads `assets/index-DUEXf-qq.js`. The build is content-hashed, so that one
    string is the whole freeze check, and anything that moves it has changed the stimulus.
 3. Hand the participant the URL. Nothing else is said.
 

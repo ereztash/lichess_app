@@ -12,7 +12,7 @@ document: every reachability claim traces to a walk of the built bundle recorded
 | Branch | `claude/ux-ui-analysis-v6ao5u` |
 | HEAD at freeze | `9c5db6cd128e7b0c52fe514a5b68af8dcdb57f31` |
 | Product source frozen at | `4c395637cd274c5faffb29ebb8429bfdac358eb1`; later commits are documentation only and do not move the page bundle |
-| Page bundle | `assets/index-D_Il6CdA.js` |
+| Page bundle | `assets/index-D_Il6CdA.js`. **Kept as written.** The stimulus was re-frozen at `index-DUEXf-qq.js` after this audit, when a phone frame found the read step clipping its own option list. This file records the build the audit was performed against and is not updated to follow it |
 | PR | [#105](https://github.com/ereztash/lichess_app/pull/105), draft, `mergeable_state: clean` |
 | Local verification | `npm run verify` `EXIT=0`. 3297 passed, 36 skipped, 44 gates pass, 44 controls red, bundle within budget |
 | CI | `verify` `success` on `9c5db6c` |
