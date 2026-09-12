@@ -242,13 +242,14 @@ orchestration surface stands.
 
 **ENVIRONMENT**
 
-* **B-5. A cold participant cannot open the frozen build.** Found while preparing the FIELD
+* **B-5. A cold participant could not open the frozen build.** Found while preparing the FIELD
   package, by fetching the URL rather than by assuming it worked. The PR #105 preview answers a
   signed-out visitor with `302` to `vercel.com/sso-api`; the open production URL serves `main`,
   bundle `index-D4R4s45s.js`, which is not the stimulus. The project has SSO protection on
-  `all_except_custom_domains` and no custom domain. `research/player-path/field/README.md` carries
-  the measurement and the three ways out. The run cannot start until one is chosen, and choosing is
-  the owner's.
+  `all_except_custom_domains` and no custom domain. **Resolved** by a protection-bypass share link
+  for that one preview deployment, which touches no setting and no other deployment: verified
+  signed-out at `200` serving `assets/index-D_Il6CdA.js`. `research/player-path/field/README.md`
+  carries the per-session procedure and the reason a link never enters the repository.
 * The `503` on `/api` is not a blocker: it is the deployment the front door describes.
 
 **FIELD** — everything else, and it is the larger half: whether a cold player understands the value

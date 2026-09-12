@@ -19,10 +19,11 @@ any participant was recruited, and is not to be edited after the first session.
   states are `NOT_REACHABLE` because `EXPERIMENTAL_LEARNING_ENABLED` is off. **Do not turn it on
   for this run.** A run against a different stimulus is a different run.
 * Deployment: phone-first, participants on their own device; record the device and viewport.
-  **The URL is not settled and the run cannot start until it is.** The PR #105 preview redirects a
-  signed-out visitor to `vercel.com/sso-api`, and the open production URL serves `main` rather than
-  this commit. `field/README.md` measures both and lists the three ways out; choosing is the
-  owner's. Check the URL from a signed-out browser, not from the moderator's own.
+  The PR #105 preview is behind Vercel Authentication, so participants reach it through a
+  protection-bypass share link for that one deployment, generated fresh per session.
+  `field/README.md` carries the procedure and the reason. Check the URL from a signed-out browser,
+  never from the moderator's own, and confirm it loads `assets/index-D_Il6CdA.js` before the
+  participant touches it.
 
 ## Owner decisions recorded before the run
 
