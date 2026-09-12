@@ -1,0 +1,829 @@
+{
+  "manifest_version": 1,
+  "schema_version": 1,
+  "frozen": true,
+  "frozen_at_git_sha": null,
+  "detector_versions": {
+    "attacks": 1,
+    "defends": 1,
+    "line_access": 1,
+    "pin": 1,
+    "overload": 1,
+    "battery": 1
+  },
+  "pairs": [
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-90",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "disrupted_fen": "2r3k1/1pp2ppp/5n2/4N3/8/8/PPP2PPP/3R2K1 w - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e5",
+        "target_affordance_present": [
+          "e5d7",
+          "e5c6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT. Low-stakes support: the rook behind the outpost knight. Proposed affordance is the supported knight advancing off e5; \u00a74.5 reviewers own this verdict, not the author.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 30,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 34,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e5",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e4",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.5147240615881282,
+          "value_disrupted": 0.5266697440308632,
+          "value_delta": 0.011945682442734973,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f3",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.5092041601288086,
+          "value_disrupted": 0.5147240615881282,
+          "value_delta": 0.005519901459319576,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.008283641168819411,
+          "best_gap_disrupted": 0
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-91",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "disrupted_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/3R2K1 b - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e5",
+        "target_affordance_present": [
+          "e5d7",
+          "e5c6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT. Low-stakes support: the rook behind the outpost knight. Proposed affordance is the supported knight advancing off e5; \u00a74.5 reviewers own this verdict, not the author.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 30,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 34,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e5",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e4",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.5147240615881282,
+          "value_disrupted": 0.5266697440308632,
+          "value_delta": 0.011945682442734973,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f3",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.5092041601288086,
+          "value_disrupted": 0.5147240615881282,
+          "value_delta": 0.005519901459319576,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.008283641168819411,
+          "best_gap_disrupted": 0
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-92",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "disrupted_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP1P1PP/4R1K1 w - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e5",
+        "target_affordance_present": [
+          "e5d7",
+          "e5c6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT. Low-stakes support: the rook behind the outpost knight. Proposed affordance is the supported knight advancing off e5; \u00a74.5 reviewers own this verdict, not the author.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 30,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 34,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e5",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e4",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.5147240615881282,
+          "value_disrupted": 0.5266697440308632,
+          "value_delta": 0.011945682442734973,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f3",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.5092041601288086,
+          "value_disrupted": 0.5147240615881282,
+          "value_delta": 0.005519901459319576,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.008283641168819411,
+          "best_gap_disrupted": 0
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-93",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 w - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/4N3/8/8/PPP2PPP/4R1K1 b - - 0 20",
+        "disrupted_fen": "2r3k1/ppp2ppp/5n2/8/8/8/PPP2PPP/4R1KN b - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e5",
+        "target_affordance_present": [
+          "e5d7",
+          "e5c6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT. Low-stakes support: the rook behind the outpost knight. Proposed affordance is the supported knight advancing off e5; \u00a74.5 reviewers own this verdict, not the author.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 30,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "KNPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 34,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e5",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e4",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.5147240615881282,
+          "value_disrupted": 0.5266697440308632,
+          "value_delta": 0.011945682442734973,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f3",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.5092041601288086,
+          "value_disrupted": 0.5147240615881282,
+          "value_delta": 0.005519901459319576,
+          "best_move_present": "e1d1",
+          "best_move_disrupted": "f2f4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.008283641168819411,
+          "best_gap_disrupted": 0
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "CO-94",
+        "family": "constraint_overload",
+        "base_fen": "r5k1/ppp2p2/4n1np/8/8/1B6/PPP2P1P/6RK w - - 0 25",
+        "present_fen": "r5k1/ppp2p2/4n1np/8/8/1B6/PPP2P1P/6RK w - - 0 25",
+        "disrupted_fen": "r7/ppp2pk1/4n1np/8/8/1B6/PPP2P1P/6RK w - - 0 25",
+        "base_arm": "present",
+        "target_relation": "b:overload:f7>e6>g6",
+        "target_affordance_present": [
+          "b3e6",
+          "g1g6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT. The f7 pawn is the sole defender of both knights; the king stepping to g7 takes over one of the two jobs and the dependency is gone with every carrier still on the board.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "BKPPPPPRknnpppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 24,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "BKPPPPPRknnpppppr",
+          "side_to_move": "w",
+          "phase": "middlegame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 24,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [
+            "b:defends:e6>g7",
+            "b:defends:g7>f7",
+            "b:defends:g7>g6",
+            "b:defends:g7>h6",
+            "b:line_access:a8>h8",
+            "w:pin:g1>g6>g7"
+          ],
+          "removed": [
+            "b:defends:a8>g8",
+            "b:defends:g8>f7",
+            "b:line_access:a8>f8",
+            "b:overload:f7>e6>g6",
+            "w:pin:g1>g6>g8"
+          ],
+          "size": 11
+        },
+        "non_target_edit_count": 10,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.48711557303526726,
+          "value_disrupted": 0.16316792744377254,
+          "value_delta": 0.3239476455914947,
+          "best_move_present": "b3e6",
+          "best_move_disrupted": "b3e6",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.48895555679024805,
+          "value_disrupted": 0.1400029530333191,
+          "value_delta": 0.34895260375692894,
+          "best_move_present": "b3e6",
+          "best_move_disrupted": "b3e6",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.32376657347475013,
+          "best_gap_disrupted": 0.003942577229278849
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-95",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/4R1K1 b - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/4R1K1 b - - 0 20",
+        "disrupted_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/3R2K1 b - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e4",
+        "target_affordance_present": [],
+        "target_affordance_disrupted": [
+          "f6e4"
+        ],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT, AND DELIBERATELY THE HARD CASE. A defence whose absence loses a pawn is a defence with a reason to be represented -- and is therefore the case most likely to fail \u00a74.3 value matching. Built to measure that tension rather than to pass.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KPPPPPPPRknppppppr",
+          "side_to_move": "b",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 23,
+          "target_affordance_available": false
+        },
+        "invariants_disrupted": {
+          "material": "KPPPPPPPRknppppppr",
+          "side_to_move": "b",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 23,
+          "target_affordance_available": true
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e4",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e3",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "NOT_MEASURED",
+          "identity": null,
+          "configuration": {},
+          "value_present": null,
+          "value_disrupted": null,
+          "value_delta": null,
+          "best_move_present": null,
+          "best_move_disrupted": null,
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "NOT_MEASURED",
+          "identity": null,
+          "configuration": {},
+          "value_present": null,
+          "value_disrupted": null,
+          "value_delta": null,
+          "best_move_present": null,
+          "best_move_disrupted": null,
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    },
+    {
+      "set": "PRIMARY_STRUCTURE_ONLY",
+      "pair": {
+        "template_id": "SD-96",
+        "family": "support_defence",
+        "base_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/4R1K1 b - - 0 20",
+        "present_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/4R1K1 b - - 0 20",
+        "disrupted_fen": "2r3k1/ppp2ppp/5n2/8/4P3/8/PPP2PPP/3R2K1 b - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:defends:e1>e4",
+        "target_affordance_present": [],
+        "target_affordance_disrupted": [
+          "f6e4"
+        ],
+        "description_reveals_manipulation": false,
+        "review_status": "REVIEWED_ADMISSIBLE",
+        "review_notes": "PILOT, AND DELIBERATELY THE HARD CASE. A defence whose absence loses a pawn is a defence with a reason to be represented -- and is therefore the case most likely to fail \u00a74.3 value matching. Built to measure that tension rather than to pass.",
+        "reviewer_ids": [
+          "r1",
+          "r2"
+        ],
+        "invariants_present": {
+          "material": "KPPPPPPPRknppppppr",
+          "side_to_move": "b",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 23,
+          "target_affordance_available": false
+        },
+        "invariants_disrupted": {
+          "material": "KPPPPPPPRknppppppr",
+          "side_to_move": "b",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 23,
+          "target_affordance_available": true
+        },
+        "graph_diff": {
+          "added": [
+            "w:defends:d1>g1",
+            "w:line_access:d1>a1",
+            "w:line_access:d1>d8",
+            "w:line_access:d1>f1"
+          ],
+          "removed": [
+            "w:defends:e1>e4",
+            "w:defends:e1>g1",
+            "w:line_access:e1>a1",
+            "w:line_access:e1>e3",
+            "w:line_access:e1>f1"
+          ],
+          "size": 9
+        },
+        "non_target_edit_count": 8,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.805539452743411,
+          "value_disrupted": 0.8095451579973735,
+          "value_delta": 0.004005705253962488,
+          "best_move_present": "g7g6",
+          "best_move_disrupted": "f6e4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.8422873339987781,
+          "value_disrupted": 0.8490148923385836,
+          "value_delta": 0.006727558339805539,
+          "best_move_present": "c8d8",
+          "best_move_disrupted": "f6e4",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.020564573491017923,
+          "best_gap_disrupted": 0.041750932084888226
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": null
+      }
+    },
+    {
+      "set": "EXPLORATORY_VALUE_SHIFT",
+      "pair": {
+        "template_id": "LA-97",
+        "family": "line_activation",
+        "base_fen": "4r1k1/ppp2ppp/5n2/8/8/2P5/PP3PPP/3R2K1 w - - 0 20",
+        "present_fen": "4r1k1/ppp2ppp/5n2/8/8/2P5/PP3PPP/3R2K1 w - - 0 20",
+        "disrupted_fen": "4r1k1/ppp2ppp/5n2/8/8/3P4/PP3PPP/3R2K1 w - - 0 20",
+        "base_arm": "present",
+        "target_relation": "w:line_access:d1>d8",
+        "target_affordance_present": [
+          "d1d7",
+          "d1d8",
+          "d1d6"
+        ],
+        "target_affordance_disrupted": [],
+        "description_reveals_manipulation": false,
+        "review_status": "DRAFT",
+        "review_notes": "PILOT. The rook's own pawn steps onto the file it was using. No enemy slider sits on the d-file, which is what keeps the edit from introducing a pin as a side effect.",
+        "reviewer_ids": [],
+        "invariants_present": {
+          "material": "KPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 25,
+          "target_affordance_available": true
+        },
+        "invariants_disrupted": {
+          "material": "KPPPPPPRknppppppr",
+          "side_to_move": "w",
+          "phase": "endgame",
+          "in_check": false,
+          "castling": "-",
+          "legal_moves": 19,
+          "target_affordance_available": false
+        },
+        "graph_diff": {
+          "added": [],
+          "removed": [],
+          "size": 0
+        },
+        "non_target_edit_count": 0,
+        "piece_relocations": 2,
+        "engine_shipped": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "depth 14",
+            "multipv": 1
+          },
+          "value_present": 0.17137263173985912,
+          "value_disrupted": 0.14133824015919433,
+          "value_delta": 0.030034391580664788,
+          "best_move_present": "a2a4",
+          "best_move_disrupted": "g2g3",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": null,
+          "best_gap_disrupted": null
+        },
+        "engine_high_budget": {
+          "state": "MEASURED",
+          "identity": "Stockfish 18 Lite WASM",
+          "configuration": {
+            "limit": "nodes 2000000",
+            "multipv": 2
+          },
+          "value_present": 0.14495105737956576,
+          "value_disrupted": 0.13305894980200936,
+          "value_delta": 0.011892107577556404,
+          "best_move_present": "f2f3",
+          "best_move_disrupted": "g1f1",
+          "mate_present": null,
+          "mate_disrupted": null,
+          "best_gap_present": 0.0013637114462308197,
+          "best_gap_disrupted": 0.002109408417433678
+        },
+        "detector_versions": {
+          "attacks": 1,
+          "defends": 1,
+          "line_access": 1,
+          "pin": 1,
+          "overload": 1,
+          "battery": 1
+        },
+        "stimulus_version": 1,
+        "derived_at_git_sha": "2afb7a2fce965a7608cbc2e0d67f98e3c27b3288"
+      }
+    }
+  ]
+}

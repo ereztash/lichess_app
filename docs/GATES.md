@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-ארבעים ושניים שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+ארבעים וארבעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -55,5 +55,7 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-CUE-PLAYER-OBSERVABLE | R-01 | טריגר במרשם מחלקות-הכללים שמחשב ממשהו שאינו הלוח: רמז שהשחקן אינו יכול להעריך בעצמו אינו רמז |
 | GATE-ROLLBACK-EVIDENCE | R-01 | שרשרת הראיות של החזרה לאחור: ה-workflow מקבל SHA, החבילה נקשרת אליו, הקשירה מודגמת נכשלת, והבנייה מתקינה את קובץ הנעילה בדיוק |
 | GATE-FINDING-OUTRANKS-ITS-NUMBERS | R1 | רשימת קריאות שהמסקנה עליה נכתבת מתחתיה, או נכתבת דרך רגיסטר המקור במקום כממצא |
+| GATE-TCRF-STIMULUS | R-01 | מניפסט גירויי EXP-R2 שטוען לסט הראשי עבור זוגות שהעמדות שלהם עצמן סותרות את הטענה: חומר שנערך, תור שהתהפך, טופולוגיה שלא השתנתה, פער ערך גדול בסדר גודל מהסבילות הקפואה, מנוע שמעולם לא רץ, קומיט חסר, והפרש גרף שחושב מול עמדה שכבר זזה |
+| GATE-TCRF-BLIND | R-01 | עיוורון פרוצדורלי: יצואן שמסיר את חמשת השדות שכל אחד זוכר ומוסר את כל השאר, ולכן מדליף את הזרוע דרך `is_base_arm`, את הקושי דרך `budget_ms`, ואת זהות התבנית שממנה קודר יכול לשחזר את התנאי |
 
 The IDs are the synchronized contract. The prose explains why each gate exists but is not treated as an executable definition; the runner remains the authority for what actually runs.

@@ -52,6 +52,8 @@ import { findUnobservableCues } from "./cue-scan.js";
 import { findFalsificationDrift } from "./falsification-scan";
 import { rollbackDrift as findRollbackDrift } from "./rollback-scan";
 import { findResearchDrift } from "./research-scan";
+import { findBlindnessBreaches, findStimulusDrift } from "./tcrf-scan";
+import { toCoderPayload } from "../research/tcrf/coder-export.js";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
@@ -193,6 +195,14 @@ const CUE_FIXTURES = "tests/fixtures/cue";
 /** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
 const ROLLBACK_FIXTURES = "tests/fixtures/rollback";
+
+/**
+ * And for EXP-R2: a stimulus manifest that claims the primary set for pairs whose own
+ * positions contradict it -- material edited, side to move flipped, a topology that never
+ * changed, a value delta an order of magnitude past the frozen tolerance, an engine that never
+ * ran, a missing commit, and a diff computed against a position that has since moved.
+ */
+const TCRF_FIXTURES = "tests/fixtures/tcrf";
 
 /** And for O-2: the clause accepted and ignored, and the way-on press counted as a move. */
 const CONTINUATION_FIXTURES = "tests/fixtures/continuation";
@@ -1321,6 +1331,67 @@ export const GATES: Gate[] = [
      */
     run: () => rollbackDrift("."),
     positiveControl: () => rollbackDrift(ROLLBACK_FIXTURES),
+  },
+  {
+    id: "GATE-TCRF-STIMULUS",
+    rule: "R-01",
+    description:
+      "No EXP-R2 stimulus pair claims the primary set while its own positions contradict the claim.",
+    /*
+     * WHAT THIS ASSERTS AND WHAT IT DELIBERATELY DOES NOT. `EXP_R2_RESOURCE_FIELD_PREREG.md` §4
+     * freezes six invariants a matched topology pair must preserve and §4.3 adds a value tolerance.
+     * A pair that fails any of them may still exist -- that is what the exploratory and
+     * pending-review sets are for -- and what it may not do is sit in `PRIMARY_STRUCTURE_ONLY`,
+     * which is the set H1 would be computed from.
+     *
+     * IT DOES NOT REDDEN ON `STOP-R2-STIMULUS`. Fewer than 24 admissible templates is a research
+     * state decided before recruitment, not a defect in the tree, and a gate that went red the day
+     * the stimulus file was created and stayed red until a chess reviewer signed 24 pairs would be
+     * disabled within a week. The count is PRINTED beside the verdict instead, which is what
+     * `scripts/verify_scope.ts` does with the database suite and for the same reason.
+     *
+     * EVERY DERIVED FIELD IS RECOMPUTED, IN EVERY SET. A graph diff taken under an older detector
+     * is wrong wherever it sits, and the exploratory analysis will read it all the same.
+     */
+    run: () => {
+      const report = findStimulusDrift(".");
+      return report.findings.length
+        ? fail(report.findings.map((f) => `${f.file}:${f.line} ${f.text}`).join("; ").slice(0, 200))
+        : pass(`stimulus manifest consistent -- ${report.summary}`);
+    },
+    positiveControl: () => {
+      const report = findStimulusDrift(TCRF_FIXTURES);
+      return fromFindings(report.findings, `stimulus manifest consistent -- ${report.summary}`);
+    },
+  },
+  {
+    id: "GATE-TCRF-BLIND",
+    rule: "R-01",
+    description:
+      "The payload a blinded EXP-R2 coder receives carries none of the fields the preregistration blinds them to.",
+    /*
+     * §8 REQUIRES CODERS BLIND TO CONDITION, EVALUATION, MOVE QUALITY, RATING AND RESULT, and §11's
+     * control C2 restates it as a property of the payload rather than of the instructions: coders
+     * cannot recover the condition BECAUSE the metadata is absent.
+     *
+     * PROCEDURAL BLINDNESS IS WHAT THE CONTROL IS. `tests/fixtures/tcrf/leaky-export.ts` is not a
+     * strawman: it takes the trial, removes the five fields anybody would remember, and hands over
+     * the rest. It looks careful and it leaks the condition through `is_base_arm`, the difficulty
+     * through `budget_ms` and the arm -- reconstructable across a batch -- through `template_id`.
+     * The same predicate over both exporters is what makes the comparison mean anything.
+     */
+    run: () =>
+      fromFindings(
+        findBlindnessBreaches(toCoderPayload),
+        "the coder payload carries only what CODER_VISIBLE_FIELDS declares",
+      ),
+    positiveControl: async () => {
+      const { leakyCoderPayload } = await import("../tests/fixtures/tcrf/leaky-export");
+      return fromFindings(
+        findBlindnessBreaches(leakyCoderPayload),
+        "the coder payload carries only what CODER_VISIBLE_FIELDS declares",
+      );
+    },
   },
 ];
 
