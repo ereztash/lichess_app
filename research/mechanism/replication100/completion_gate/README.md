@@ -164,8 +164,40 @@ above chance and below the bar. That is the signature of a real effect the corpu
 validate, which means the A-to-B replication may have failed on power rather than on substance. No
 one could have known that without a null, and none was run at the time.
 
-Partial results in `output/null_permutation_batch2_partial.json`; the run continues on `medkol` and
-`naughtrapier`.
+### Two more members, and the smallest corpus in the sample
+
+| member | stage | VALIDATE rows | observed | null p95 | null max | p | passed |
+|---|---|---|---|---|---|---|---|
+| medkol | OBS cls_tactical | 3,029 | 2.71 | 1.89 | 3.34 | 0.015 | no |
+| medkol | POP cls_hung_material | 3,029 | 2.18 | 1.74 | 2.69 | 0.015 | no |
+| medkol | POP cls_tactical | 3,029 | 2.63 | 1.84 | 3.06 | 0.020 | no |
+| naughtrapier | OBS cls_tactical | 1,792 | 3.55 | 1.87 | 2.92 | 0.005 | **yes** |
+| naughtrapier | POP cls_hung_material | 1,777 | 1.71 | 2.01 | 2.79 | 0.100 | no |
+| naughtrapier | POP cls_tactical | 1,777 | 1.84 | 2.16 | 2.93 | 0.110 | no |
+
+**`naughtrapier` holds the smallest corpus in the whole null sample and still produces a real broad
+detection**: 3.55 at the permutation floor, against a null that tops out at 2.92 over 200 draws. A
+member with 1,792 VALIDATE rows clears the bar on merit. Whatever the broad stage is measuring, it
+is not only reachable at 12,000 rows.
+
+**`medkol` passes nothing and is above chance on all three stages** (p between 0.015 and 0.020).
+That is a real effect on a corpus too small to validate it, the same shape as Player B.
+
+Batch 2: **0 of 2,400** permutation runs crossed the bar. Across both batches, **3 of 7,200**, which
+is 0.042%.
+
+Full results in `output/null_permutation_batch2.json`.
+
+### A portability defect found while running this
+
+`naughtrapier`'s `analysis/population_resolution.json` records
+`decisions_parquet_abs: /work/research/mechanism/data/...`, the Docker mount path of the machine
+that scored it. `medkol`, scored in this environment, records `/home/user/lichess_app/research/...`.
+The same committed artefact therefore names a different absolute path depending on where the member
+ran, and any tool that reads that field fails in the other environment. It was recovered here with
+a `/work` symlink rather than a code change, because the null script was in use elsewhere at the
+time. The research content is unaffected: both paths name the same population parquet. The defect is
+that an absolute path is stored in a committed artefact at all.
 
 ## 5. What the flag actually caught
 
