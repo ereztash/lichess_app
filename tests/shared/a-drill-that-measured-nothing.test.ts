@@ -110,7 +110,7 @@ describe("finishDrill refuses rather than grading what it could not measure", ()
 
   const CLAIM: Claim = {
     claim_id: "claim-phase-endgame",
-    statement: "ב-החלטות בסיום הביטחון המוצהר גבוה יותר ביחס לדיוק בפועל מאשר בשאר ההחלטות",
+    statement: "ב-החלטות בסיום הביטחון שאמרתם גבוה יותר ביחס לדיוק בפועל מאשר בשאר ההחלטות",
     scope: "החלטות בסיום",
     supporting_decision_ids: [],
     n: 30,

@@ -323,77 +323,19 @@ export default function Blitz() {
     </header>
   );
 
-  if (game.phase === "idle") {
-    /*
-     * READ AT RENDER AND NOT HELD IN STATE. It changes only when this screen writes it, and holding
-     * a copy would be the same "the screen is the source of truth" mistake the analysis queue was
-     * built to undo -- one browser, one value, read where it is used.
-     */
-    const remembered = rememberedTimeControl();
-    return (
-      <main className="studio-shell" dir="rtl">
-        {header}
-        <div className="blitz-setup">
-        <h1>משחק בליץ</h1>
-        <p>השעון נעצר כששואלים כמה אתם בטוחים, אם בכלל. המנוע שותק עד סוף המשחק.</p>
-        {/*
-          * THE ONE YOU PLAYED LAST TIME IS THE LOUD ONE (P1.10, LAW 2).
-          *
-          * Three buttons at one weight is the product asking a question whose answer has not
-          * changed since the last game. Marking the remembered one removes the decision without
-          * removing the choice: all three are still here, in the same place, one tap each.
-          *
-          * ABSENT ON A FIRST VISIT rather than defaulted to the first entry. "Nothing chosen yet"
-          * and "3+0 chosen" are different facts, and painting one as the other would put a weight
-          * on a control the player has never picked.
-          */}
-        <div className="blitz-controls">
-          {CONTROLS.map(({ label, tc }) => {
-            const again = remembered !== null && sameControl(remembered, tc);
-            return (
-              <button
-                key={label}
-                type="button"
-                className={again ? "blitz-control blitz-control--again" : "blitz-control"}
-                /*
-                 * ONLY THE REMEMBERED ONE IS THE PRIMARY ACT. On a first visit nothing is
-                 * remembered and the three are genuinely equal -- that state has no primary action
-                 * and must not pretend to, which is the same argument that keeps the marker off
-                 * them: "nothing chosen yet" is a fact, not a weak preference for the first entry.
-                 */
-                {...(again ? primaryAction("play-blitz") : {})}
-                onClick={() => startGame(tc)}
-              >
-                {/*
-                  * `dir="ltr"` ON THE RUN, AND IT IS A CORRECTNESS FIX RATHER THAN A TIDY-UP.
-                  *
-                  * `3+0` is digits and a plus in a document that runs right to left. On its own it
-                  * resolves correctly; beside three more with nothing between them it does not --
-                  * the four merge into one numeric run and the bidi algorithm lays its segments out
-                  * right to left, so the player was offered `5+55+03+23+0`. `Home.tsx` already
-                  * carries this exact fix for `7. Bb3`, which rendered as `Bb3 .7`.
-                  *
-                  * MARKED HERE RATHER THAN TRUSTED TO THE SPACING. The layout that now separates
-                  * these controls would hide the problem; it would not solve it, and the next
-                  * element placed beside one of them would bring it straight back.
-                  */}
-                <span dir="ltr">{label}</span>
-                {again && <span className="blitz-control__again">שוב</span>}
-              </button>
-            );
-          })}
-        </div>
-        </div>
-      </main>
-    );
-  }
-
+  const idle = game.phase === "idle";
+  /*
+   * READ AT RENDER AND NOT HELD IN STATE. It changes only when this screen writes it, and holding
+   * a copy would be the same "the screen is the source of truth" mistake the analysis queue was
+   * built to undo -- one browser, one value, read where it is used.
+   */
+  const remembered = idle ? rememberedTimeControl() : null;
   const now = performance.now();
   /*
    * THE ONE BOARD'S TWO MODES (LAW 11). `final` is the game's own position; `review` is a position
    * from the record the player asked to look at. Same element, same place on the page, one FEN.
    */
-  const shown = new Chess(reviewing ? reviewing.fen : game.fen);
+  const shown = new Chess(idle ? undefined : reviewing ? reviewing.fen : game.fen);
   const boardSquares = shown.board();
   const legal =
     selected && game.phase === "running"
@@ -404,15 +346,100 @@ export default function Blitz() {
     <main className="studio-shell" dir="rtl">
       {header}
       <div className="blitz">
-      {/* Two clocks side by side, both Latin runs: `3:00` beside `2:47` merges the same way. */}
-      <div className="blitz-clocks">
-        <span dir="ltr" aria-label="שעון היריב">
-          {clockText(remainingMs(game, "b", now))}
-        </span>
-        <span dir="ltr" aria-label="השעון שלך">
-          {clockText(remainingMs(game, "w", now))}
-        </span>
-      </div>
+      {/*
+        * Two clocks side by side, both Latin runs: `3:00` beside `2:47` merges the same way.
+        *
+        * ABSENT BEFORE A GAME RATHER THAN ZEROED OR PREVIEWED. Nothing is counting yet, and a
+        * clock showing the time a control WOULD give is a number about a game that does not exist
+        * -- on a first visit, one that has not even been chosen.
+        */}
+      {game.phase !== "idle" && (
+        <div className="blitz-clocks">
+          <span dir="ltr" aria-label="שעון היריב">
+            {clockText(remainingMs(game, "b", now))}
+          </span>
+          <span dir="ltr" aria-label="השעון שלך">
+            {clockText(remainingMs(game, "w", now))}
+          </span>
+        </div>
+      )}
+
+      {/*
+        * THE QUESTION AND THE BOARD, ON ONE SCREEN, BECAUSE THE SCREEN WAS THE COST.
+        *
+        * This used to be its own `return`: a 34rem column holding a heading, one sentence and
+        * three buttons, with no board on it. The owner's reading of it, cold: "a whole screen with
+        * only one question on it feels like wasted friction." The contact sheet had measured the
+        * same thing from the other side -- 24 words, the cheapest screen in the product by the one
+        * axis this repository counted, and a stranger meets it standing between the request and
+        * the game.
+        *
+        * SO THE SCREEN IS GONE AND THE QUESTION STAYED. The board below is the position the game
+        * starts from, inert until there is a game (`authority` resolves to "none" in this phase,
+        * unchanged), the clocks above are absent because nothing is counting, and pressing a
+        * control starts the clock on the screen the player is already looking at. There is no
+        * transition: the same board, now live.
+        *
+        * NOTHING STARTS BY ITSELF, AND THAT IS THE PART THAT IS NOT NEGOTIABLE. The obvious way to
+        * remove a screen is to skip it when the answer is remembered, and it is wrong here: the
+        * clock begins at `startGame`, so arriving into a started game spends the player's time on
+        * the paint. One press, on a board they can already see.
+        */}
+      {idle && (
+        <div className="blitz-setup">
+          <h1>משחק בליץ</h1>
+          <p>השעון נעצר כששואלים כמה אתם בטוחים, אם בכלל. המנוע שותק עד סוף המשחק.</p>
+          {/*
+            * THE ONE YOU PLAYED LAST TIME IS THE LOUD ONE (P1.10, LAW 2).
+            *
+            * Three buttons at one weight is the product asking a question whose answer has not
+            * changed since the last game. Marking the remembered one removes the decision without
+            * removing the choice: all three are still here, in the same place, one tap each.
+            *
+            * ABSENT ON A FIRST VISIT rather than defaulted to the first entry. "Nothing chosen yet"
+            * and "3+0 chosen" are different facts, and painting one as the other would put a weight
+            * on a control the player has never picked.
+            */}
+          <div className="blitz-controls">
+            {CONTROLS.map(({ label, tc }) => {
+              const again = remembered !== null && sameControl(remembered, tc);
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className={again ? "blitz-control blitz-control--again" : "blitz-control"}
+                  /*
+                   * ONLY THE REMEMBERED ONE IS THE PRIMARY ACT. On a first visit nothing is
+                   * remembered and the three are genuinely equal -- that state has no primary
+                   * action and must not pretend to, which is the same argument that keeps the
+                   * marker off them: "nothing chosen yet" is a fact, not a weak preference for
+                   * the first entry.
+                   */
+                  {...(again ? primaryAction("play-blitz") : {})}
+                  onClick={() => startGame(tc)}
+                >
+                  {/*
+                    * `dir="ltr"` ON THE RUN, AND IT IS A CORRECTNESS FIX RATHER THAN A TIDY-UP.
+                    *
+                    * `3+0` is digits and a plus in a document that runs right to left. On its own
+                    * it resolves correctly; beside three more with nothing between them it does
+                    * not -- the four merge into one numeric run and the bidi algorithm lays its
+                    * segments out right to left, so the player was offered `5+55+03+23+0`.
+                    * `Home.tsx` already carries this exact fix for `7. Bb3`, which rendered as
+                    * `Bb3 .7`.
+                    *
+                    * MARKED HERE RATHER THAN TRUSTED TO THE SPACING. The layout that separates
+                    * these controls would hide the problem; it would not solve it, and the next
+                    * element placed beside one of them would bring it straight back.
+                    */}
+                  <span dir="ltr">{label}</span>
+                  {again && <span className="blitz-control__again">שוב</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/*
         * ONE BOARD, ONE STORY (LAW 11).

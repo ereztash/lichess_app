@@ -349,7 +349,7 @@ export function changedSentence(change: ResumeChange | null): string | null {
  *
  * NO HEDGE WORD. "לפעמים" and "נוטה" and "אולי" are the vocabulary a sentence reaches for when it
  * is doing the work the evidence mark is supposed to do. The mark under this line says `חוזר
- * ברשומה`, which is exact; a hedge on top of it would be the same caution said twice and less
+ * בהיסטוריה`, which is exact; a hedge on top of it would be the same caution said twice and less
  * precisely.
  */
 export function patternHeadline(pattern: BlitzPattern): string {

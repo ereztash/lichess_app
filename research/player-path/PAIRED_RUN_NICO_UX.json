@@ -1,0 +1,638 @@
+{
+  "runtime_version": "0.1",
+  "rnd_telos_version": "0.2-candidate",
+  "task": {
+    "calibration_version": "0.1",
+    "task_id": "CAL-NICO-UX-PAIRED-2026-09-12",
+    "telos": {
+      "statement": "Determine which diagnostic decomposition most usefully explains the most material current Decision Lab UX/product failures, while staying faithful to Nicolas Bandurek's product feedback: move from selling feedback about mistakes to a goal-oriented managed-effort journey, make progress/KPI legible, reduce time-to-value, and preserve the unique statistical-to-personal value without making unsupported rating-improvement claims.",
+      "success_condition": "Compare the five audit prompts Truth/Perception/Action/Ownership/Effect against a stronger layered alternative on the frozen case corpus; identify where the alternative materially changes failure location, evidence request, or intervention; rank the highest-leverage product problems; and produce the smallest next product/field move that respects both Nico's commercial/product direction and the repository's evidence boundaries."
+    },
+    "current_state": {
+      "summary": "FROZEN INPUTS. Mentor source: Nicolas Bandurek meeting 2026-09-10. Nico's key product signals were: (N1) he struggled to understand the explanation and asked how the product moves from a generic statistical chess mistake to a personal mistake; generic mistakes were not interesting to him. (N2) the business question is 'I am 1500 and want to reach 2000; how do I do it?'; he said the product was selling the mistake instead of the player's advancement goal. (N3) he proposed 'managed effort': sell/manage the effort required to move from X toward Y rather than guarantee Y. (N4) he said 'you have not built KPI; until now you built feedback' and proposed a progress-bar layer plus a methodology of progress. (N5) he said the customer journey starts at the sale: rating X -> desired Y -> priced/managed effort -> app shows the path/effort, warns when the trajectory is off, and can renegotiate the goal. (N6) both sides recognized time-to-value as a real obstacle because personal inference may require roughly 60 decisions. Meeting summary recorded goal-oriented sales narrative, initial Chess.com 1200-1800 ICP, progress-bar KPI as core UI feature, and long time-to-value as a blocker. These are product/mentor signals, not evidence that rating improvement is caused by the app. Frozen repository/product cases from current lichess_app PR #102 and its documented field/research findings: C1 TIME_TO_VALUE_AND_WAITING: personal inference needs many decisions; the product repeatedly exposed internal readiness language such as variants of 'עוד 30 החלטות'. The history surface was over 4,000 CSS px before compression and remains long. The current learning layer explicitly does not render on an empty record, but calibration remains a real wait. Question: is the product presenting its instrument's need for evidence instead of the user's path toward improvement? C2 FEEDBACK_WITHOUT_PROGRESS: Nico's strongest critique is that the product has feedback but no user-legible KPI/path. Current PR deliberately ships no global progress number, no rating denominator, and no prescribed programme because the discovery pipeline cannot establish causality/intervention/outcome; ratingSeries is stored but unrendered. A gate prevents rendering goal + count as an implied progress denominator. Question: what progress can legitimately be shown now without pretending calibration progress equals chess progress or rating causality? C3 COLD_USERS_COULD_NOT_COMPLETE_MOVE: two cold testers independently could not complete a move. The sentence under the board named the position but not the act; the only 'choose a move' text was on a disabled submit below the fold. This was fixed in copy/layout but not yet field-validated after the fix. Question: does the five-part framework distinguish action selection from action execution enough to choose the right intervention/evidence? C4 UNIQUE_VALUE_NOT_UNDERSTOOD: Nico repeatedly said he could not understand the focus until the explanation became 'how do we move from statistical mistake to personal mistake?' Current product/research value is precisely to distinguish player-specific-looking recurring structure from level-typical signal. Question: is this primarily Truth, Perception/representation, expected-value framing, or something else, and what should the product surface first? C5 DETECTOR_SILENCE_VS_PERSON: the shipped six-bucket detector returned 'not-separable' on the owner's full record while the frozen research pipeline found a residual on that same record surviving its permutation null. Therefore 'no pattern cleared this detector' is true of the instrument but can be false as a description of the person. Question: what framework most reliably prevents instrument state from becoming a user identity claim? C6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER: product logic had treated a player using their own rule on three prompted positions as 'transfer'. Research work separated guided practice, prompted recall/maximum transfer, and unprompted play/typical transfer. Question: where should internalization/ownership sit, and when is it even part of the product telos? C7 JOURNEY_IS_MACHINERY_NOT_PATH: the product now has claims, drills, rules, retrieval queue, transfer tests, refutation and retirement, but these were reachable one at a time and not legible as one user journey. Nico's language is the inverse: the player should see the path/effort they need to traverse. Question: what is the minimum path representation that changes action now without inventing an unsupported programme? C8 GOAL_PROGRESS_CAUSALITY_TRAP: a visual such as 1500 -> 1850 with 43% complete would satisfy Nico's goal framing but would imply a denominator/causal path the product has not established. Current repository gate rejects a goal rendered in the same element as a count when it would invite the reader to supply the arithmetic. Question: how can goal orientation and managed effort be respected without false progress? Framework A under test: five audit prompts — Truth (what does the system actually know?), Perception (what does the user think it knows?), Action (what should the user do next?), Ownership (can the user carry/apply the distinction independently where transfer matters?), Effect (what actually changed?). Framework B under test: layered fault-tree — Epistemic validity -> Representation/comprehension -> Action selection -> Action execution -> Internalization/transfer (only if required by telos) -> Outcome; motivation, expected value, trust, cost, ability and opportunity are modeled as moderators/bottlenecks rather than forced serial stages. Comparison criterion: elegance does not count. B earns complexity only when it changes at least one of: failure location, evidence request, intervention, claim boundary, or priority. Nico fidelity means the final prioritization must explicitly address goal orientation, managed effort, KPI/progress, time-to-value, and statistical-to-personal value. Evidence fidelity means no promise of Elo/rating improvement, no progress denominator unsupported by data, and no claim that an unvalidated fix is easier for users.",
+      "known_constraints": [
+        "Treat Nico's statements as high-value product/mentor signals, not empirical proof of user behavior or rating causality.",
+        "Do not reinterpret 'progress bar' literally if that would imply unsupported causal distance to a rating goal.",
+        "Distinguish calibration/evidence progress, managed effort/adherence, skill-process change, and external rating outcome.",
+        "Do not collapse action selection with action execution.",
+        "Do not collapse prompted performance with unprompted transfer.",
+        "Ownership/internalization is conditional on telos, not universal.",
+        "Do not call the cold-user fix validated until FIELD evidence confirms it.",
+        "Judge the frameworks by discrimination power, not memorability or MECE aesthetics.",
+        "Prefer the smallest reversible next move that can change a product decision."
+      ],
+      "available_resources": [
+        "RND",
+        "NETA",
+        "OWNER",
+        "REPO",
+        "FIELD"
+      ]
+    },
+    "decision_blocked": {
+      "statement": "Which current UX/product failures should be treated as the highest-leverage bottlenecks, what diagnostic distinctions actually matter, and what should Decision Lab build/test next if it follows Nico's managed-effort/product-journey insight without violating the repository's evidence boundaries?",
+      "current_default": "Do not build a literal rating progress bar or full prescribed coaching programme. Use the five prompts only provisionally, and prioritize a truthful journey/progress representation plus field validation only if the paired comparison shows those distinctions change the next move.",
+      "reversal_condition": "Change the default if the paired comparison shows that a more specific layered diagnosis leads to materially different, lower-risk interventions or evidence requests on the frozen cases, especially around time-to-value, KPI/progress, action execution, statistical-to-personal value, and transfer."
+    },
+    "signals": [
+      "Nico's strongest product delta was 'you built feedback; you have not built KPI'.",
+      "Nico framed the product as managed effort toward a user-selected goal, not as a mistake-reporting tool.",
+      "The repository independently found that its machinery was mostly built but invisible as one journey.",
+      "The repository also forbids a naive goal denominator because causal progress toward rating has not been established.",
+      "The key product design problem may therefore be representing a truthful path whose progress units are evidence collection, effort/adherence, and target-process change rather than invented percent-to-rating.",
+      "The paired test should reveal whether this conclusion comes from the five prompts or requires the layered distinctions."
+    ],
+    "allowed_resources": [
+      "RND",
+      "NETA",
+      "OWNER",
+      "REPO",
+      "FIELD"
+    ],
+    "context_refs": [
+      "docs/SHARED_EPISTEMIC_KERNEL.md",
+      "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+      "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+      "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+      "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+      "prompts/SYSTEM.md"
+    ],
+    "budget": {
+      "max_resource_calls": 3,
+      "max_parallel_calls": 2
+    }
+  },
+  "diagnosis": {
+    "material_question": "Which diagnostic decomposition and next resource move best identify and address the highest-leverage UX/product bottleneck—turning feedback into a truthful, goal-oriented managed-effort journey—without implying unsupported rating progress or causality?",
+    "bottleneck": "The product's evidence-generating machinery is more developed than its user-legible path: users lack a truthful progress/KPI representation and clear next action, while the product still has unresolved time-to-value, statistical-to-personal value, and action-execution questions. The smallest material mismatch is presenting instrument readiness and feedback as product progress without a validated unit of user progress.",
+    "resource_assessment": [
+      {
+        "resource": "RND",
+        "expected_contribution": "Compare the five-prompt audit with the layered fault-tree across frozen cases, rank bottlenecks, preserve claim boundaries, and select the smallest reversible next move.",
+        "authority_ceiling": "May diagnose resource allocation, compare frameworks, and recommend tests or interventions; may not establish user behavior, rating causality, or owner-owned product priorities.",
+        "uncertainty": "The comparison may show that the simpler framework is sufficient, or that layered distinctions materially change intervention and evidence requests."
+      },
+      {
+        "resource": "NETA",
+        "expected_contribution": "Provide an independent interpretation of whether the failures are primarily comprehension, expected-value framing, action selection/execution, transfer, or outcome issues, reducing the risk of proxy substitution.",
+        "authority_ceiling": "Can offer peer reasoning and competing mechanisms; cannot validate field behavior, product causality, or replace repository or field evidence.",
+        "uncertainty": "Its independence and distinctiveness are not yet demonstrated; agreement with RND alone would not constitute a decision-changing delta."
+      },
+      {
+        "resource": "REPO",
+        "expected_contribution": "Ground diagnosis in the frozen PR #102 implementation, existing gates, detector behavior, current journey machinery, and the already documented distinction between instrument state and person-level claims.",
+        "authority_ceiling": "Authoritative for current implementation, repository constraints, and recorded research artifacts; not authoritative for post-fix user comprehension, adoption, or rating outcomes.",
+        "uncertainty": "The repository can show what is implemented and constrained, but cannot establish whether the revised path is understandable or useful to cold users."
+      },
+      {
+        "resource": "FIELD",
+        "expected_contribution": "Validate whether the cold-user move-completion fix improves action selection and execution, and test whether a truthful path/effort representation changes comprehension or next action without implying rating progress.",
+        "authority_ceiling": "Authoritative for observed behavior in the tested context; cannot by itself establish long-term rating causality or generalize beyond the tested users and task.",
+        "uncertainty": "Post-fix field evidence does not yet exist, and sample size/context may limit conclusions."
+      },
+      {
+        "resource": "OWNER",
+        "expected_contribution": "Resolve product-scope or commercial-priority choices if the evidence leaves a conflict between managed-effort framing, evidence boundaries, and desired product commitments.",
+        "authority_ceiling": "Authoritative for owner-owned priorities and acceptance decisions; not empirical authority for user behavior or causal rating improvement.",
+        "uncertainty": "The current telos and evidence boundaries are sufficiently specified, so OWNER input may not be needed for the immediate diagnostic move."
+      }
+    ],
+    "candidate_moves": [
+      {
+        "move": "USE_EXISTING",
+        "resource": "RND",
+        "expected_decision_value": "Use the frozen case corpus and current five prompts to establish a baseline ranking before adding complexity; may show that no new decomposition is needed.",
+        "reversibility": "Fully reversible and low burden."
+      },
+      {
+        "move": "INVOKE_NETA",
+        "resource": "NETA",
+        "expected_decision_value": "Independently test whether layered distinctions materially relocate failures or change the requested evidence/intervention, especially for action execution, personal value, and transfer.",
+        "reversibility": "Reversible; bounded to one paired diagnostic invocation."
+      },
+      {
+        "move": "COLLECT_REPO",
+        "resource": "REPO",
+        "expected_decision_value": "Verify the exact current UI gates, journey visibility, detector claims, and existing affordances so recommendations do not target already-fixed or prohibited behavior.",
+        "reversibility": "Reversible and low burden."
+      },
+      {
+        "move": "COLLECT_FIELD",
+        "resource": "FIELD",
+        "expected_decision_value": "Run the smallest post-fix cold-user validation focused on completing a move and understanding the next step, then test a truthful effort/path framing rather than a rating denominator.",
+        "reversibility": "Reversible if limited to observation and a bounded prototype or copy/layout comparison."
+      },
+      {
+        "move": "TEST",
+        "resource": "RND",
+        "expected_decision_value": "Compare a truthful evidence/effort path representation against the current machinery-only journey and measure comprehension, next-action selection, and completion without claiming rating progress.",
+        "reversibility": "Reversible with a small fixture or controlled product variant."
+      },
+      {
+        "move": "WAIT",
+        "resource": "OWNER",
+        "expected_decision_value": "Defer any literal KPI, prescribed programme, or rating-progress commitment until field evidence and causal boundaries support it.",
+        "reversibility": "Reversible, but incurs continued time-to-value and discovery delay."
+      }
+    ],
+    "needs": {
+      "signal_interpretation_ambiguity": true,
+      "multiple_plausible_mechanisms": true,
+      "proxy_substitution_risk": true,
+      "research_to_intervention_transition": true,
+      "broad_reasoning_needed": true,
+      "architecture_alternatives_needed": true,
+      "novel_synthesis_needed": true,
+      "external_research_needed": false,
+      "owner_authority_needed": false,
+      "repo_authority_needed": true,
+      "environment_authority_needed": false,
+      "field_authority_needed": true
+    },
+    "rationale": "The live decision is not whether to build a progress bar in the abstract; it is which truthful progress unit and diagnostic decomposition can improve the user's next decision without converting calibration evidence into a rating claim. The cheapest decision-changing sequence is to ground the current implementation in REPO, run the bounded independent NETA comparison against the frozen cases, and then collect FIELD evidence on the already-made move-completion fix plus a reversible path/effort representation. The likely high-leverage bottleneck is representation and actionability of the journey, but that remains provisional until the paired comparison shows whether layered distinctions change failure location, evidence requests, or intervention. Literal rating denominators and full coaching programmes should remain stopped pending stronger evidence."
+  },
+  "routing": {
+    "resources": [
+      "NETA"
+    ],
+    "fired": {
+      "NETA": [
+        "multiple_plausible_mechanisms",
+        "proxy_substitution_risk",
+        "research_to_intervention_transition",
+        "signal_interpretation_ambiguity"
+      ],
+      "SCAFFOLD": [
+        "architecture_alternatives_needed",
+        "broad_reasoning_needed",
+        "novel_synthesis_needed"
+      ],
+      "AUTHORITY": [
+        "repo_authority_needed",
+        "field_authority_needed"
+      ]
+    },
+    "authority_handoffs": [
+      "FIELD",
+      "REPO"
+    ]
+  },
+  "resource_invocations": [
+    {
+      "resource": "RND",
+      "phase": "DIAGNOSE",
+      "request": {
+        "resource": "RND",
+        "phase": "DIAGNOSE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-NICO-UX-PAIRED-2026-09-12",
+          "telos": {
+            "statement": "Determine which diagnostic decomposition most usefully explains the most material current Decision Lab UX/product failures, while staying faithful to Nicolas Bandurek's product feedback: move from selling feedback about mistakes to a goal-oriented managed-effort journey, make progress/KPI legible, reduce time-to-value, and preserve the unique statistical-to-personal value without making unsupported rating-improvement claims.",
+            "success_condition": "Compare the five audit prompts Truth/Perception/Action/Ownership/Effect against a stronger layered alternative on the frozen case corpus; identify where the alternative materially changes failure location, evidence request, or intervention; rank the highest-leverage product problems; and produce the smallest next product/field move that respects both Nico's commercial/product direction and the repository's evidence boundaries."
+          },
+          "current_state": {
+            "summary": "FROZEN INPUTS. Mentor source: Nicolas Bandurek meeting 2026-09-10. Nico's key product signals were: (N1) he struggled to understand the explanation and asked how the product moves from a generic statistical chess mistake to a personal mistake; generic mistakes were not interesting to him. (N2) the business question is 'I am 1500 and want to reach 2000; how do I do it?'; he said the product was selling the mistake instead of the player's advancement goal. (N3) he proposed 'managed effort': sell/manage the effort required to move from X toward Y rather than guarantee Y. (N4) he said 'you have not built KPI; until now you built feedback' and proposed a progress-bar layer plus a methodology of progress. (N5) he said the customer journey starts at the sale: rating X -> desired Y -> priced/managed effort -> app shows the path/effort, warns when the trajectory is off, and can renegotiate the goal. (N6) both sides recognized time-to-value as a real obstacle because personal inference may require roughly 60 decisions. Meeting summary recorded goal-oriented sales narrative, initial Chess.com 1200-1800 ICP, progress-bar KPI as core UI feature, and long time-to-value as a blocker. These are product/mentor signals, not evidence that rating improvement is caused by the app. Frozen repository/product cases from current lichess_app PR #102 and its documented field/research findings: C1 TIME_TO_VALUE_AND_WAITING: personal inference needs many decisions; the product repeatedly exposed internal readiness language such as variants of 'עוד 30 החלטות'. The history surface was over 4,000 CSS px before compression and remains long. The current learning layer explicitly does not render on an empty record, but calibration remains a real wait. Question: is the product presenting its instrument's need for evidence instead of the user's path toward improvement? C2 FEEDBACK_WITHOUT_PROGRESS: Nico's strongest critique is that the product has feedback but no user-legible KPI/path. Current PR deliberately ships no global progress number, no rating denominator, and no prescribed programme because the discovery pipeline cannot establish causality/intervention/outcome; ratingSeries is stored but unrendered. A gate prevents rendering goal + count as an implied progress denominator. Question: what progress can legitimately be shown now without pretending calibration progress equals chess progress or rating causality? C3 COLD_USERS_COULD_NOT_COMPLETE_MOVE: two cold testers independently could not complete a move. The sentence under the board named the position but not the act; the only 'choose a move' text was on a disabled submit below the fold. This was fixed in copy/layout but not yet field-validated after the fix. Question: does the five-part framework distinguish action selection from action execution enough to choose the right intervention/evidence? C4 UNIQUE_VALUE_NOT_UNDERSTOOD: Nico repeatedly said he could not understand the focus until the explanation became 'how do we move from statistical mistake to personal mistake?' Current product/research value is precisely to distinguish player-specific-looking recurring structure from level-typical signal. Question: is this primarily Truth, Perception/representation, expected-value framing, or something else, and what should the product surface first? C5 DETECTOR_SILENCE_VS_PERSON: the shipped six-bucket detector returned 'not-separable' on the owner's full record while the frozen research pipeline found a residual on that same record surviving its permutation null. Therefore 'no pattern cleared this detector' is true of the instrument but can be false as a description of the person. Question: what framework most reliably prevents instrument state from becoming a user identity claim? C6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER: product logic had treated a player using their own rule on three prompted positions as 'transfer'. Research work separated guided practice, prompted recall/maximum transfer, and unprompted play/typical transfer. Question: where should internalization/ownership sit, and when is it even part of the product telos? C7 JOURNEY_IS_MACHINERY_NOT_PATH: the product now has claims, drills, rules, retrieval queue, transfer tests, refutation and retirement, but these were reachable one at a time and not legible as one user journey. Nico's language is the inverse: the player should see the path/effort they need to traverse. Question: what is the minimum path representation that changes action now without inventing an unsupported programme? C8 GOAL_PROGRESS_CAUSALITY_TRAP: a visual such as 1500 -> 1850 with 43% complete would satisfy Nico's goal framing but would imply a denominator/causal path the product has not established. Current repository gate rejects a goal rendered in the same element as a count when it would invite the reader to supply the arithmetic. Question: how can goal orientation and managed effort be respected without false progress? Framework A under test: five audit prompts — Truth (what does the system actually know?), Perception (what does the user think it knows?), Action (what should the user do next?), Ownership (can the user carry/apply the distinction independently where transfer matters?), Effect (what actually changed?). Framework B under test: layered fault-tree — Epistemic validity -> Representation/comprehension -> Action selection -> Action execution -> Internalization/transfer (only if required by telos) -> Outcome; motivation, expected value, trust, cost, ability and opportunity are modeled as moderators/bottlenecks rather than forced serial stages. Comparison criterion: elegance does not count. B earns complexity only when it changes at least one of: failure location, evidence request, intervention, claim boundary, or priority. Nico fidelity means the final prioritization must explicitly address goal orientation, managed effort, KPI/progress, time-to-value, and statistical-to-personal value. Evidence fidelity means no promise of Elo/rating improvement, no progress denominator unsupported by data, and no claim that an unvalidated fix is easier for users.",
+            "known_constraints": [
+              "Treat Nico's statements as high-value product/mentor signals, not empirical proof of user behavior or rating causality.",
+              "Do not reinterpret 'progress bar' literally if that would imply unsupported causal distance to a rating goal.",
+              "Distinguish calibration/evidence progress, managed effort/adherence, skill-process change, and external rating outcome.",
+              "Do not collapse action selection with action execution.",
+              "Do not collapse prompted performance with unprompted transfer.",
+              "Ownership/internalization is conditional on telos, not universal.",
+              "Do not call the cold-user fix validated until FIELD evidence confirms it.",
+              "Judge the frameworks by discrimination power, not memorability or MECE aesthetics.",
+              "Prefer the smallest reversible next move that can change a product decision."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "OWNER",
+              "REPO",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Which current UX/product failures should be treated as the highest-leverage bottlenecks, what diagnostic distinctions actually matter, and what should Decision Lab build/test next if it follows Nico's managed-effort/product-journey insight without violating the repository's evidence boundaries?",
+            "current_default": "Do not build a literal rating progress bar or full prescribed coaching programme. Use the five prompts only provisionally, and prioritize a truthful journey/progress representation plus field validation only if the paired comparison shows those distinctions change the next move.",
+            "reversal_condition": "Change the default if the paired comparison shows that a more specific layered diagnosis leads to materially different, lower-risk interventions or evidence requests on the frozen cases, especially around time-to-value, KPI/progress, action execution, statistical-to-personal value, and transfer."
+          },
+          "signals": [
+            "Nico's strongest product delta was 'you built feedback; you have not built KPI'.",
+            "Nico framed the product as managed effort toward a user-selected goal, not as a mistake-reporting tool.",
+            "The repository independently found that its machinery was mostly built but invisible as one journey.",
+            "The repository also forbids a naive goal denominator because causal progress toward rating has not been established.",
+            "The key product design problem may therefore be representing a truthful path whose progress units are evidence collection, effort/adherence, and target-process change rather than invented percent-to-rating.",
+            "The paired test should reveal whether this conclusion comes from the five prompts or requires the layered distinctions."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "OWNER",
+            "REPO",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+            "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+            "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+            "prompts/SYSTEM.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 2
+          }
+        },
+        "instruction": "Diagnose resource↔telos miscalibration, map candidate resource moves, and return exactly the Calibration Loop v0.1 diagnosis shape."
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "NETA",
+      "phase": "ANALYZE",
+      "request": {
+        "resource": "NETA",
+        "phase": "ANALYZE",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-NICO-UX-PAIRED-2026-09-12",
+          "telos": {
+            "statement": "Determine which diagnostic decomposition most usefully explains the most material current Decision Lab UX/product failures, while staying faithful to Nicolas Bandurek's product feedback: move from selling feedback about mistakes to a goal-oriented managed-effort journey, make progress/KPI legible, reduce time-to-value, and preserve the unique statistical-to-personal value without making unsupported rating-improvement claims.",
+            "success_condition": "Compare the five audit prompts Truth/Perception/Action/Ownership/Effect against a stronger layered alternative on the frozen case corpus; identify where the alternative materially changes failure location, evidence request, or intervention; rank the highest-leverage product problems; and produce the smallest next product/field move that respects both Nico's commercial/product direction and the repository's evidence boundaries."
+          },
+          "current_state": {
+            "summary": "FROZEN INPUTS. Mentor source: Nicolas Bandurek meeting 2026-09-10. Nico's key product signals were: (N1) he struggled to understand the explanation and asked how the product moves from a generic statistical chess mistake to a personal mistake; generic mistakes were not interesting to him. (N2) the business question is 'I am 1500 and want to reach 2000; how do I do it?'; he said the product was selling the mistake instead of the player's advancement goal. (N3) he proposed 'managed effort': sell/manage the effort required to move from X toward Y rather than guarantee Y. (N4) he said 'you have not built KPI; until now you built feedback' and proposed a progress-bar layer plus a methodology of progress. (N5) he said the customer journey starts at the sale: rating X -> desired Y -> priced/managed effort -> app shows the path/effort, warns when the trajectory is off, and can renegotiate the goal. (N6) both sides recognized time-to-value as a real obstacle because personal inference may require roughly 60 decisions. Meeting summary recorded goal-oriented sales narrative, initial Chess.com 1200-1800 ICP, progress-bar KPI as core UI feature, and long time-to-value as a blocker. These are product/mentor signals, not evidence that rating improvement is caused by the app. Frozen repository/product cases from current lichess_app PR #102 and its documented field/research findings: C1 TIME_TO_VALUE_AND_WAITING: personal inference needs many decisions; the product repeatedly exposed internal readiness language such as variants of 'עוד 30 החלטות'. The history surface was over 4,000 CSS px before compression and remains long. The current learning layer explicitly does not render on an empty record, but calibration remains a real wait. Question: is the product presenting its instrument's need for evidence instead of the user's path toward improvement? C2 FEEDBACK_WITHOUT_PROGRESS: Nico's strongest critique is that the product has feedback but no user-legible KPI/path. Current PR deliberately ships no global progress number, no rating denominator, and no prescribed programme because the discovery pipeline cannot establish causality/intervention/outcome; ratingSeries is stored but unrendered. A gate prevents rendering goal + count as an implied progress denominator. Question: what progress can legitimately be shown now without pretending calibration progress equals chess progress or rating causality? C3 COLD_USERS_COULD_NOT_COMPLETE_MOVE: two cold testers independently could not complete a move. The sentence under the board named the position but not the act; the only 'choose a move' text was on a disabled submit below the fold. This was fixed in copy/layout but not yet field-validated after the fix. Question: does the five-part framework distinguish action selection from action execution enough to choose the right intervention/evidence? C4 UNIQUE_VALUE_NOT_UNDERSTOOD: Nico repeatedly said he could not understand the focus until the explanation became 'how do we move from statistical mistake to personal mistake?' Current product/research value is precisely to distinguish player-specific-looking recurring structure from level-typical signal. Question: is this primarily Truth, Perception/representation, expected-value framing, or something else, and what should the product surface first? C5 DETECTOR_SILENCE_VS_PERSON: the shipped six-bucket detector returned 'not-separable' on the owner's full record while the frozen research pipeline found a residual on that same record surviving its permutation null. Therefore 'no pattern cleared this detector' is true of the instrument but can be false as a description of the person. Question: what framework most reliably prevents instrument state from becoming a user identity claim? C6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER: product logic had treated a player using their own rule on three prompted positions as 'transfer'. Research work separated guided practice, prompted recall/maximum transfer, and unprompted play/typical transfer. Question: where should internalization/ownership sit, and when is it even part of the product telos? C7 JOURNEY_IS_MACHINERY_NOT_PATH: the product now has claims, drills, rules, retrieval queue, transfer tests, refutation and retirement, but these were reachable one at a time and not legible as one user journey. Nico's language is the inverse: the player should see the path/effort they need to traverse. Question: what is the minimum path representation that changes action now without inventing an unsupported programme? C8 GOAL_PROGRESS_CAUSALITY_TRAP: a visual such as 1500 -> 1850 with 43% complete would satisfy Nico's goal framing but would imply a denominator/causal path the product has not established. Current repository gate rejects a goal rendered in the same element as a count when it would invite the reader to supply the arithmetic. Question: how can goal orientation and managed effort be respected without false progress? Framework A under test: five audit prompts — Truth (what does the system actually know?), Perception (what does the user think it knows?), Action (what should the user do next?), Ownership (can the user carry/apply the distinction independently where transfer matters?), Effect (what actually changed?). Framework B under test: layered fault-tree — Epistemic validity -> Representation/comprehension -> Action selection -> Action execution -> Internalization/transfer (only if required by telos) -> Outcome; motivation, expected value, trust, cost, ability and opportunity are modeled as moderators/bottlenecks rather than forced serial stages. Comparison criterion: elegance does not count. B earns complexity only when it changes at least one of: failure location, evidence request, intervention, claim boundary, or priority. Nico fidelity means the final prioritization must explicitly address goal orientation, managed effort, KPI/progress, time-to-value, and statistical-to-personal value. Evidence fidelity means no promise of Elo/rating improvement, no progress denominator unsupported by data, and no claim that an unvalidated fix is easier for users.",
+            "known_constraints": [
+              "Treat Nico's statements as high-value product/mentor signals, not empirical proof of user behavior or rating causality.",
+              "Do not reinterpret 'progress bar' literally if that would imply unsupported causal distance to a rating goal.",
+              "Distinguish calibration/evidence progress, managed effort/adherence, skill-process change, and external rating outcome.",
+              "Do not collapse action selection with action execution.",
+              "Do not collapse prompted performance with unprompted transfer.",
+              "Ownership/internalization is conditional on telos, not universal.",
+              "Do not call the cold-user fix validated until FIELD evidence confirms it.",
+              "Judge the frameworks by discrimination power, not memorability or MECE aesthetics.",
+              "Prefer the smallest reversible next move that can change a product decision."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "OWNER",
+              "REPO",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Which current UX/product failures should be treated as the highest-leverage bottlenecks, what diagnostic distinctions actually matter, and what should Decision Lab build/test next if it follows Nico's managed-effort/product-journey insight without violating the repository's evidence boundaries?",
+            "current_default": "Do not build a literal rating progress bar or full prescribed coaching programme. Use the five prompts only provisionally, and prioritize a truthful journey/progress representation plus field validation only if the paired comparison shows those distinctions change the next move.",
+            "reversal_condition": "Change the default if the paired comparison shows that a more specific layered diagnosis leads to materially different, lower-risk interventions or evidence requests on the frozen cases, especially around time-to-value, KPI/progress, action execution, statistical-to-personal value, and transfer."
+          },
+          "signals": [
+            "Nico's strongest product delta was 'you built feedback; you have not built KPI'.",
+            "Nico framed the product as managed effort toward a user-selected goal, not as a mistake-reporting tool.",
+            "The repository independently found that its machinery was mostly built but invisible as one journey.",
+            "The repository also forbids a naive goal denominator because causal progress toward rating has not been established.",
+            "The key product design problem may therefore be representing a truthful path whose progress units are evidence collection, effort/adherence, and target-process change rather than invented percent-to-rating.",
+            "The paired test should reveal whether this conclusion comes from the five prompts or requires the layered distinctions."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "OWNER",
+            "REPO",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+            "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+            "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+            "prompts/SYSTEM.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 2
+          }
+        },
+        "requested_focus": [
+          "multiple_plausible_mechanisms",
+          "proxy_substitution_risk",
+          "research_to_intervention_transition",
+          "signal_interpretation_ambiguity"
+        ],
+        "independence_rule": "Analyze the task independently. Do not infer another resource's conclusion and do not turn agreement into independent evidence.",
+        "prompt_ref": "prompts/SYSTEM.md",
+        "role_boundary": "Challenge framing, proxy substitution, mechanism collapse and premature intervention. Do not decide external research validity or architecture doctrine."
+      },
+      "result": {
+        "resource": "NETA",
+        "summary": "The five prompts are useful as a compact audit surface, but the layered alternative has real discrimination power where it prevents mechanism collapse. Nico's statements remain high-value product signals: he experienced the product as selling mistakes rather than advancement, proposed managed effort toward a user-selected goal, said the product had feedback but not a user-legible KPI, described a goal-oriented journey beginning at sale, and identified time-to-value as a blocker. These signals do not establish rating causality or prove that any intervention improves ratings.\n\nC1 TIME_TO_VALUE_AND_WAITING — The five prompts can identify that the experience is weak, but they can collapse instrument readiness, representation of waiting, and user progress into one Effect or Action problem. The layered alternative changes (a) failure location: from generic delay/feedback failure to evidence-collection latency plus representation/journey failure; (b) evidence request: from whether the system is truthful to the time and effort before first personal value, what accumulates during calibration, and whether the user can see a useful path without mistaking readiness for improvement; (c) intervention: toward a truthful interim journey, visible managed effort, and compressed or staged history rather than a literal rating-progress claim. The calibration wait remains an instrument constraint, not automatically removable friction.\n\nC2 FEEDBACK_WITHOUT_PROGRESS — Truth and Effect identify the unsupported KPI problem, but the layered alternative changes (a) failure location: from missing progress feedback to a claim-boundary failure between calibration/evidence progress, managed effort/adherence, process change, and rating outcome; (b) evidence request: from a single progress number to supporting, contradicting, and eligible observations, effort/adherence records, evidence maturity, and explicit absence of a causal rating denominator; (c) intervention: toward a legible evidence-and-effort ledger or journey state, not 1500 -> 1850 with a fabricated percentage. Nico's KPI critique should shape product direction, not be treated as evidence that a rating KPI is valid.\n\nC3 COLD_USERS_COULD_NOT_COMPLETE_MOVE — Action detects the issue, but the layered alternative changes (a) failure location: from an undifferentiated action failure to action selection versus action execution; the cold users lacked a clear act to select and then could not complete it; (b) evidence request: separate observation of whether users identify the intended move from whether they can submit it, with post-fix field validation still required; (c) intervention: make the act explicit at the board and keep the execution control visible and available in the same interaction path. The copy/layout fix is not yet validated for external users.\n\nC4 UNIQUE_VALUE_NOT_UNDERSTOOD — Truth can preserve the statistical-to-personal distinction, while Perception and Effect can reveal that its value is not arriving. The layered alternative changes (a) failure location: from a generic explanation or perception problem to separate epistemic validity, representation/comprehension, and expected-value/trust framing; (b) evidence request: whether the user can distinguish generic level-typical signal from a player-specific recurring structure and can state why that distinction matters, without treating agreement as proof; (c) intervention: surface the personal-inference promise before dashboard machinery, using the user's advancement goal as the entry frame while preserving the boundary that the system has evidence about patterns, not guaranteed rating improvement.\n\nC5 DETECTOR_SILENCE_VS_PERSON — Truth helps distinguish what the instrument returned from what it knows, but the layered alternative changes (a) failure location: from a general truth/perception issue to evidence authority and representation failure, where instrument silence can become an identity claim; (b) evidence request: preserve the detector result, null-model result, source authority, and wording boundary separately rather than asking whether the person has the trait; (c) intervention: state 'no pattern cleared this detector' and keep 'not-separable' as an instrument state, never as a description of the person. This is a high-value claim-boundary distinction even without field evidence.\n\nC6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER — Ownership can flag the problem, but the layered alternative changes (a) failure location: from a broad ownership/Effect failure to guided practice, prompted recall or maximum transfer, and unprompted play or typical transfer; (b) evidence request: measure the level of support and the person's behavior without the prompt, only when independent transfer belongs to the product telos; (c) intervention: rename the current result as prompted performance or retrieval evidence, and add an internalization/transfer step only if the selected goal requires it. Ownership is conditional on telos, not a universal product stage.\n\nC7 JOURNEY_IS_MACHINERY_NOT_PATH — Action and Perception can expose poor discoverability, but the layered alternative changes (a) failure location: from missing next action to a representation and action-selection failure across a multi-step journey, moderated by effort, ability, opportunity, expected value, and trust; (b) evidence request: whether users can identify the current state, next useful action, and what remains after completing it, without requiring them to infer the programme from separate claims, drills, retrieval, transfer, refutation, and retirement surfaces; (c) intervention: build the smallest truthful path representation that makes one current state, one next action, and one immediate payoff legible. It should show evidence/effort progression and goal orientation without inventing a prescribed coaching programme.\n\nC8 GOAL_PROGRESS_CAUSALITY_TRAP — The five prompts warn against false Effect claims, but the layered alternative changes (a) failure location: from a visual-progress risk to an outcome-boundary and denominator problem, with expected value and trust acting as moderators rather than evidence of progress; (b) evidence request: confirm that no valid rating denominator or causal path exists, while separately tracking evidence readiness, managed effort/adherence, and target-process change; (c) intervention: retain Nico's goal-oriented sale and managed-effort framing, but represent a negotiated target, current effort/state, next checkpoint, and reversal condition rather than percent-to-rating. A literal progress bar remains unsupported.\n\nThe highest-leverage bottlenecks are not all equal. Ranked product priority: 1. C4 statistical-to-personal value and time-to-first-personal-value, because users may not understand why the product is worth the wait; 2. C1 time-to-value and truthful interim accumulation, because calibration cost is currently exposed as readiness machinery; 3. C7 journey representation, because existing machinery is not legible as a goal-oriented path; 4. C2 truthful KPI/progress representation, using evidence, effort, and process units rather than rating causality; 5. C3 action selection versus execution, with field validation after the fix; 6. C5 detector-state versus person-claim boundaries; 7. C6 prompted performance versus unprompted transfer, only where telos requires it; 8. C8 as a persistent guardrail against false denominators and outcome claims. The smallest reversible next move is to prototype one truthful journey slice that states the user's goal, current evidence/effort state, one next action, and one immediate payoff, then field-test whether cold users can identify and complete that action and explain the statistical-to-personal value; this does not validate rating improvement. Verdict: Truth, Perception, Action, Ownership, and Effect are adequate as a first-pass vocabulary, but the layered distinctions have genuine discrimination power when they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from external outcome; those distinctions materially change failure location, evidence requests, and lower-risk interventions on the frozen cases.",
+        "unique_delta": "The decisive delta is not adding more audit categories; it is preventing the five prompts from collapsing distinct claim boundaries and bottlenecks. The layered model earns its complexity specifically for time-to-value, truthful progress, selection versus execution, statistical-to-personal value, instrument state versus person identity, and conditional transfer.",
+        "evidence_refs": [
+          "docs/SHARED_EPISTEMIC_KERNEL.md",
+          "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+          "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+          "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+          "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+          "prompts/SYSTEM.md"
+        ],
+        "limitations": [
+          "All cases are frozen observations; no inference is made about broader FIELD behavior or rating outcomes.",
+          "The cold-user intervention has not been field-validated after the copy/layout fix.",
+          "No causal denominator links app activity, evidence progress, managed effort, or process change to Elo/rating improvement.",
+          "Nico's commercial framing is preserved as a product signal, not treated as empirical evidence of causal KPI improvement.",
+          "Preference between structurally valid journey representations remains FIELD_REQUIRED."
+        ]
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "RND",
+      "phase": "SYNTHESIZE",
+      "request": {
+        "resource": "RND",
+        "phase": "SYNTHESIZE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-NICO-UX-PAIRED-2026-09-12",
+          "telos": {
+            "statement": "Determine which diagnostic decomposition most usefully explains the most material current Decision Lab UX/product failures, while staying faithful to Nicolas Bandurek's product feedback: move from selling feedback about mistakes to a goal-oriented managed-effort journey, make progress/KPI legible, reduce time-to-value, and preserve the unique statistical-to-personal value without making unsupported rating-improvement claims.",
+            "success_condition": "Compare the five audit prompts Truth/Perception/Action/Ownership/Effect against a stronger layered alternative on the frozen case corpus; identify where the alternative materially changes failure location, evidence request, or intervention; rank the highest-leverage product problems; and produce the smallest next product/field move that respects both Nico's commercial/product direction and the repository's evidence boundaries."
+          },
+          "current_state": {
+            "summary": "FROZEN INPUTS. Mentor source: Nicolas Bandurek meeting 2026-09-10. Nico's key product signals were: (N1) he struggled to understand the explanation and asked how the product moves from a generic statistical chess mistake to a personal mistake; generic mistakes were not interesting to him. (N2) the business question is 'I am 1500 and want to reach 2000; how do I do it?'; he said the product was selling the mistake instead of the player's advancement goal. (N3) he proposed 'managed effort': sell/manage the effort required to move from X toward Y rather than guarantee Y. (N4) he said 'you have not built KPI; until now you built feedback' and proposed a progress-bar layer plus a methodology of progress. (N5) he said the customer journey starts at the sale: rating X -> desired Y -> priced/managed effort -> app shows the path/effort, warns when the trajectory is off, and can renegotiate the goal. (N6) both sides recognized time-to-value as a real obstacle because personal inference may require roughly 60 decisions. Meeting summary recorded goal-oriented sales narrative, initial Chess.com 1200-1800 ICP, progress-bar KPI as core UI feature, and long time-to-value as a blocker. These are product/mentor signals, not evidence that rating improvement is caused by the app. Frozen repository/product cases from current lichess_app PR #102 and its documented field/research findings: C1 TIME_TO_VALUE_AND_WAITING: personal inference needs many decisions; the product repeatedly exposed internal readiness language such as variants of 'עוד 30 החלטות'. The history surface was over 4,000 CSS px before compression and remains long. The current learning layer explicitly does not render on an empty record, but calibration remains a real wait. Question: is the product presenting its instrument's need for evidence instead of the user's path toward improvement? C2 FEEDBACK_WITHOUT_PROGRESS: Nico's strongest critique is that the product has feedback but no user-legible KPI/path. Current PR deliberately ships no global progress number, no rating denominator, and no prescribed programme because the discovery pipeline cannot establish causality/intervention/outcome; ratingSeries is stored but unrendered. A gate prevents rendering goal + count as an implied progress denominator. Question: what progress can legitimately be shown now without pretending calibration progress equals chess progress or rating causality? C3 COLD_USERS_COULD_NOT_COMPLETE_MOVE: two cold testers independently could not complete a move. The sentence under the board named the position but not the act; the only 'choose a move' text was on a disabled submit below the fold. This was fixed in copy/layout but not yet field-validated after the fix. Question: does the five-part framework distinguish action selection from action execution enough to choose the right intervention/evidence? C4 UNIQUE_VALUE_NOT_UNDERSTOOD: Nico repeatedly said he could not understand the focus until the explanation became 'how do we move from statistical mistake to personal mistake?' Current product/research value is precisely to distinguish player-specific-looking recurring structure from level-typical signal. Question: is this primarily Truth, Perception/representation, expected-value framing, or something else, and what should the product surface first? C5 DETECTOR_SILENCE_VS_PERSON: the shipped six-bucket detector returned 'not-separable' on the owner's full record while the frozen research pipeline found a residual on that same record surviving its permutation null. Therefore 'no pattern cleared this detector' is true of the instrument but can be false as a description of the person. Question: what framework most reliably prevents instrument state from becoming a user identity claim? C6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER: product logic had treated a player using their own rule on three prompted positions as 'transfer'. Research work separated guided practice, prompted recall/maximum transfer, and unprompted play/typical transfer. Question: where should internalization/ownership sit, and when is it even part of the product telos? C7 JOURNEY_IS_MACHINERY_NOT_PATH: the product now has claims, drills, rules, retrieval queue, transfer tests, refutation and retirement, but these were reachable one at a time and not legible as one user journey. Nico's language is the inverse: the player should see the path/effort they need to traverse. Question: what is the minimum path representation that changes action now without inventing an unsupported programme? C8 GOAL_PROGRESS_CAUSALITY_TRAP: a visual such as 1500 -> 1850 with 43% complete would satisfy Nico's goal framing but would imply a denominator/causal path the product has not established. Current repository gate rejects a goal rendered in the same element as a count when it would invite the reader to supply the arithmetic. Question: how can goal orientation and managed effort be respected without false progress? Framework A under test: five audit prompts — Truth (what does the system actually know?), Perception (what does the user think it knows?), Action (what should the user do next?), Ownership (can the user carry/apply the distinction independently where transfer matters?), Effect (what actually changed?). Framework B under test: layered fault-tree — Epistemic validity -> Representation/comprehension -> Action selection -> Action execution -> Internalization/transfer (only if required by telos) -> Outcome; motivation, expected value, trust, cost, ability and opportunity are modeled as moderators/bottlenecks rather than forced serial stages. Comparison criterion: elegance does not count. B earns complexity only when it changes at least one of: failure location, evidence request, intervention, claim boundary, or priority. Nico fidelity means the final prioritization must explicitly address goal orientation, managed effort, KPI/progress, time-to-value, and statistical-to-personal value. Evidence fidelity means no promise of Elo/rating improvement, no progress denominator unsupported by data, and no claim that an unvalidated fix is easier for users.",
+            "known_constraints": [
+              "Treat Nico's statements as high-value product/mentor signals, not empirical proof of user behavior or rating causality.",
+              "Do not reinterpret 'progress bar' literally if that would imply unsupported causal distance to a rating goal.",
+              "Distinguish calibration/evidence progress, managed effort/adherence, skill-process change, and external rating outcome.",
+              "Do not collapse action selection with action execution.",
+              "Do not collapse prompted performance with unprompted transfer.",
+              "Ownership/internalization is conditional on telos, not universal.",
+              "Do not call the cold-user fix validated until FIELD evidence confirms it.",
+              "Judge the frameworks by discrimination power, not memorability or MECE aesthetics.",
+              "Prefer the smallest reversible next move that can change a product decision."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "OWNER",
+              "REPO",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Which current UX/product failures should be treated as the highest-leverage bottlenecks, what diagnostic distinctions actually matter, and what should Decision Lab build/test next if it follows Nico's managed-effort/product-journey insight without violating the repository's evidence boundaries?",
+            "current_default": "Do not build a literal rating progress bar or full prescribed coaching programme. Use the five prompts only provisionally, and prioritize a truthful journey/progress representation plus field validation only if the paired comparison shows those distinctions change the next move.",
+            "reversal_condition": "Change the default if the paired comparison shows that a more specific layered diagnosis leads to materially different, lower-risk interventions or evidence requests on the frozen cases, especially around time-to-value, KPI/progress, action execution, statistical-to-personal value, and transfer."
+          },
+          "signals": [
+            "Nico's strongest product delta was 'you built feedback; you have not built KPI'.",
+            "Nico framed the product as managed effort toward a user-selected goal, not as a mistake-reporting tool.",
+            "The repository independently found that its machinery was mostly built but invisible as one journey.",
+            "The repository also forbids a naive goal denominator because causal progress toward rating has not been established.",
+            "The key product design problem may therefore be representing a truthful path whose progress units are evidence collection, effort/adherence, and target-process change rather than invented percent-to-rating.",
+            "The paired test should reveal whether this conclusion comes from the five prompts or requires the layered distinctions."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "OWNER",
+            "REPO",
+            "FIELD"
+          ],
+          "context_refs": [
+            "docs/SHARED_EPISTEMIC_KERNEL.md",
+            "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+            "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+            "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+            "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+            "prompts/SYSTEM.md"
+          ],
+          "budget": {
+            "max_resource_calls": 3,
+            "max_parallel_calls": 2
+          }
+        },
+        "diagnosis": {
+          "material_question": "Which diagnostic decomposition and next resource move best identify and address the highest-leverage UX/product bottleneck—turning feedback into a truthful, goal-oriented managed-effort journey—without implying unsupported rating progress or causality?",
+          "bottleneck": "The product's evidence-generating machinery is more developed than its user-legible path: users lack a truthful progress/KPI representation and clear next action, while the product still has unresolved time-to-value, statistical-to-personal value, and action-execution questions. The smallest material mismatch is presenting instrument readiness and feedback as product progress without a validated unit of user progress.",
+          "resource_assessment": [
+            {
+              "resource": "RND",
+              "expected_contribution": "Compare the five-prompt audit with the layered fault-tree across frozen cases, rank bottlenecks, preserve claim boundaries, and select the smallest reversible next move.",
+              "authority_ceiling": "May diagnose resource allocation, compare frameworks, and recommend tests or interventions; may not establish user behavior, rating causality, or owner-owned product priorities.",
+              "uncertainty": "The comparison may show that the simpler framework is sufficient, or that layered distinctions materially change intervention and evidence requests."
+            },
+            {
+              "resource": "NETA",
+              "expected_contribution": "Provide an independent interpretation of whether the failures are primarily comprehension, expected-value framing, action selection/execution, transfer, or outcome issues, reducing the risk of proxy substitution.",
+              "authority_ceiling": "Can offer peer reasoning and competing mechanisms; cannot validate field behavior, product causality, or replace repository or field evidence.",
+              "uncertainty": "Its independence and distinctiveness are not yet demonstrated; agreement with RND alone would not constitute a decision-changing delta."
+            },
+            {
+              "resource": "REPO",
+              "expected_contribution": "Ground diagnosis in the frozen PR #102 implementation, existing gates, detector behavior, current journey machinery, and the already documented distinction between instrument state and person-level claims.",
+              "authority_ceiling": "Authoritative for current implementation, repository constraints, and recorded research artifacts; not authoritative for post-fix user comprehension, adoption, or rating outcomes.",
+              "uncertainty": "The repository can show what is implemented and constrained, but cannot establish whether the revised path is understandable or useful to cold users."
+            },
+            {
+              "resource": "FIELD",
+              "expected_contribution": "Validate whether the cold-user move-completion fix improves action selection and execution, and test whether a truthful path/effort representation changes comprehension or next action without implying rating progress.",
+              "authority_ceiling": "Authoritative for observed behavior in the tested context; cannot by itself establish long-term rating causality or generalize beyond the tested users and task.",
+              "uncertainty": "Post-fix field evidence does not yet exist, and sample size/context may limit conclusions."
+            },
+            {
+              "resource": "OWNER",
+              "expected_contribution": "Resolve product-scope or commercial-priority choices if the evidence leaves a conflict between managed-effort framing, evidence boundaries, and desired product commitments.",
+              "authority_ceiling": "Authoritative for owner-owned priorities and acceptance decisions; not empirical authority for user behavior or causal rating improvement.",
+              "uncertainty": "The current telos and evidence boundaries are sufficiently specified, so OWNER input may not be needed for the immediate diagnostic move."
+            }
+          ],
+          "candidate_moves": [
+            {
+              "move": "USE_EXISTING",
+              "resource": "RND",
+              "expected_decision_value": "Use the frozen case corpus and current five prompts to establish a baseline ranking before adding complexity; may show that no new decomposition is needed.",
+              "reversibility": "Fully reversible and low burden."
+            },
+            {
+              "move": "INVOKE_NETA",
+              "resource": "NETA",
+              "expected_decision_value": "Independently test whether layered distinctions materially relocate failures or change the requested evidence/intervention, especially for action execution, personal value, and transfer.",
+              "reversibility": "Reversible; bounded to one paired diagnostic invocation."
+            },
+            {
+              "move": "COLLECT_REPO",
+              "resource": "REPO",
+              "expected_decision_value": "Verify the exact current UI gates, journey visibility, detector claims, and existing affordances so recommendations do not target already-fixed or prohibited behavior.",
+              "reversibility": "Reversible and low burden."
+            },
+            {
+              "move": "COLLECT_FIELD",
+              "resource": "FIELD",
+              "expected_decision_value": "Run the smallest post-fix cold-user validation focused on completing a move and understanding the next step, then test a truthful effort/path framing rather than a rating denominator.",
+              "reversibility": "Reversible if limited to observation and a bounded prototype or copy/layout comparison."
+            },
+            {
+              "move": "TEST",
+              "resource": "RND",
+              "expected_decision_value": "Compare a truthful evidence/effort path representation against the current machinery-only journey and measure comprehension, next-action selection, and completion without claiming rating progress.",
+              "reversibility": "Reversible with a small fixture or controlled product variant."
+            },
+            {
+              "move": "WAIT",
+              "resource": "OWNER",
+              "expected_decision_value": "Defer any literal KPI, prescribed programme, or rating-progress commitment until field evidence and causal boundaries support it.",
+              "reversibility": "Reversible, but incurs continued time-to-value and discovery delay."
+            }
+          ],
+          "needs": {
+            "signal_interpretation_ambiguity": true,
+            "multiple_plausible_mechanisms": true,
+            "proxy_substitution_risk": true,
+            "research_to_intervention_transition": true,
+            "broad_reasoning_needed": true,
+            "architecture_alternatives_needed": true,
+            "novel_synthesis_needed": true,
+            "external_research_needed": false,
+            "owner_authority_needed": false,
+            "repo_authority_needed": true,
+            "environment_authority_needed": false,
+            "field_authority_needed": true
+          },
+          "rationale": "The live decision is not whether to build a progress bar in the abstract; it is which truthful progress unit and diagnostic decomposition can improve the user's next decision without converting calibration evidence into a rating claim. The cheapest decision-changing sequence is to ground the current implementation in REPO, run the bounded independent NETA comparison against the frozen cases, and then collect FIELD evidence on the already-made move-completion fix plus a reversible path/effort representation. The likely high-leverage bottleneck is representation and actionability of the journey, but that remains provisional until the paired comparison shows whether layered distinctions change failure location, evidence requests, or intervention. Literal rating denominators and full coaching programmes should remain stopped pending stronger evidence."
+        },
+        "routing": {
+          "resources": [
+            "NETA"
+          ],
+          "fired": {
+            "NETA": [
+              "multiple_plausible_mechanisms",
+              "proxy_substitution_risk",
+              "research_to_intervention_transition",
+              "signal_interpretation_ambiguity"
+            ],
+            "SCAFFOLD": [
+              "architecture_alternatives_needed",
+              "broad_reasoning_needed",
+              "novel_synthesis_needed"
+            ],
+            "AUTHORITY": [
+              "repo_authority_needed",
+              "field_authority_needed"
+            ]
+          },
+          "authority_handoffs": [
+            "FIELD",
+            "REPO"
+          ]
+        },
+        "resource_results": [
+          {
+            "resource": "NETA",
+            "summary": "The five prompts are useful as a compact audit surface, but the layered alternative has real discrimination power where it prevents mechanism collapse. Nico's statements remain high-value product signals: he experienced the product as selling mistakes rather than advancement, proposed managed effort toward a user-selected goal, said the product had feedback but not a user-legible KPI, described a goal-oriented journey beginning at sale, and identified time-to-value as a blocker. These signals do not establish rating causality or prove that any intervention improves ratings.\n\nC1 TIME_TO_VALUE_AND_WAITING — The five prompts can identify that the experience is weak, but they can collapse instrument readiness, representation of waiting, and user progress into one Effect or Action problem. The layered alternative changes (a) failure location: from generic delay/feedback failure to evidence-collection latency plus representation/journey failure; (b) evidence request: from whether the system is truthful to the time and effort before first personal value, what accumulates during calibration, and whether the user can see a useful path without mistaking readiness for improvement; (c) intervention: toward a truthful interim journey, visible managed effort, and compressed or staged history rather than a literal rating-progress claim. The calibration wait remains an instrument constraint, not automatically removable friction.\n\nC2 FEEDBACK_WITHOUT_PROGRESS — Truth and Effect identify the unsupported KPI problem, but the layered alternative changes (a) failure location: from missing progress feedback to a claim-boundary failure between calibration/evidence progress, managed effort/adherence, process change, and rating outcome; (b) evidence request: from a single progress number to supporting, contradicting, and eligible observations, effort/adherence records, evidence maturity, and explicit absence of a causal rating denominator; (c) intervention: toward a legible evidence-and-effort ledger or journey state, not 1500 -> 1850 with a fabricated percentage. Nico's KPI critique should shape product direction, not be treated as evidence that a rating KPI is valid.\n\nC3 COLD_USERS_COULD_NOT_COMPLETE_MOVE — Action detects the issue, but the layered alternative changes (a) failure location: from an undifferentiated action failure to action selection versus action execution; the cold users lacked a clear act to select and then could not complete it; (b) evidence request: separate observation of whether users identify the intended move from whether they can submit it, with post-fix field validation still required; (c) intervention: make the act explicit at the board and keep the execution control visible and available in the same interaction path. The copy/layout fix is not yet validated for external users.\n\nC4 UNIQUE_VALUE_NOT_UNDERSTOOD — Truth can preserve the statistical-to-personal distinction, while Perception and Effect can reveal that its value is not arriving. The layered alternative changes (a) failure location: from a generic explanation or perception problem to separate epistemic validity, representation/comprehension, and expected-value/trust framing; (b) evidence request: whether the user can distinguish generic level-typical signal from a player-specific recurring structure and can state why that distinction matters, without treating agreement as proof; (c) intervention: surface the personal-inference promise before dashboard machinery, using the user's advancement goal as the entry frame while preserving the boundary that the system has evidence about patterns, not guaranteed rating improvement.\n\nC5 DETECTOR_SILENCE_VS_PERSON — Truth helps distinguish what the instrument returned from what it knows, but the layered alternative changes (a) failure location: from a general truth/perception issue to evidence authority and representation failure, where instrument silence can become an identity claim; (b) evidence request: preserve the detector result, null-model result, source authority, and wording boundary separately rather than asking whether the person has the trait; (c) intervention: state 'no pattern cleared this detector' and keep 'not-separable' as an instrument state, never as a description of the person. This is a high-value claim-boundary distinction even without field evidence.\n\nC6 PROMPTED_TRANSFER_WAS_CALLED_TRANSFER — Ownership can flag the problem, but the layered alternative changes (a) failure location: from a broad ownership/Effect failure to guided practice, prompted recall or maximum transfer, and unprompted play or typical transfer; (b) evidence request: measure the level of support and the person's behavior without the prompt, only when independent transfer belongs to the product telos; (c) intervention: rename the current result as prompted performance or retrieval evidence, and add an internalization/transfer step only if the selected goal requires it. Ownership is conditional on telos, not a universal product stage.\n\nC7 JOURNEY_IS_MACHINERY_NOT_PATH — Action and Perception can expose poor discoverability, but the layered alternative changes (a) failure location: from missing next action to a representation and action-selection failure across a multi-step journey, moderated by effort, ability, opportunity, expected value, and trust; (b) evidence request: whether users can identify the current state, next useful action, and what remains after completing it, without requiring them to infer the programme from separate claims, drills, retrieval, transfer, refutation, and retirement surfaces; (c) intervention: build the smallest truthful path representation that makes one current state, one next action, and one immediate payoff legible. It should show evidence/effort progression and goal orientation without inventing a prescribed coaching programme.\n\nC8 GOAL_PROGRESS_CAUSALITY_TRAP — The five prompts warn against false Effect claims, but the layered alternative changes (a) failure location: from a visual-progress risk to an outcome-boundary and denominator problem, with expected value and trust acting as moderators rather than evidence of progress; (b) evidence request: confirm that no valid rating denominator or causal path exists, while separately tracking evidence readiness, managed effort/adherence, and target-process change; (c) intervention: retain Nico's goal-oriented sale and managed-effort framing, but represent a negotiated target, current effort/state, next checkpoint, and reversal condition rather than percent-to-rating. A literal progress bar remains unsupported.\n\nThe highest-leverage bottlenecks are not all equal. Ranked product priority: 1. C4 statistical-to-personal value and time-to-first-personal-value, because users may not understand why the product is worth the wait; 2. C1 time-to-value and truthful interim accumulation, because calibration cost is currently exposed as readiness machinery; 3. C7 journey representation, because existing machinery is not legible as a goal-oriented path; 4. C2 truthful KPI/progress representation, using evidence, effort, and process units rather than rating causality; 5. C3 action selection versus execution, with field validation after the fix; 6. C5 detector-state versus person-claim boundaries; 7. C6 prompted performance versus unprompted transfer, only where telos requires it; 8. C8 as a persistent guardrail against false denominators and outcome claims. The smallest reversible next move is to prototype one truthful journey slice that states the user's goal, current evidence/effort state, one next action, and one immediate payoff, then field-test whether cold users can identify and complete that action and explain the statistical-to-personal value; this does not validate rating improvement. Verdict: Truth, Perception, Action, Ownership, and Effect are adequate as a first-pass vocabulary, but the layered distinctions have genuine discrimination power when they separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from external outcome; those distinctions materially change failure location, evidence requests, and lower-risk interventions on the frozen cases.",
+            "unique_delta": "The decisive delta is not adding more audit categories; it is preventing the five prompts from collapsing distinct claim boundaries and bottlenecks. The layered model earns its complexity specifically for time-to-value, truthful progress, selection versus execution, statistical-to-personal value, instrument state versus person identity, and conditional transfer.",
+            "evidence_refs": [
+              "docs/SHARED_EPISTEMIC_KERNEL.md",
+              "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+              "docs/DECISION_EXECUTION_LEARNING_LOOP.md",
+              "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+              "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+              "prompts/SYSTEM.md"
+            ],
+            "limitations": [
+              "All cases are frozen observations; no inference is made about broader FIELD behavior or rating outcomes.",
+              "The cold-user intervention has not been field-validated after the copy/layout fix.",
+              "No causal denominator links app activity, evidence progress, managed effort, or process change to Elo/rating improvement.",
+              "Nico's commercial framing is preserved as a product signal, not treated as empirical evidence of causal KPI improvement.",
+              "Preference between structurally valid journey representations remains FIELD_REQUIRED."
+            ]
+          }
+        ],
+        "instruction": "Compare resource deltas, update the blocked decision, choose the cheapest next calibration move, and record what the system learned about future resource allocation. Do not average disagreements away."
+      },
+      "state": "COMPLETE"
+    }
+  ],
+  "synthesis": {
+    "decision_before": "Do not build a literal rating progress bar or prescribed coaching programme. Use the five-prompt framework provisionally and defer a journey/progress intervention until paired comparison shows that added distinctions change the decision.",
+    "decision_after": "Retain Truth, Perception, Action, Ownership, and Effect as the compact audit surface, but use layered distinctions selectively where they materially separate evidence validity from representation, action selection from execution, prompted performance from transfer, and process progress from rating outcome. Prioritize a truthful goal-oriented journey slice showing current evidence/effort state, one next action, and an immediate payoff; do not represent rating progress or imply causal improvement.",
+    "next_move": "COLLECT_REPO: verify the shipped PR #102 gates, copy/layout fix, journey surfaces, detector wording, and progress-rendering constraints. Then run a bounded FIELD comparison of the confirmed current path against the truthful journey slice, measuring comprehension, next-action selection, move completion, and statistical-to-personal value explanation without rating claims.",
+    "resource_deltas": [
+      {
+        "resource": "RND",
+        "material": true,
+        "unique_delta": "Converted the NETA comparison into a resource-allocation decision: the layered model earns selective use because it changes failure location, evidence requests, claim boundaries, and lower-risk interventions on specific frozen cases, not because it is more elaborate."
+      },
+      {
+        "resource": "NETA",
+        "material": true,
+        "unique_delta": "Separated time-to-value from evidence-collection latency, progress representation from rating outcome, action selection from execution, statistical validity from personal-value comprehension, detector silence from person identity, and prompted performance from unprompted transfer."
+      },
+      {
+        "resource": "REPO",
+        "material": false,
+        "unique_delta": "No new repository evidence was supplied in this invocation. Existing repository summaries establish implementation constraints but must be checked against the current shipped surfaces before field work."
+      },
+      {
+        "resource": "FIELD",
+        "material": false,
+        "unique_delta": "No post-fix user evidence exists. Field authority remains necessary to determine whether the journey representation improves comprehension or action, but it cannot establish rating causality or generalize beyond the tested context."
+      },
+      {
+        "resource": "OWNER",
+        "material": false,
+        "unique_delta": "No owner decision is currently required because the immediate move can remain within established evidence boundaries; owner authority may become relevant if product-scope or commercial priorities conflict with the bounded evidence-led intervention."
+      }
+    ],
+    "learning_records": [
+      {
+        "resource": "NETA",
+        "decision_before": "Treat the five prompts as the provisional primary decomposition and defer added structure.",
+        "decision_after": "Use the five prompts as the compact baseline and invoke layered distinctions selectively for cases involving competing mechanisms or claim-boundary risk.",
+        "unique_distinction": "Complexity is decision-useful only when it changes failure location, evidence request, intervention, claim boundary, or priority; agreement with the baseline alone is not a delta.",
+        "materially_useful": true,
+        "cost_or_burden": "One bounded paired reasoning invocation; no field or implementation burden observed.",
+        "future_routing": "Invoke NETA when signal-to-interpretation ambiguity, proxy substitution, or transition from evidence to intervention is material, rather than routing every R&D task through it."
+      },
+      {
+        "resource": "RND",
+        "decision_before": "A truthful journey/progress representation was a provisional hypothesis pending framework comparison.",
+        "decision_after": "Treat a truthful journey slice as the highest-leverage reversible product test, while retaining literal rating progress and a full coaching programme as stopped.",
+        "unique_distinction": "The actionable unit is evidence/effort/process-state visibility with a user-selected goal, not a percentage-to-rating denominator.",
+        "materially_useful": true,
+        "cost_or_burden": "Synthesis of frozen cases and independent resource output; no new empirical burden.",
+        "future_routing": "Prioritize the cheapest resource that can distinguish representation and actionability from unsupported outcome claims; do not build capability merely because machinery already exists."
+      },
+      {
+        "resource": "REPO",
+        "decision_before": "Assume the documented PR #102 constraints and fix description are sufficient to plan field validation.",
+        "decision_after": "Require a current implementation and gate check before selecting the exact field comparison.",
+        "unique_distinction": "Repository authority can establish what is shipped and prohibited, but cannot establish cold-user comprehension or usefulness.",
+        "materially_useful": false,
+        "cost_or_burden": "Expected low burden and reversible.",
+        "future_routing": "Use REPO before FIELD whenever implementation state, gates, or existing affordances may invalidate a proposed intervention."
+      },
+      {
+        "resource": "FIELD",
+        "decision_before": "No field decision was available; the cold-user fix remained unvalidated.",
+        "decision_after": "Reserve FIELD for a bounded comparison after repository confirmation, with action comprehension and completion as primary observations and rating improvement excluded.",
+        "unique_distinction": "Only observed users can distinguish a legible path from an internally coherent machinery surface in the tested context.",
+        "materially_useful": false,
+        "cost_or_burden": "Not yet invoked; expected bounded observation/prototype burden.",
+        "future_routing": "Do not treat instrument readiness, mentor feedback, or internal agreement as substitutes for field evidence about user behavior."
+      }
+    ],
+    "stop_or_continue": "CONTINUE",
+    "routing_amendment_proposed": null
+  },
+  "final_state": "COMPLETE",
+  "failure": null
+}

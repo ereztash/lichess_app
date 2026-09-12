@@ -77,7 +77,7 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
   const personalError =
     debugPersonalError ||
     (personal.isError
-      ? readableFailureText(personal.error, "לא ניתן לטעון רפרטואר אישי כעת.")
+      ? readableFailureText(personal.error, "אי אפשר לטעון רפרטואר אישי כעת.")
       : undefined);
   return (
     <section className="analysis-section lichess-layers">
@@ -103,7 +103,7 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
       )}
       {layers.isError && (
         <div className="layer-error">
-          {readableFailureText(layers.error, "לא ניתן לטעון את שכבות Lichess כרגע.")}
+          {readableFailureText(layers.error, "אי אפשר לטעון את שכבות Lichess כרגע.")}
         </div>
       )}
       <ConfigNotice missing={config.data?.missing} isOwner={config.data?.isOwner} />

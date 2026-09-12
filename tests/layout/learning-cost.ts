@@ -44,7 +44,7 @@ const TYPES: Record<string, string> = {
 };
 
 /** The stranger's account and game: the same fixture the other stranger walks use. */
-const USERNAME = "erez281";
+export const USERNAME = "erez281";
 const PGN = `[Event "Rated rapid game"]
 [White "erez281"]
 [Black "other"]
@@ -55,7 +55,7 @@ const PGN = `[Event "Rated rapid game"]
 15. f4 Nc4 16. Qd3 d5 17. f6 g6 18. Bb3 Nd6 19. Qg3 Nf5 20. Qf3 d4 21. Bc2 Ne3
 22. Qg3 Nxc2 23. Qh4 Ne3 24. g4 0-1`;
 
-const LICHESS_BODY = `${JSON.stringify({
+export const LICHESS_BODY = `${JSON.stringify({
   id: "abcd1234",
   status: "resign",
   speed: "rapid",
@@ -109,7 +109,35 @@ export interface StageReading {
   aboveTheFold: number;
   /** Disclosures a reader did not open, open by default. */
   openDisclosures: number;
+  /**
+   * Visible controls a player could press, the board and the move list excluded.
+   *
+   * A SECOND KIND OF COST, and the reason this file grew past words. A screen can be short and
+   * still expensive: four buttons under one sentence is one question wearing a whole screen. Words
+   * measure what must be read; this measures what must be chosen between.
+   */
+  controls: number;
+  /** Whether a board is painted here. A stage without one is a stage between the player and it. */
+  board: boolean;
 }
+
+/**
+ * What reaching this stage cost, accumulated from the start of the walk.
+ *
+ * NOT DERIVABLE FROM THE DOM, which is why it is stamped by the walk rather than counted in the
+ * page: a screen cannot see how many times it was pressed to get here. These are the axes a word
+ * count is blind to, and the ones a player reports as "why is this so many steps".
+ */
+export interface StageCost {
+  /** Presses so far, a move counting as the two it takes: pick up, put down. */
+  taps: number;
+  /** Distinct routes reached so far. The decision loop is one; each detour is another. */
+  screens: number;
+  /** Seconds from the first paint of the front door. */
+  seconds: number;
+}
+
+export type StagePrice = StageReading & StageCost;
 
 export type Viewport = { width: number; height: number };
 export const VIEWPORTS: readonly Viewport[] = [
@@ -196,7 +224,19 @@ const COUNT_BODY = `
     if (block.getBoundingClientRect().top < window.innerHeight) aboveTheFold += n;
   }
 
+  /*
+   * WHAT MUST BE CHOSEN BETWEEN, counted the same way the words were: painted, out of the board,
+   * out of a closed disclosure. A control the player cannot see is not a choice they are facing.
+   */
+  const INTERACTIVE = 'button, a[href], input, select, textarea, [role="button"]';
+  const controls = [...root.querySelectorAll(INTERACTIVE)].filter(
+    (el) => !el.closest(EXCLUDE) && !el.closest("[data-square]") && painted(el),
+  ).length;
+  const boardSquare = root.querySelector("[data-square]");
+
   return {
+    controls,
+    board: Boolean(boardSquare && painted(boardSquare)),
     words,
     sentences,
     wordsBeforePrimary: primary ? before : null,
@@ -212,8 +252,39 @@ export async function measureStage(page: Page, stage: Stage): Promise<StageReadi
   return page.evaluate(countInPage, PRIMARY[stage]);
 }
 
+/**
+ * The running cost of a walk: what has been pressed, where it has been, how long it has taken.
+ *
+ * EVERY PRESS IN THIS FILE GOES THROUGH `press`, and that is the only thing keeping the number
+ * honest. A tap counter maintained beside the clicks rather than around them is a number that
+ * drifts the first time somebody adds a click, and a drifted cost reads as a product that got
+ * cheaper.
+ */
+interface Meter {
+  taps: number;
+  routes: Set<string>;
+  startedAt: number;
+}
+
+const newMeter = (): Meter => ({ taps: 0, routes: new Set(), startedAt: Date.now() });
+
+async function press(m: Meter, target: { click: () => Promise<void> }): Promise<void> {
+  m.taps += 1;
+  await target.click();
+}
+
+/** What has been spent by the time a stage is on screen. Reading a stage records the route it is on. */
+function stamp(m: Meter, page: Page): StageCost {
+  m.routes.add(new URL(page.url()).pathname);
+  return {
+    taps: m.taps,
+    screens: m.routes.size,
+    seconds: Math.round((Date.now() - m.startedAt) / 100) / 10,
+  };
+}
+
 /** Press one piece of a colour and, if the board offers a target, press it. Null means refused. */
-async function tryToMove(page: Page, colour: "w" | "b") {
+async function tryToMove(page: Page, m: Meter, colour: "w" | "b") {
   const squares = await page.evaluate(
     (c) =>
       [...document.querySelectorAll<HTMLElement>("[data-square]")]
@@ -222,6 +293,12 @@ async function tryToMove(page: Page, colour: "w" | "b") {
     colour,
   );
   for (const square of squares) {
+    /*
+     * THE SEARCH IS NOT CHARGED, THE MOVE IS. This loop presses squares until one of them has a
+     * legal target, which is the instrument hunting for a move a player already knows. Charging
+     * the probes made `anchor-commitment` read 23 taps on a position where a player would spend
+     * two, and a cost that counts the measurer's fumbling is a cost about the measurer.
+     */
     await page.locator(`[data-square="${square}"]`).click();
     await page.waitForTimeout(90);
     const target = await page.evaluate(
@@ -229,6 +306,7 @@ async function tryToMove(page: Page, colour: "w" | "b") {
     );
     if (!target) continue;
     await page.locator(`[data-square="${target}"]`).click();
+    m.taps += 2;
     await page.waitForTimeout(300);
     return { from: square, to: target };
   }
@@ -236,34 +314,34 @@ async function tryToMove(page: Page, colour: "w" | "b") {
 }
 
 /** Answer every step of the commitment the way a finger does. */
-async function answerTheCommitment(page: Page): Promise<void> {
+async function answerTheCommitment(page: Page, m: Meter): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     const chip = page.locator(".read-chip:visible").first();
-    if (await chip.count()) await chip.click();
+    if (await chip.count()) await press(m, chip);
     const confidence = page.locator(".confidence-row button:visible").nth(2);
     if (await confidence.count()) {
-      await confidence.click();
+      await press(m, confidence);
       break;
     }
     const next = page.locator(".step-next:visible").first();
-    if (await next.count()) await next.click();
+    if (await next.count()) await press(m, next);
     await page.waitForTimeout(200);
   }
   await page.waitForTimeout(300);
 }
 
 /** Commit what is on the board and wait for the engine to answer. */
-async function commitAndWaitForReveal(page: Page): Promise<void> {
-  await page.locator(".commitment-submit").click();
+async function commitAndWaitForReveal(page: Page, m: Meter): Promise<void> {
+  await press(m, page.locator(".commitment-submit"));
   const outcome = page.locator(".counterfactual-probe, .reveal-panel, .reveal-failure, .reveal-waiting");
   await outcome.first().waitFor({ timeout: 30_000 });
   const none = page.locator(".counterfactual-probe__none");
-  if (await none.count()) await none.click();
+  if (await none.count()) await press(m, none);
   await page.locator(".reveal-panel, .reveal-failure").first().waitFor({ timeout: 180_000 });
   await page.waitForTimeout(600);
 }
 
-export type JourneyReading = Record<Stage, StageReading>;
+export type JourneyReading = Record<Stage, StagePrice>;
 
 /**
  * Walk the stranger's journey once, at one viewport, reading each stage as it is reached.
@@ -281,40 +359,117 @@ export async function walkAsAStranger(
   await page.route("https://lichess.org/api/games/user/**", (route: Route) =>
     route.fulfill({ status: 200, contentType: "application/x-ndjson", body: LICHESS_BODY }),
   );
+  const m = newMeter();
+  const read = async (stage: Stage): Promise<StagePrice> => ({
+    ...(await measureStage(page, stage)),
+    ...stamp(m, page),
+  });
   try {
     await page.goto(`${origin}/`, { waitUntil: "networkidle" });
     await page.locator("#first-decision-username").waitFor({ timeout: 30_000 });
-    const frontDoor = await measureStage(page, "front-door");
+    m.startedAt = Date.now();
+    const frontDoor = await read("front-door");
 
+    /* Typing is not a tap and is not counted as one. It is a cost with no name here yet. */
     await page.locator("#first-decision-username").fill(USERNAME);
-    await page.getByRole("button", { name: "קחו אותי לעמדה" }).click();
+    await press(m, page.getByRole("button", { name: "קחו אותי לעמדה" }));
     await page.waitForURL(/\/play$/, { timeout: 30_000 });
     await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
     await page.locator(".commitment-submit").waitFor({ timeout: 30_000 });
     await page.waitForTimeout(500);
-    const decide = await measureStage(page, "decide");
+    const decide = await read("decide");
 
-    const moved = await tryToMove(page, "w");
+    const moved = await tryToMove(page, m, "w");
     if (!moved) throw new Error("the handed-over position offered the stranger no move");
     await page.waitForTimeout(400);
-    const commitment = await measureStage(page, "commitment");
+    const commitment = await read("commitment");
 
-    await answerTheCommitment(page);
-    await commitAndWaitForReveal(page);
+    await answerTheCommitment(page, m);
+    await commitAndWaitForReveal(page, m);
     if (await page.locator(".reveal-failure").count()) throw new Error("the engine did not answer");
-    const reveal = await measureStage(page, "reveal");
+    const reveal = await read("reveal");
 
     /* O-1: one press to the shared set's next position, where every step of the commitment is asked. */
-    await page.locator('[data-primary-action="next-decision"]:visible').click();
+    await press(m, page.locator('[data-primary-action="next-decision"]:visible'));
     await page.waitForTimeout(1200);
     await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
     await page.waitForTimeout(600);
-    const second = (await tryToMove(page, "w")) ?? (await tryToMove(page, "b"));
+    const second = (await tryToMove(page, m, "w")) ?? (await tryToMove(page, m, "b"));
     if (!second) throw new Error("the shared set's position refused the stranger");
     await page.waitForTimeout(400);
-    const anchorCommitment = await measureStage(page, "anchor-commitment");
+    const anchorCommitment = await read("anchor-commitment");
 
     return { "front-door": frontDoor, decide, commitment, reveal, "anchor-commitment": anchorCommitment };
+  } finally {
+    await context.close();
+  }
+}
+
+/* ------------------------------------------------------------------------------------------- *
+ * THE OTHER DOOR, and the reason it is measured separately.
+ *
+ * The walk above is the journey the product is built around: front door, a position, a decision,
+ * a reveal. The blitz route is the one a player takes when they would rather play than answer,
+ * and it is offered on the same front door. Nothing measured it until a stranger said the setup
+ * screen felt like a whole screen spent on one question -- a cost a word count cannot see, since
+ * that screen is one of the shortest in the product.
+ *
+ * WHAT IT IS FOR: a comparison, not a ceiling. Two doors, both reached from the same front door,
+ * priced in the same units. A difference between them is a fact about the product; whether that
+ * difference is worth paying is an owner's decision and a FIELD question.
+ * ------------------------------------------------------------------------------------------- */
+
+export const BLITZ_STAGES = ["front-door", "blitz-setup", "blitz-board"] as const;
+export type BlitzStage = (typeof BLITZ_STAGES)[number];
+
+/**
+ * The blitz route's primary controls.
+ *
+ * `blitz-setup` NAMES `play-blitz` AND OFTEN FINDS NOTHING, which is the point rather than a gap.
+ * `Blitz.tsx` marks the remembered time control as the primary act and marks nothing on a first
+ * visit, because "nothing chosen yet" is a fact and painting one of four as a preference would
+ * invent one. A stranger therefore meets a required screen with no primary action on it, and
+ * `wordsBeforePrimary: null` is this instrument reporting exactly that.
+ */
+const BLITZ_PRIMARY: Record<BlitzStage, string> = {
+  "front-door": '[data-primary-action="play-first-decision"]',
+  "blitz-setup": '[data-primary-action="play-blitz"]',
+  "blitz-board": '.commitment-submit, [data-primary-action]',
+};
+
+export type BlitzJourneyReading = Record<BlitzStage, StagePrice>;
+
+/** Walk the front door's other offer: a blitz game, priced in the same units as a decision. */
+export async function walkToABlitzGame(
+  browser: Browser,
+  origin: string,
+  viewport: Viewport,
+): Promise<BlitzJourneyReading> {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  const m = newMeter();
+  const read = async (stage: BlitzStage): Promise<StagePrice> => ({
+    ...(await page.evaluate(countInPage, BLITZ_PRIMARY[stage])),
+    ...stamp(m, page),
+  });
+  try {
+    await page.goto(`${origin}/`, { waitUntil: "networkidle" });
+    await page.locator("#first-decision-username").waitFor({ timeout: 30_000 });
+    m.startedAt = Date.now();
+    const frontDoor = await read("front-door");
+
+    await press(m, page.getByRole("button", { name: "משחק בליץ קצר" }));
+    await page.waitForURL(/\/blitz$/, { timeout: 30_000 });
+    await page.locator(".blitz-control").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(400);
+    const setup = await read("blitz-setup");
+
+    await press(m, page.locator(".blitz-control").first());
+    await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(600);
+    const board = await read("blitz-board");
+
+    return { "front-door": frontDoor, "blitz-setup": setup, "blitz-board": board };
   } finally {
     await context.close();
   }

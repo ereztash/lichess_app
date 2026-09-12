@@ -218,14 +218,20 @@ describe("the reveal says which distance the number threw away", () => {
 
   it("names the ceiling and the discarded distance, before any number", () => {
     /*
-     * Section 4.4: a value carries its source. "0 ס״פ" on a mating move means "nothing was
-     * better than this" and NOT "this move changed nothing", and the two read identically. The
-     * limits list is where the reveal is allowed to say so -- step 1, ahead of the numbers.
+     * Section 4.4: a value carries its source. "0.00" on a mating move means "nothing was better
+     * than this" and NOT "this move changed nothing", and the two read identically. The limits
+     * list is where the reveal is allowed to say so -- step 1, ahead of the numbers.
+     *
+     * THE CEILING IS NO LONGER PRINTED AS A NUMBER, and that is the point of the change rather
+     * than a loss. `MATE_SCORE` is 10,000 centipawns; in the pawn unit the rest of the screen now
+     * uses it reads "100.00 רגלים", which is not a quantity about a chessboard. The sentence says
+     * a fixed ceiling was applied and that the distance to mate was discarded, which is the whole
+     * of what a reader can do anything with.
      */
     const limits = inferenceLimits(inputs({ clampedMate: true }));
     const said = limits.join(" ");
     expect(said, "the clamp is applied and never disclosed").toMatch(/מט כפוי/);
-    expect(said).toContain(String(MATE_SCORE));
+    expect(said, "the ceiling is not declared at all").toMatch(/תקרה קבועה/);
     expect(said, "the discarded quantity is not named").toMatch(/המרחק למט/);
   });
 
@@ -285,7 +291,7 @@ describe("the rendered cost distinguishes a measurement from a ceiling", () => {
     const cost = [...container.querySelectorAll(".reveal-metric")].find((el) =>
       el.textContent?.includes("עלות ההחלטה"),
     )!;
-    expect(cost.textContent).toContain("180");
+    expect(cost.textContent, "the cost is in the unit the bar prints").toContain("1.80");
     expect(cost.textContent).not.toMatch(/תקרת מט/);
   });
 });

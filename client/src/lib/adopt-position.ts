@@ -26,7 +26,7 @@ import type { AnalysisSource } from "@shared/analysis-source";
  * What the board says about the position it just restored.
  *
  * IT SAID ONE THING FOR THREE DIFFERENT ARRIVALS, and for two of them it was false. Every restore
- * was phrased as a return -- "חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים" -- and both front-door
+ * was phrased as a return -- "חזרתם למשחק שהייתם בו — 21 מהלכים" -- and both front-door
  * routes hand a position over through the very store this module reads. Measured in Chromium on a
  * fresh profile, entering through `עמדה מהסט המשותף`: that sentence, under the board, in the first
  * state of the evidence window, to somebody who had never seen the game. A claim about the
@@ -40,14 +40,37 @@ import type { AnalysisSource } from "@shared/analysis-source";
  * describes that assignment is part of it, and `Home.tsx` is under a line ceiling with a test
  * behind it. Pure, exported, and testable without driving the page.
  *
- * The half-move count stays on every branch: it is the one fact that says how far into a game the
+ * The move count stays on every branch: it is the one fact that says how far into a game the
  * position sits, and it is true however the position arrived.
+ *
+ * IT NOW ENDS BY SAYING WHAT TO DO, AND TWO PEOPLE FAILING IS WHY. Two testers, independently and
+ * cold, could not complete a move. This sentence is directly under the board, in the largest type
+ * anywhere near it, and it described the position without ever naming the act. The only text that
+ * said "choose a move" was the disabled submit's own label, at the bottom of the panel below the
+ * board -- measured on a 390x844 phone, it begins at y=810 of 844, under a copy-FEN control at
+ * y=680. The instruction was on screen and unreachable; the provenance was reachable and inert.
+ *
+ * AND IT COUNTS MOVES RATHER THAN HALF-MOVES. "24 מהלכים" is a ply count wearing a word
+ * nobody says out loud, and a player who reads it as moves is told the game is twice as long as it
+ * is. Halving it makes the number mean what the sentence appears to claim.
+ *
+ * THE SIDE IS SAID HERE TOO, and it is the other half of what the two testers could not work out.
+ * `.turn-reading` does carry it, correctly, in `--panel-fine` above the board and to the right of
+ * a move headline that is four times its size. Saying it in the sentence the eye is already on
+ * costs three words and does not move a single element.
  */
-export function restoreNotice(handover: PositionHandover | null, plies: number): string {
-  const depth = plies ? ` — ${plies} חצאי־מהלכים.` : ".";
-  if (handover === "first-decision") return `עמדה ממשחק ששיחקתם${depth}`;
-  if (handover === "anchor") return `עמדה מהסט המשותף${depth}`;
-  return `חזרתם למשחק שהייתם בו${depth}`;
+export function restoreNotice(
+  handover: PositionHandover | null,
+  plies: number,
+  /** The side the player is about to move, or null when the caller cannot say. */
+  side: "w" | "b" | null = null,
+): string {
+  const depth = plies ? ` — אחרי ${Math.ceil(plies / 2)} מהלכים.` : ".";
+  const whose = side === null ? "" : ` אתם ${side === "w" ? "לבן" : "שחור"}.`;
+  const act = " בחרו מהלך על הלוח.";
+  if (handover === "first-decision") return `עמדה ממשחק ששיחקתם${depth}${whose}${act}`;
+  if (handover === "anchor") return `עמדה מהסט המשותף${depth}${whose}${act}`;
+  return `חזרתם למשחק שהייתם בו${depth}${whose}${act}`;
 }
 
 /** Everything a stored position sets. One object so a new field cannot be added to only one path. */

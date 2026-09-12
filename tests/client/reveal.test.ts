@@ -66,7 +66,7 @@ describe("what cannot be inferred comes first, and is never empty", () => {
     const limits = inferenceLimits(
       from({ cpLoss: ENGINE_NOISE_CP - 5, chosenWasBest: false, bestMove: "f8e7" }),
     );
-    expect(limits.join(" ")).toContain("זו אינה טעות");
+    expect(limits.join(" ")).toContain("זו לא טעות");
   });
 });
 
@@ -87,7 +87,7 @@ describe("the one thing to work on is one thing, or nothing", () => {
   it("talks about the move when confidence was not the signal", () => {
     const one = theOneThing(from({ cpLoss: 180, chosenWasBest: false, confidence: 2 }));
     expect(one?.text).toContain("g8f6");
-    expect(one?.basis).toContain("180 ס״פ");
+    expect(one?.basis).toContain("1.80 רגלים");
   });
 
   it("does not call a within-noise difference a cost", () => {
@@ -169,5 +169,67 @@ describe("the next question is anchored to what the player could not evaluate", 
     // evaluate is the one thing on screen the engine did not produce, right move or not.
     const question = nextQuestion(from({ chosenMove: "e4d5", bestMove: "e4d5" }));
     expect(question).toContain("לא יודע אם d5 עובד");
+  });
+});
+
+/*
+ * A COLD PLAYER PHOTOGRAPHED THIS ONE.
+ *
+ * The reveal's headline read `g5d8 עלה 484 ס״פ מול f2f4` while the move timeline two centimetres
+ * below it read `12.Nd4`, and the analysis rows read `b5b4` above a principal variation rendered
+ * `b4 Na4 a5 h4`. One panel, two notations, and the machine's won the sentence that carries the
+ * whole point. A move is only nameable in a position, so the position is what the fix supplies.
+ */
+describe("a move is named the way the board names it", () => {
+  /* 1.e4 e5 2.Nf3: Black to move, so g8f6 is Nf6 and b8c6 is Nc6. */
+  const AFTER_1E4_E5_NF3 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2";
+
+  it("renders SAN in the sentence when the position is carried", () => {
+    const one = theOneThing(
+      from({ fen: AFTER_1E4_E5_NF3, cpLoss: 180, chosenMove: "b8c6", bestMove: "g8f6", chosenWasBest: false, confidence: null }),
+    );
+    expect(one?.text).toContain("Nc6");
+    expect(one?.text).toContain("Nf6");
+    expect(one?.text).not.toContain("b8c6");
+  });
+
+  it("names the move in the next question too", () => {
+    /* `statedUnknown` empty, so the question is the one that names the two moves. */
+    const q = nextQuestion(
+      from({ fen: AFTER_1E4_E5_NF3, cpLoss: 180, chosenMove: "b8c6", bestMove: "g8f6", chosenWasBest: false, statedUnknown: "" }),
+    );
+    expect(q).toContain("Nc6");
+    expect(q).not.toContain("b8c6");
+  });
+
+  it("falls back to the UCI when no position is carried, which is what it always did", () => {
+    const one = theOneThing(
+      from({ cpLoss: 180, chosenMove: "b8c6", bestMove: "g8f6", chosenWasBest: false, confidence: null }),
+    );
+    expect(one?.text).toContain("b8c6");
+  });
+
+  it("falls back rather than guessing when the move is not legal in the position", () => {
+    const one = theOneThing(
+      from({ fen: AFTER_1E4_E5_NF3, cpLoss: 180, chosenMove: "a1a8", bestMove: "g8f6", chosenWasBest: false, confidence: null }),
+    );
+    expect(one?.text).toContain("a1a8");
+  });
+
+  it("still matches candidates on the stored notation, not on the label", () => {
+    /* `candidatesConsidered` is stored in UCI; the choice rule must fire on a UCI match. */
+    const one = theOneThing(
+      from({
+        fen: AFTER_1E4_E5_NF3,
+        cpLoss: 180,
+        chosenMove: "b8c6",
+        bestMove: "g8f6",
+        chosenWasBest: false,
+        confidence: null,
+        candidatesConsidered: ["b8c6", "g8f6"],
+      }),
+    );
+    expect(one?.kind).toBe("chose-past-it");
+    expect(one?.text).toContain("Nf6");
   });
 });

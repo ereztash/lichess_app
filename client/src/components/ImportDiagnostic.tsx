@@ -24,6 +24,7 @@ import { MIN_BUCKET_N } from "@shared/detector";
 import {
   worstBucketVerdict,
   type ImportDiagnostic as Diagnostic,
+  LIVE_DECISION_ADDS,
 } from "@shared/import-diagnostic";
 import type { ReactNode } from "react";
 import { Overlay } from "./Overlay";
@@ -35,14 +36,14 @@ function Unmeasurable({ reason, n }: { reason: "too-few" | "no-clock-data" | nul
   if (reason === "no-clock-data") {
     return (
       <span className="bucket-short">
-        אין נתוני שעון במשחקים האלה, ולכן לא ניתן למדוד את הסוג הזה. ליצ׳ס מייצא שעונים רק אם
+        אין נתוני שעון במשחקים האלה, ולכן אי אפשר למדוד את הסוג הזה. ליצ׳ס מייצא שעונים רק אם
         ביקשתם אותם בייצוא — ייבוא של עוד משחקים מאותו מקור לא יעזור.
       </span>
     );
   }
   return (
     <span className="bucket-short">
-      לא ניתן למדוד — {n} החלטות מהסוג הזה, נדרשות {MIN_BUCKET_N}
+      אי אפשר למדוד — {n} החלטות מהסוג הזה, נדרשות {MIN_BUCKET_N}
     </span>
   );
 }
@@ -53,18 +54,38 @@ function Unmeasurable({ reason, n }: { reason: "too-few" | "no-clock-data" | nul
  * One sentence, one shape, filled from the reading. Not chosen from a set of phrasings and not
  * generated: the same numbers always produce the same sentence, which is what makes it checkable.
  */
-function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
+/**
+ * What this panel concluded, rendered before the numbers it concluded it from.
+ *
+ * IT USED TO RENDER LAST, AND IN THE PROVENANCE REGISTER. Measured on a 390x844 phone: the six
+ * bucket rates laid out at y=1363 through y=1698 in the largest type on the screen, and this --
+ * the sentence saying they do not separate -- rendered at the bottom of the panel through
+ * `NotMeasured`, which is `.value-provenance`: the small grey style this codebase reserves for
+ * WHERE A NUMBER CAME FROM. So the finding was smaller and greyer than every number it was about,
+ * roughly eight hundred pixels below them, after a horizontal rule that reads as the end of the
+ * content.
+ *
+ * WHAT IS AND IS NOT CLAIMED BY MOVING IT. That the ordering renders the denial below the ranking
+ * is an OBSERVATION and is what this repairs. That the eye has little basis to reject the ranking
+ * is a perceptual inference. That players actually misread it is a BEHAVIORAL claim and needs R6;
+ * it is not asserted here and this change is not evidence for it.
+ *
+ * The numbers keep every figure, every n and every exclusion. Nothing is hidden and no method is
+ * removed -- what changed is which sentence a reader meets first.
+ */
+function Finding({ diagnostic }: { diagnostic: Diagnostic }) {
   const verdict = worstBucketVerdict(diagnostic);
 
   if (!verdict) {
     return (
-      <NotMeasured
-        reason={
-          diagnostic.scored === 0
+      <p className="import-finding import-finding--none">
+        <span className="import-finding__what">
+          {diagnostic.scored === 0
             ? "לא נקראה אף החלטה שלכם מהמשחקים האלה."
-            : `נקראו ${diagnostic.scored} החלטות, ואף סוג לא הגיע ל-${MIN_BUCKET_N}. אין עדיין מה לומר.`
-        }
-      />
+            : `נקראו ${diagnostic.scored} החלטות, ואף סוג לא הגיע ל-${MIN_BUCKET_N}. אין עדיין מה לומר.`}
+        </span>{" "}
+        <span className="import-finding__next">{LIVE_DECISION_ADDS}</span>
+      </p>
     );
   }
 
@@ -73,23 +94,32 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
      * Enough decisions, no pattern -- and that is a result. The rates differ, because six
      * measurements always differ; they do not differ by more than their own sampling error, so
      * naming the lowest one would be naming the noise.
+     *
+     * THE SECOND SENTENCE IS WHY THIS STATE IS NOT A DEAD END. Without it the panel says "these
+     * numbers mean nothing" and stops, which is honest and gives a reader nothing to do. The
+     * evidence-type fact is what the next decision buys, it is true whatever the detector later
+     * finds, and it is the only thing here that history cannot supply.
      */
     return (
-      <NotMeasured
-        reason={
-          verdict.runnerUp === null
+      <p className="import-finding">
+        <span className="import-finding__what">
+          {verdict.runnerUp === null
             ? "רק סוג אחד יש בו מספיק החלטות, ואין לו למה להשוות את עצמו."
-            : "הסוגים שנמדדו קרובים זה לזה יותר מטעות הדגימה שלהם. יש מספר נמוך ביותר, אבל הוא לא נבדל מהשאר."
-        }
-      />
+            : "אף סוג לא נבדל מהשאר. ההפרשים שלמטה קטנים מטעות הדגימה של עצמם, ולכן המספר הנמוך ביותר אינו ממצא."}
+        </span>{" "}
+        <span className="import-finding__next">{LIVE_DECISION_ADDS}</span>
+      </p>
     );
   }
 
   return (
-    <p className="import-observation">
-      הדיוק הנמוך ביותר שנמדד הוא ב<strong>{verdict.worst.scope}</strong>:{" "}
-      <Proportion value={verdict.worst.accurateRate} n={verdict.worst.n} /> — לעומת{" "}
-      <Proportion value={verdict.runnerUp.accurateRate} n={verdict.runnerUp.n} /> בסוג הבא אחריו.
+    <p className="import-finding import-finding--separated">
+      <span className="import-finding__what">
+        הדיוק הנמוך ביותר שנמדד הוא ב<strong>{verdict.worst.scope}</strong>:{" "}
+        <Proportion value={verdict.worst.accurateRate} n={verdict.worst.n} /> — לעומת{" "}
+        <Proportion value={verdict.runnerUp.accurateRate} n={verdict.runnerUp.n} /> בסוג הבא אחריו.
+      </span>{" "}
+      <span className="import-finding__next">{LIVE_DECISION_ADDS}</span>
     </p>
   );
 }
@@ -200,6 +230,11 @@ export function ImportDiagnosticPanel({
        * the sentence says "in every row" explicitly rather than leaving it to be inferred from
        * nine sightings.
        */}
+      {/*
+        THE FINDING FIRST, THE WORKING UNDER IT. See `Finding` for the measurement that moved it.
+      */}
+      <Finding diagnostic={diagnostic} />
+
       <p className="bucket-absent-note">
         פער כיול — <strong>לא נמדד באף שורה</strong>, גם באלה שיש בהן דיוק.
       </p>
@@ -295,8 +330,6 @@ export function ImportDiagnosticPanel({
           שניות בקלאסי אינם אותה החלטה. הסוגים שנוגעים לשלב המשחק נקראו על כל המשחקים.
         </p>
       )}
-
-      <Observation diagnostic={diagnostic} />
 
       {/*
         * The one action this screen offers, and the reason it is no longer terminal. See

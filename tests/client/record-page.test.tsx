@@ -69,6 +69,13 @@ vi.mock("@/lib/record-api", () => ({
   useRecordReading: () => state.reading,
   useImportReading: () => state.importReading,
   useClaimView: () => state.claim,
+  /*
+   * The journey ledger fetches its own rules rather than being handed them, because nothing else on
+   * this page reads them and a request on every visit for a surface most visits never scroll to is
+   * a request not worth making. An empty list is the ordinary state and is what this page's tests
+   * are about; the ledger's own behaviour over a populated list is tested where the ledger is.
+   */
+  useLearningRules: () => ({ data: { rules: [] }, isLoading: false, isError: false, refetch: vi.fn() }),
 }));
 vi.mock("wouter", () => ({ useLocation: () => ["/", vi.fn()] }));
 /* The dashboard and the import panel have their own tests; what is under test is the page. */
@@ -78,6 +85,10 @@ vi.mock("@/components/RecordDashboard", () => ({
 vi.mock("@/components/ImportDiagnostic", () => ({
   ImportDiagnosticPanel: () => <div data-testid="import-panel">import</div>,
 }));
+vi.mock("@/components/JourneyLedger", () => ({
+  JourneyLedger: () => <div data-testid="journey">journey</div>,
+}));
+vi.mock("@/components/GoalNote", () => ({ GoalNote: () => <div data-testid="goal">goal</div> }));
 
 const { default: Record } = await import("@/pages/Record");
 
@@ -251,6 +262,26 @@ describe("two measurements, two containers", () => {
     // Neither may hold the other's panel: that is the whole point of the wall.
     expect(within(committed as HTMLElement).queryByTestId("import-panel")).toBeNull();
     expect(within(imported as HTMLElement).queryByTestId("dashboard")).toBeNull();
+  });
+
+  it("does not count the journey summary as a third measurement", () => {
+    /*
+     * THE JOURNEY LAYER IS ON THIS PAGE AND IS NOT ONE OF THE TWO. It summarises what the
+     * measurements above produced -- which claim exists, which rules are open, how far each has got
+     * -- and it produces no measurement of its own. It shipped wearing `.record-layer` for one
+     * commit, the count above went to three, and the assertion this test already made caught it.
+     * This is that catch written down, so the class cannot drift back on a page nobody is counting.
+     */
+    const { container } = mount({
+      reading: { data: withRecord(12), isLoading: false, isError: false },
+      importReading: { reading: keptReading, loading: false },
+    });
+    const journey = container.querySelector(".journey-layer");
+    expect(journey, "the journey layer is not on the record page").not.toBeNull();
+    expect(
+      journey!.classList.contains("record-layer"),
+      "a summary of the measurements is wearing the measurement class",
+    ).toBe(false);
   });
 
   it("says out loud that the imported layer is not calibration and cannot become it", () => {

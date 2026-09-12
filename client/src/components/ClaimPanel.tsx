@@ -39,7 +39,7 @@ export function ClaimPanel({
     return (
       <section id="claim-panel" className="claim-panel" aria-label="מה חוזר">
         <p className="claim-loading">
-          <Loader2 size={14} /> קורא את הרשומה…
+          <Loader2 size={14} /> קורא את ההיסטוריה…
         </p>
       </section>
     );
@@ -52,7 +52,7 @@ export function ClaimPanel({
         <h3>
           <FlaskConical size={14} /> מה חוזר
         </h3>
-        <NotMeasured reason={`לא ניתן לקרוא את רשומת ההחלטות: ${query.errorMessage}`} />
+        <NotMeasured reason={`אי אפשר לקרוא את היסטוריית ההחלטות: ${query.errorMessage}`} />
       </section>
     );
   }

@@ -14,8 +14,34 @@
  */
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
+import { Chess } from "chess.js";
 import { normaliseConfidence } from "./confidence.js";
+import { costInPawns, PAWN_UNIT } from "./pawns.js";
 import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
+
+/**
+ * A move as the board names it, or the UCI it came as.
+ *
+ * THE FALLBACK IS NOT A CONVENIENCE, IT IS THE SAFETY PROPERTY. Naming a move wrongly is worse
+ * than naming it in engine notation: a player who reads `Nd4` and finds no knight stops trusting
+ * the panel, while `d2d4` is merely ugly. So every failure path -- no position, a position the
+ * move is not legal in, a malformed FEN, a promotion string chess.js rejects -- returns the input
+ * unchanged rather than a guess.
+ */
+export function moveLabel(uci: string, fen: string | undefined): string {
+  if (!fen) return uci;
+  try {
+    const board = new Chess(fen);
+    const move = board.move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci.slice(4, 5) : undefined,
+    });
+    return move?.san ?? uci;
+  } catch {
+    return uci;
+  }
+}
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -42,6 +68,20 @@ export interface RevealInputs {
   cpLoss: number;
   chosenMove: string;
   bestMove: string;
+  /**
+   * The position the decision was taken in, so a move can be named the way the board names it.
+   *
+   * WHY IT IS HERE AT ALL. `chosenMove` and `bestMove` are UCI, because that is what the engine
+   * speaks and what the record stores. A cold player was shown the sentence
+   * `g5d8 עלה 484 ס״פ מול f2f4` while the move timeline two centimetres below it read `12.Nd4`:
+   * one product, two notations, and the machine one won the sentence that carries the whole point.
+   * A move is only nameable in a position, so the position is what this field supplies.
+   *
+   * OPTIONAL, AND THE FALLBACK IS THE OLD BEHAVIOUR EXACTLY. A caller that has no FEN, or a FEN the
+   * move is not legal in, gets the UCI it always got. Nothing that reads these sentences has to
+   * change, and a wrong FEN degrades to the previous output rather than to a wrong move name.
+   */
+  fen?: string;
   chosenWasBest: boolean;
   /**
    * The stated level as the player pressed it: 1..confidenceScale, NOT a probability.
@@ -131,10 +171,14 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
   );
 
   if (inputs.depth < SHALLOW_DEPTH) {
-    limits.push(`עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${ENGINE_NOISE_CP} ס״פ לא אומרים כאן כלום.`);
+    limits.push(
+      `עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${costInPawns(ENGINE_NOISE_CP)} ${PAWN_UNIT} לא אומרים כאן כלום.`,
+    );
   }
   if (inputs.cpLoss <= ENGINE_NOISE_CP && !inputs.chosenWasBest) {
-    limits.push(`הפרש של ${inputs.cpLoss} ס״פ מהמנוע הוא בתוך רעש ההערכה. זו אינה טעות.`);
+    limits.push(
+      `הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מהמנוע הוא בתוך רעש ההערכה. זו לא טעות.`,
+    );
   }
   /*
    * The distinction this build cannot make on one recorded candidate.
@@ -158,7 +202,7 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
    */
   if (inputs.clampedMate) {
     limits.push(
-      `המנוע החזיר מט כפוי. העלות נמדדה מול תקרה של ${MATE_SCORE} ס״פ, והמרחק למט עצמו לא נמדד.`,
+      "המנוע החזיר מט כפוי. העלות נמדדה מול תקרה קבועה, והמרחק למט עצמו לא נמדד.",
     );
   }
   if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
@@ -333,6 +377,13 @@ export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
   const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
+  /*
+   * NAMED ONCE, HERE, so every branch below says the move the same way. The comparison on the line
+   * above stays in UCI on purpose: `candidatesConsidered` is stored in UCI and matching a display
+   * label against a stored one is how a rename becomes a wrong answer.
+   */
+  const chosen = moveLabel(inputs.chosenMove, inputs.fen);
+  const best = moveLabel(inputs.bestMove, inputs.fen);
 
   /*
    * The choice rule, and it comes first.
@@ -364,9 +415,9 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * memory of the position; "you saw it" is a claim about their mind that the record cannot
        * make, and one they may simply know to be false.
        */
-      text: `${inputs.bestMove} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ.`,
+      text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
-      basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים ששקלתם, ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
 
@@ -393,17 +444,17 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   ) {
     return {
       kind: "confident-and-wrong",
-      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${inputs.cpLoss} ס״פ.`,
+      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "היית בטוח כאן יותר ממה שהתוצאה הצדיקה. זה על הביטחון, לא על המהלך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
       kind: "outplayed",
-      text: `${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}.`,
-      note: `מה ${inputs.bestMove} עושה בעמדה הזאת ש-${inputs.chosenMove} לא עושה?`,
-      basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      text: `${chosen} עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מול ${best}.`,
+      note: `מה ${best} עושה בעמדה הזאת ש-${chosen} לא עושה?`,
+      basis: `${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (noisy && stated !== null && stated <= UNSURE_ENOUGH_TO_NAME) {
@@ -415,7 +466,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * that is a claim the detector needs MIN_BUCKET_N decisions before it will make.
        */
       note: "ייתכן שידעת כאן יותר ממה שסמכת על עצמך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   // Nothing measured here supports a sentence. Say nothing rather than fill the space.
@@ -671,7 +722,7 @@ export const ACCUMULATION_NEXT = "ההחלטה הבאה תראה אם זה חו�
 export const ACCUMULATION_KIND_LABEL: Record<OneThingKind | "silence", string> = {
   "chose-past-it": "מהלך שהיה על הלוח ולא נבחר",
   "confident-and-wrong": "ביטחון גבוה מול מהלך שעלה חומר",
-  outplayed: "מהלך שעלה חומר, בלי שהרשומה מוסיפה עליו",
+  outplayed: "מהלך שעלה חומר, בלי שההיסטוריה מוסיפה עליו",
   "trusted-it-too-little": "בחירה טובה שהוצהר עליה ביטחון נמוך",
   silence: "מדידה שלא תמכה באף משפט",
 };
@@ -735,7 +786,7 @@ export function nextQuestion(inputs: RevealInputs): string {
    * flipping it to the flag alone and watching nothing fail.
    */
   if (inputs.chosenMove === inputs.bestMove) {
-    return `בחרת את ${inputs.chosenMove}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
+    return `בחרת את ${moveLabel(inputs.chosenMove, inputs.fen)}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
   }
-  return `מה היית צריך לדעת כדי לבחור בין ${inputs.chosenMove} ל-${inputs.bestMove}?`;
+  return `מה היית צריך לדעת כדי לבחור בין ${moveLabel(inputs.chosenMove, inputs.fen)} ל-${moveLabel(inputs.bestMove, inputs.fen)}?`;
 }

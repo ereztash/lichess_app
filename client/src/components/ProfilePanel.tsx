@@ -52,8 +52,8 @@ import { NotMeasured, Rate } from "@/components/Value";
  */
 const direction = (gapDifference: number) =>
   gapDifference > 0
-    ? "הביטחון המוצהר גבוה יותר ביחס לתוצאה מאשר בשאר הרשומה"
-    : "הביטחון המוצהר נמוך יותר ביחס לתוצאה מאשר בשאר הרשומה";
+    ? "הביטחון שאמרתם גבוה יותר ביחס לתוצאה מאשר בשאר ההיסטוריה"
+    : "הביטחון שאמרתם נמוך יותר ביחס לתוצאה מאשר בשאר ההיסטוריה";
 
 function CrossedFindingRow({ finding }: { finding: CrossedFinding }) {
   const { strongest } = finding;
@@ -102,12 +102,12 @@ export function ProfilePanel({
         * behind it, so nothing here can ever have been wrong in a way the record would notice.
         */}
       <p className="profile-panel__status">
-        מה שלמטה הוא תיאור של הרשומה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה
+        מה שלמטה הוא תיאור של ההיסטוריה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה
         במבחן — בשביל זה יש את הטענה שהמוצר מעלה בנפרד.
       </p>
 
       {findings.length === 0 ? (
-        <NotMeasured reason="אף משתנה עדיין לא נפרד משאר הרשומה" />
+        <NotMeasured reason="אף משתנה עדיין לא נפרד משאר ההיסטוריה" />
       ) : (
         <ul className="profile-panel__variables">
           {findings.map((finding) => (
@@ -156,7 +156,7 @@ export function ProfilePanel({
           ))}
         </ul>
       ) : (
-        <NotMeasured reason="אף הצלבה לא נפרדה משאר הרשומה" />
+        <NotMeasured reason="אף הצלבה לא נפרדה משאר ההיסטוריה" />
       )}
 
       <p className="profile-panel__denominator">
@@ -173,7 +173,7 @@ export function ProfilePanel({
             * The distinction R2 exists for. These cells are not short of decisions; they are
             * unreachable, and telling a player to keep playing toward them would be false.
             */}
-          מתוכם <bdi>{crossing.impossible}</bdi> תאים לא יתמלאו לעולם ברשומה הזאת, כי אין בה
+          מתוכם <bdi>{crossing.impossible}</bdi> תאים לא יתמלאו לעולם בהיסטוריה הזאת, כי אין בה
           נתוני שעון. זה לא עניין של עוד החלטות.
         </p>
       )}

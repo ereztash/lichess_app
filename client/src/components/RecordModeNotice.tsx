@@ -24,11 +24,11 @@ import type { RecordServerStatus } from "@/lib/record-api";
  * matter what the key says, so a per-account key buys a claim of separation the storage cannot
  * back. Saying what the store is beats implying what it is not.
  */
-const SHARED_BROWSER = "הרשומה נשמרת בדפדפן הזה, והיא של הדפדפן — לא של החשבון שלכם.";
+const SHARED_BROWSER = "ההיסטוריה נשמרת בדפדפן הזה, והיא של הדפדפן — לא של החשבון שלכם.";
 
 const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
   /*
-   * "הרשומה" AND NOT "המידע", and the difference is now load-bearing. The record -- decisions, reads,
+   * "ההיסטוריה" AND NOT "המידע", and the difference is now load-bearing. The record -- decisions, reads,
    * confidences, positions -- never leaves. What does leave, on a failure only, is the NAME of the
    * failure: a code from a closed list, the screen it happened on, the build. Saying "nothing leaves"
    * while that is sent would be the product's central honesty claim made false by its own error
@@ -37,11 +37,11 @@ const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
   "signed-out": "ההחלטות נשמרות בדפדפן הזה בלבד. בתקלה נשלח לשרת רק שם התקלה.",
   unknown: "בודקים אם בשרת יש מאגר החלטות זמין. עד שתתקבל תשובה ההחלטות נשמרות בדפדפן הזה.",
   "no-database":
-    "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים.",
-  "not-this-account": `הרשומה שבשרת שייכת לחשבון שהגדיר את הפריסה, ואתם מחוברים בחשבון אחר — השרת סירב, ולא בגלל תקלה. ${SHARED_BROWSER} הלולאה עובדת, אבל היא לא תעבור בין מכשירים.`,
-  "no-owner-configured": `בפריסה הזו לא הוגדר OWNER_OPEN_ID, ולכן אף חשבון לא יכול להגיע לרשומה שבשרת — זו הגדרה חסרה בשרת, לא הרשאה חסרה שלכם. ${SHARED_BROWSER}`,
+    "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). ההיסטוריה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים.",
+  "not-this-account": `ההיסטוריה שבשרת שייכת לחשבון שהגדיר את הפריסה, ואתם מחוברים בחשבון אחר — השרת סירב, ולא בגלל תקלה. ${SHARED_BROWSER} הלולאה עובדת, אבל היא לא תעבור בין מכשירים.`,
+  "no-owner-configured": `בפריסה הזו לא הוגדר OWNER_OPEN_ID, ולכן אף חשבון לא יכול להגיע להיסטוריה שבשרת — זו הגדרה חסרה בשרת, לא הרשאה חסרה שלכם. ${SHARED_BROWSER}`,
   unreachable:
-    "לא הצלחנו להגיע לשרת, והוא לא אמר למה. ההחלטות נשמרות בדפדפן הזה בינתיים; לא ידוע אם קיימת שם רשומה אחרת.",
+    "לא הצלחנו להגיע לשרת, והוא לא אמר למה. ההחלטות נשמרות בדפדפן הזה בינתיים; לא ידוע אם קיימת שם היסטוריה אחרת.",
   /*
    * NOT A FAILURE, AND IT STILL HAS TO BE SAID.
    *
@@ -52,15 +52,15 @@ const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
    * away with it: the component returns null on `usable`.
    */
   "kept-local":
-    "השרת חזר לענות, אבל ההחלטות שרשמתם בביקור הזה נשמרו בדפדפן הזה — ולכן הרשומה נשארת כאן לעת עתה. " +
-    "הן לא אבדו והן לא בשרת; רשומת השרת היא רשומה אחרת. אין כאן מיזוג אוטומטי בין השתיים.",
+    "השרת חזר לענות, אבל ההחלטות שרשמתם בביקור הזה נשמרו בדפדפן הזה — ולכן ההיסטוריה נשארת כאן לעת עתה. " +
+    "הן לא אבדו והן לא בשרת; ההיסטוריה שבשרת היא היסטוריה אחרת. אין כאן מיזוג אוטומטי בין השתיים.",
   /*
    * Deliberately does NOT say the decisions are being kept here. They are not: the record stays
    * pointed at the server. Saying otherwise would be the reassurance that makes a split record
    * invisible, which is the whole reason this state exists instead of a silent fallback.
    */
   "server-lost":
-    "הרשומה שלכם נמצאת בשרת, והשרת הפסיק לענות. לא עברנו לרשומה בדפדפן — היא רשומה אחרת, וההחלטות שכבר רשמתם אינן בה. נסו שוב בעוד רגע; עד אז אי אפשר לרשום החלטה חדשה.",
+    "ההיסטוריה שלכם נמצאת בשרת, והשרת הפסיק לענות. לא עברנו להיסטוריה בדפדפן — היא היסטוריה אחרת, וההחלטות שכבר רשמתם אינן בה. נסו שוב בעוד רגע; עד אז אי אפשר לרשום החלטה חדשה.",
 };
 
 const SESSION_ONLY =

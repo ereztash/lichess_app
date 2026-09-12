@@ -27,11 +27,13 @@ import {
   nextQuestion,
   revealAccumulation,
   silenceBasis,
+  moveLabel,
   theOneThing,
   type OneThingMix,
   type RevealInputs,
 } from "@shared/reveal";
 import type { EngineLine } from "@/lib/engine-line";
+import { costInPawns, PAWN_UNIT } from "@shared/pawns";
 import { primaryAction } from "@shared/primary-action";
 import { recordTrialEvent, trialEventSeen } from "@/lib/progress-record";
 import { NotMeasured, Value } from "./Value";
@@ -222,7 +224,8 @@ export function RevealPanel({
               <>אין כאן משפט: בחרת בתוך רעש ההערכה, והביטחון לא היה נמוך ממנו. זו תוצאה תקינה, לא מסך ריק.</>
             ) : (
               <>
-                אין כאן משפט: המהלך עלה {inputs.cpLoss} ס״פ, מעל הרעש ({ENGINE_NOISE_CP}) ומתחת לסף
+                אין כאן משפט: המהלך עלה {costInPawns(inputs.cpLoss)} {PAWN_UNIT}, מעל הרעש
+                ({costInPawns(ENGINE_NOISE_CP)}) ומתחת לסף
                 שממנו הכלי אומר משהו ({MATERIAL_LOSS_CP}). זו תוצאה תקינה, לא מסך ריק.
               </>
             )}
@@ -272,19 +275,29 @@ export function RevealPanel({
           <div className="reveal-metric">
             <span>עלות ההחלטה</span>
             <Value provenance={{ kind: "engine", source: "local_sf18", depth: inputs.depth }}>
-              {inputs.clampedMate ? `${inputs.cpLoss} ס״פ מול תקרת מט` : `${inputs.cpLoss} ס״פ`}
+              {inputs.clampedMate
+                ? `${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מול תקרת מט`
+                : `${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}`}
             </Value>
           </div>
+          {/*
+            * THE SAME NOTATION THE BOARD SPEAKS, and the line of play underneath is why.
+            *
+            * These two rows rendered UCI while `reveal-pv` three lines below rendered SAN, so one
+            * panel showed `b5b4` and `d8c7` above `b4 Na4 a5 h4`. A cold player photographed it.
+            * `moveLabel` falls back to the UCI when the position cannot name the move, which is
+            * exactly what these rows showed before.
+            */}
           <div className="reveal-metric">
             <span>מהלך המנוע</span>
             <Value provenance={{ kind: "engine", source: "local_sf18", depth: inputs.depth }}>
-              {inputs.bestMove}
+              {moveLabel(inputs.bestMove, inputs.fen)}
             </Value>
           </div>
           <div className="reveal-metric">
             <span>המהלך שלך</span>
             <Value provenance={{ kind: "player", unit: "נרשם לפני החשיפה" }}>
-              {inputs.chosenMove}
+              {moveLabel(inputs.chosenMove, inputs.fen)}
             </Value>
           </div>
           <div className="reveal-pv" dir="ltr">

@@ -53,6 +53,22 @@ export const STEP_LABELS: Record<LoopStep, string> = {
 export type ClaimGrade = "hypothesis" | "replicated" | "refuted";
 
 export interface LoopInputs {
+  /**
+   * Whether the reader can act on an address this sentence names, right now.
+   *
+   * FALSE WHILE A DECISION IS OPEN, and the sentence has to know because it was making an offer
+   * the screen had already withdrawn. `ContextRibbon` suppresses the goto control under `focus`
+   * (LAW 1: the record's readings are not on screen while evidence is being produced), and the
+   * headline went on saying "importing games you have already played can shorten this" beside no
+   * control that could import anything.
+   *
+   * That is exactly what the surface ledger's B1 row flags about this sentence and why it is one
+   * of its fourteen TEST rows: "a suggestion they cannot act on during a decision is a suggestion
+   * competing with the decision". The suggestion is now absent in that state rather than inert,
+   * and `action` goes with it, so the words and the control cannot disagree about whether there
+   * is somewhere to go.
+   */
+  canAct?: boolean;
   /** A drill is running right now, and its progress. */
   drill: { completed: number; total: number } | null;
   /** Decisions on the record, and how many of them this reading is computed over. */
@@ -109,6 +125,22 @@ export interface LoopInputs {
    * is running.
    */
   scoredStillNeeded: number | null;
+  /**
+   * Learning rules the record holds, and what each of them is waiting for.
+   *
+   * WHY THE POINTER NEEDED THIS AT ALL. The loop used to end at `grade`: a claim survived a drill,
+   * the strip said so, and that was the last thing it ever said. Meanwhile the record could hold
+   * three rules, one due for a delayed retrieval today and two being counted in ordinary play, and
+   * nothing on any screen pointed at them. The step vocabulary is unchanged and deliberately so --
+   * `record -> detect -> drill -> grade` is four ratchet-protected labels and a fifth would be a
+   * new thing to learn -- but `grade` stops being a terminal.
+   *
+   * PLURAL, BECAUSE THE OBJECTS ARE. `learningRules` returns an array and each rule carries its own
+   * grade, retrieval step and due date. The pointer still says ONE thing, since "what should I do
+   * now" has one answer; what it may not do is pretend the one thing is all there is, so it says
+   * how many others are open. `JourneyLedger` is where they are all readable.
+   */
+  rules?: { due: number; open: number };
   /**
    * The bucket a registered hypothesis narrowed the search to, or null for the ordinary scan.
    *
@@ -194,12 +226,14 @@ export function remainingBeforeClaim(input: {
 
 export function loopPosition(inputs: LoopInputs): LoopPosition {
   const {
+    canAct = true,
     drill,
     recorded,
     scored,
     claimGrade,
     scoredStillNeeded,
     narrowedTo,
+    rules,
     awaitingReveal: awaiting,
     withoutConfidence,
     withoutInstrument,
@@ -235,14 +269,37 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   }
 
   if (claimGrade === "replicated" || claimGrade === "refuted") {
+    /*
+     * A GRADE IS NOT THE END OF THE LOOP, AND SAYING SO WAS THE DEFECT.
+     *
+     * The grade itself is an outcome and nothing changes it -- that part was right. What was wrong
+     * is what followed: a player who had graded a claim, written a rule from it and had a retrieval
+     * test come due was told "more decisions may produce the next claim", with no mention of the
+     * one piece of work that was actually waiting for them. The record knew; the pointer did not
+     * read it.
+     */
+    const due = rules?.due ?? 0;
+    const open = rules?.open ?? 0;
+    const graded =
+      claimGrade === "refuted"
+        ? "הטענה הופרכה ונשמרת. היא לא נבדקת שוב."
+        : "הטענה שרדה דריל.";
+    if (due > 0) {
+      return {
+        step: "grade",
+        headline: `${graded} ${due === 1 ? "כלל אחד מחכה לבדיקה חוזרת" : `${due} כללים מחכים לבדיקה חוזרת`}, בלי העמדות שתרגלתם עליהן.`,
+        basis: `${scored} החלטות שנמדדו · ${open} כללים פתוחים`,
+        action: { target: "claim", label: "לוח הדפוסים" },
+      };
+    }
     return {
       step: "grade",
       headline:
-        claimGrade === "refuted"
-          ? "הטענה הופרכה ונשמרת. היא לא נבדקת שוב."
-          : "הטענה שרדה דריל. עוד החלטות יכולות להוליד את הבאה.",
+        open > 0
+          ? `${graded} ${open === 1 ? "כלל אחד נספר עכשיו במשחק רגיל, בלי תזכורת." : `${open} כללים נספרים עכשיו במשחק רגיל, בלי תזכורת.`}`
+          : `${graded} עוד החלטות יכולות להוליד את הבאה.`,
       basis: `${scored} החלטות שנמדדו · טענה מדורגת`,
-      // A grade is an outcome. There is no surface that changes it, so there is no address.
+      // Nothing to press: what advances an unprompted count is ordinary play on the board.
       action: null,
     };
   }
@@ -252,8 +309,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   if (scoredStillNeeded === null) {
     return {
       step: "record",
-      headline: "לא ניתן לקרוא את הרשומה, ולכן לא ידוע מה המרחק לדפוס.",
-      basis: "שכבת הרשומה לא נענתה",
+      headline: "אי אפשר לקרוא את ההיסטוריה, ולכן לא ידוע מה המרחק לדפוס.",
+      basis: "שכבת ההיסטוריה לא נענתה",
       // Sending the player somewhere would imply the destination can fix this. It cannot.
       action: null,
     };
@@ -277,7 +334,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   if (recorded === 0 && !narrowedTo) {
     return {
       step: "record",
-      headline: "הרשומה עוד ריקה. ההחלטה הראשונה נרשמת על הלוח.",
+      headline: "ההיסטוריה עוד ריקה. ההחלטה הראשונה נרשמת על הלוח.",
       basis: "0 שנרשמו",
       // The board is the address, and it is what the player is looking at.
       action: null,
@@ -309,7 +366,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
      */
     const unreadable =
       withoutInstrument > 0
-        ? ` ${withoutInstrument} נמדדו לפני שהרשומה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן: ` +
+        ? ` ${withoutInstrument} נמדדו לפני שההיסטוריה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן: ` +
           `שני מנועים חולקים על 13.61% מהפסקים. החלטות חדשות שומרות את זה.`
         : "";
     /* Not a loss and not a wait: they are counted, under another heading, with their own
@@ -325,7 +382,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        were measured; the line that reports this search says `נספרות`, which is what it counts.
        Neither number moved and neither denominator moved. */
     const elsewhere =
-      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה.` : "";
+      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של ההיסטוריה.` : "";
 
     if (narrowedTo) {
       /*
@@ -358,25 +415,47 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
      * shorten, if" is what shared/prereg.ts actually does; "will shorten" would be the product
      * promising an outcome it cannot know before the scan runs.
      */
+    /* The shortcut and the control that reaches it, or neither. Never the sentence alone. */
+    const shortcut = canAct
+      ? " ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל."
+      : "";
     return {
       step: "record",
-      headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שיהיה מה לומר.${waiting}${passed}${unreadable}${elsewhere} ` +
-        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל.`,
+      headline: `עוד ${scoredStillNeeded} החלטות מדודות עד שיהיה מה לומר.${waiting}${passed}${unreadable}${elsewhere}${shortcut}`,
       basis: `${scored} מתוך ${recorded} שנרשמו נספרות בחיפוש הזה`,
       /*
        * The only headline that names a surface out loud, and the reason this field exists: it
        * said an import can shorten the wait while the import sat four controls away in the tool
        * rail with nothing linking the two.
        */
-      action: { target: "import", label: "ייבוא לפי שם משתמש" },
+      action: canAct ? { target: "import", label: "ייבוא לפי שם משתמש" } : null,
     };
   }
 
+  /*
+   * A STATEMENT ABOUT THE INSTRUMENT, WHICH IS WHAT IT ALWAYS WAS.
+   *
+   * This said "there are enough decisions and no pattern cleared the threshold", and a player reads
+   * that as a fact about themselves: nothing recurring here, nothing to find. The research says
+   * otherwise about exactly this instrument. The shipped six-bucket detector returns `not-separable`
+   * on the owner's own whole 2,209-game record, while a frozen research pipeline finds a residual on
+   * that same record which survives its own within-game permutation null.
+   *
+   * So the sentence was true of the detector and false as a description of the player, and the only
+   * repair is to say which one it is about. Nothing else changes: the floor, the six buckets and the
+   * threshold are untouched.
+   *
+   * "תשובה ולא שתיקה" IS KEPT VERBATIM AND THAT IS NOT INCIDENTAL. A first pass at this repair
+   * replaced it, and `said-once.test.ts` caught the loss: the contrast with silence is what tells a
+   * player the product actually ran and found nothing rather than withholding something, and it is
+   * asserted here and refused in the claim panel so that exactly one surface says it. The scoping
+   * is added to that sentence, not instead of it.
+   */
   return {
     step: "detect",
-    headline: "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה.",
-    basis: `${scored} החלטות שנמדדו · אין דפוס מעל הסף`,
+    headline:
+      "יש מספיק החלטות, ואף אחד משישה הסוגים שהמכשיר הזה בודק לא נפרד מהשאר. זו תשובה ולא שתיקה, והיא עליו ולא עליכם.",
+    basis: `${scored} החלטות שנמדדו · שישה סוגים נבדקו, אף אחד לא נפרד`,
     // An answer, not a queue. More decisions may change it, and those are taken on the board.
     action: null,
   };

@@ -22,6 +22,10 @@
  * The readings that set them: front door 137, decide 97, commitment 107, reveal 199, the shared
  * set's commitment 172; before the act 63, 58, 68, 163, 131; a phone's first screen 44 and 151.
  *
+ * ONE OF THEM HAS SINCE GONE UP ON PURPOSE, which is what the paragraph below permits and what the
+ * note on `decide` records: the screen where a stranger acts said what the position was and never
+ * what to do, and two of them could not act. Decide reads 104 and its phone screen 51.
+ *
  * NOT A GATE, deliberately. A gate is a source scan with a positive control; this is a walk of the
  * built app in a real browser, like the other layout tests, and a browser is what a word count on a
  * screen needs -- jsdom paints nothing and would count the hidden and the shown alike.
@@ -43,7 +47,22 @@ import {
 /** Visible words per stage, at the desktop viewport the other stranger walks use. */
 const WORDS: Record<Stage, number> = {
   "front-door": 140,
-  decide: 100,
+  /*
+   * 100 -> 105, AND THE FIRST TIME THIS FILE HAS GONE UP. Two people were handed the app cold, on
+   * separate occasions, and neither could complete a move.
+   *
+   * The sentence under the board named the position and never the act: "עמדה מהסט המשותף — 21
+   * מהלכים." The only text that said "choose a move" was the disabled submit's own label, at
+   * the bottom of the panel below the board, which begins at y=810 of an 844px phone under a
+   * copy-FEN control at y=680. On screen, and unreachable.
+   *
+   * It now ends with the side and the act, and the reading moved 97 -> 104. THIS IS THE TRADE THIS
+   * FILE EXISTS TO MAKE VISIBLE, and it is the right way round: the rule at the top is that
+   * attention spent on the instrument is attention the position did not get, and a player who
+   * cannot act spent all of it. Seven words is the cheapest repair available; the alternatives
+   * were moving elements or an onboarding screen, and both cost more than seven words.
+   */
+  decide: 105,
   commitment: 110,
   reveal: 205,
   "anchor-commitment": 175,
@@ -63,8 +82,24 @@ const BEFORE_THE_ACT: Record<Stage, number> = {
  * measurement, and the reveal is the deliverable; these are the two a phone must not bury.
  */
 const ABOVE_THE_FOLD_ON_A_PHONE: Partial<Record<Stage, number>> = {
-  decide: 50,
-  reveal: 155,
+  /* 50 -> 55 with the total above, for the same seven words and the same reason. Read at 51. */
+  decide: 55,
+  /*
+   * 155 -> 160, AND THE SENTENCE THAT NEEDED THE ROOM IS ONE THAT GOT SHORTER.
+   *
+   * The reveal's headline began naming moves the way the board names them: `Nd8` where it used to
+   * say `g5d8`. Shorter labels wrap the sentence into fewer lines, everything under it moves up,
+   * and a block that used to begin below 844px now begins above it. The reading moved 151 -> 160
+   * while the stage's total held at 192 and its words-before-the-act held at 158: the same text,
+   * reachable with less scrolling.
+   *
+   * WHICH IS THIS CEILING'S ONE BLIND SPOT, worth naming rather than quietly absorbing. It caps
+   * what the first screen carries, so it reads compaction as growth -- a screen that says the same
+   * thing in fewer lines scores worse. The cap is still the right guard against burying the reveal
+   * under an added paragraph; it is the wrong judge of a shorter one, and only the totals beside it
+   * can tell the two apart.
+   */
+  reveal: 160,
 };
 
 let browser: Browser;

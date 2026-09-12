@@ -162,21 +162,52 @@ describe("the intro carries the reason, and the steps carry themselves", () => {
 
 describe("the board does not claim a return that did not happen", () => {
   it("says a handed-over position is one, rather than a game the player left", () => {
-    expect(restoreNotice("first-decision", 21)).toBe("עמדה ממשחק ששיחקתם — 21 חצאי־מהלכים.");
-    expect(restoreNotice("anchor", 21)).toBe("עמדה מהסט המשותף — 21 חצאי־מהלכים.");
+    expect(restoreNotice("first-decision", 21)).toBe("עמדה ממשחק ששיחקתם — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
+    expect(restoreNotice("anchor", 21)).toBe("עמדה מהסט המשותף — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
     for (const handover of ["first-decision", "anchor"] as const) {
       expect(restoreNotice(handover, 21), handover).not.toContain("חזרתם");
     }
   });
 
   it("keeps the return sentence for a position the player really was on", () => {
-    expect(restoreNotice(null, 21)).toBe("חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים.");
-    expect(restoreNotice(null, 0)).toBe("חזרתם למשחק שהייתם בו.");
+    expect(restoreNotice(null, 21)).toBe("חזרתם למשחק שהייתם בו — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
+    expect(restoreNotice(null, 0)).toBe("חזרתם למשחק שהייתם בו. בחרו מהלך על הלוח.");
   });
+
+  it("ends by naming the act, on every arrival, because two testers could not find it", () => {
+    /*
+     * FIELD EVIDENCE, NOT A PREFERENCE. Two people were handed the app cold and independently
+     * failed to complete a move. This sentence sits directly under the board and described the
+     * position without ever saying what to do; the only text that did was the disabled submit's
+     * own label, which begins at y=810 of an 844px phone, below a copy-FEN control at y=680.
+     */
+    for (const handover of ["first-decision", "anchor", null] as const) {
+      expect(restoreNotice(handover, 21), String(handover)).toContain("בחרו מהלך על הלוח");
+    }
+  });
+
+it("says which side the player is, which is the other half of what the testers missed", () => {
+    /*
+     * `.turn-reading` already carries it, above the board and to the right, in the smallest type
+     * on that row. Repeating it in the sentence under the board costs three words and moves
+     * nothing. Omitted when the caller cannot say, rather than guessed.
+     */
+    expect(restoreNotice("anchor", 21, "b")).toContain("אתם שחור");
+    expect(restoreNotice("anchor", 21, "w")).toContain("אתם לבן");
+    expect(restoreNotice("anchor", 21)).not.toContain("אתם");
+  });
+
+    it("counts moves, not half-moves, in a sentence a person reads as moves", () => {
+    // 21 plies is 11 moves. Printing 21 beside the word for a move says the game is twice as long.
+    expect(restoreNotice("anchor", 21)).toContain("11 מהלכים");
+    expect(restoreNotice("anchor", 21)).not.toContain("חצאי");
+    expect(restoreNotice("anchor", 24)).toContain("12 מהלכים");
+  });
+
 
   it("keeps the half-move count on every branch, because it is true however the position arrived", () => {
     for (const handover of ["first-decision", "anchor", null] as const) {
-      expect(restoreNotice(handover, 21), String(handover)).toContain("21 חצאי־מהלכים");
+      expect(restoreNotice(handover, 21), String(handover)).toContain("אחרי 11 מהלכים");
     }
   });
 });
