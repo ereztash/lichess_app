@@ -96,10 +96,24 @@ function Groups({ items, waiting }: { items: readonly Unclear[]; waiting: boolea
          * short by different amounts is one where the per-split number is the information, and it
          * stays exactly where it was.
          */
-        const needs = group.items.map((item) => item.needs);
+        /*
+         * AMONG THE ROWS THAT HAVE A QUANTITY, AND THE FIRST VERSION MISSED THAT CLAUSE.
+         *
+         * A group mixes rows that carry a count with rows that carry none: `too-few-in-bucket`
+         * holds the five bucket splits, each short by the same amount on a young record, AND
+         * "האם המאמץ שלך הולך לאן שהספק הולך", which has no number at all. Testing every row for
+         * equality let that one null make the group look mixed, so the hoist never fired and the
+         * screen printed `לפחות עוד 59 החלטות` five times down a column -- the exact defect this
+         * was written to remove.
+         *
+         * IT PASSED ITS TEST, AND THE FIXTURE IS WHY. Six rows all carrying the same count is not
+         * a shape this product produces. Found by looking at a real 390x844 frame and then reading
+         * the rendered DOM, which reported `shared: null` beside five identical strings.
+         */
+        const counted = group.items.filter((item) => item.needs !== null);
         const shared =
-          needs[0] !== null && needs.every((n) => n === needs[0]) && needs.length > 1
-            ? needs[0]
+          counted.length > 1 && counted.every((item) => item.needs === counted[0].needs)
+            ? counted[0].needs
             : null;
         return (
         <li key={group.because} className="unclear__group" data-waiting={String(waiting)}>

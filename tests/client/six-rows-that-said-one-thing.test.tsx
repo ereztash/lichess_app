@@ -325,18 +325,35 @@ describe("what the record cannot say, said once per reason", () => {
      * left the count per split on purpose, so what a reader can act on stayed where it was. On this
      * record the count is not information either.
      */
-    const sameEverywhere = ["בפתיחה", "באמצע", "בסיום", "מהיר", "איטי", "שעון"].map((scope) => ({
-      what: `החלטות ${scope}`,
-      because: "too-few-in-bucket" as const,
-      needs: 60,
-      waitingHelps: true,
-    }));
+    /*
+     * AND ONE ROW WITH NO NUMBER, BECAUSE THAT IS THE SHAPE THE PRODUCT ACTUALLY PRODUCES.
+     *
+     * The first version of this fixture was six rows all carrying the same count, and it passed
+     * against an implementation that tested EVERY row for equality -- so the one real group, which
+     * holds five bucket splits plus "האם המאמץ שלך הולך לאן שהספק הולך" with no number at all,
+     * looked mixed and never hoisted. Measured on the built app at 390x844: `shared: null` beside
+     * five identical strings. The test was green and the screen had the defect.
+     */
+    const sameEverywhere = [
+      ...["בפתיחה", "באמצע", "בסיום", "מהיר", "איטי"].map((scope) => ({
+        what: `החלטות ${scope}`,
+        because: "too-few-in-bucket" as const,
+        needs: 60,
+        waitingHelps: true,
+      })),
+      {
+        what: "האם המאמץ שלך הולך לאן שהספק הולך",
+        because: "too-few-in-bucket" as const,
+        needs: null,
+        waitingHelps: true,
+      },
+    ];
     render(<WhatIsUnclear items={sameEverywhere} />);
     const needs = [...document.querySelectorAll(".unclear__needs")].map((n) => n.textContent);
     expect(needs, `the figure was printed ${needs.length} times`).toEqual(["לפחות עוד 60 החלטות"]);
     /* And it is on the group, beside the reason, rather than attached to one arbitrary split. */
     expect(document.querySelector(".unclear__needs--shared")).toBeTruthy();
-    /* Every split is still listed: hoisting the number may not cost a row. */
+    /* Every split is still listed, the numberless one included: hoisting may not cost a row. */
     expect(document.querySelectorAll(".unclear__item")).toHaveLength(6);
   });
 

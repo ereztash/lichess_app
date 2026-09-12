@@ -121,6 +121,21 @@ no percentage.
 The same argument the *reason* already won in this component, applied to the number. When the splits
 differ, nothing moves — that is the other half of the control.
 
+**It shipped broken once, and a real frame is what found it.** The first version compared *every*
+row in a group for equality. A group mixes rows that carry a count with rows that carry none: the
+`too-few-in-bucket` group holds five bucket splits, each short by the same amount on a young record,
+and `האם המאמץ שלך הולך לאן שהספק הולך`, which has no number at all. That one null made the group
+look mixed, the hoist never fired, and the screen went on printing `לפחות עוד 59 החלטות` five times
+down a column.
+
+**Its test was green throughout**, because the fixture was six rows all carrying the same count —
+a shape this product does not produce. Measured on the built app at 390×844, the rendered DOM
+reported `shared: null` beside five identical strings. After the repair, one shared line and six
+rows with no number of their own.
+
+That is the third time in this pass that looking at a real frame found what no test did, and the
+only one of the three where the defect was mine.
+
 ## 7. The player's own sentence, which was absent from the screen it matters most on
 
 `client/src/pages/Record.tsx`
