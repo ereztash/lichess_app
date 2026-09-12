@@ -6,6 +6,7 @@
  * first time somebody wants a single number that goes up.
  */
 import { describe, expect, it } from "vitest";
+import { decisionsHeldElsewhere } from "../../shared/plain-reading";
 import {
   JOURNEY_STAGES,
   UNPROMPTED_FLOOR,
@@ -137,9 +138,20 @@ describe("the instrument's silence is not the player's flatness", () => {
     /* "1 החלטות" is not a sentence in Hebrew, and the one-decision case is the common one. */
     const one = recordJourney({ scored: 0, hasClaim: false, othersWithheld: 0, readElsewhere: 1 });
     const many = recordJourney({ scored: 0, hasClaim: false, othersWithheld: 0, readElsewhere: 4 });
-    expect(one.next).toContain("החלטה אחת נמדדה");
+    expect(one.next).toContain(decisionsHeldElsewhere(1));
     expect(one.next).not.toMatch(/\b1 החלטות/);
-    expect(many.next).toContain("4 החלטות נמדדו");
+    expect(many.next).toContain(decisionsHeldElsewhere(4));
+    /*
+     * AND NOT `נמדדה` / `נמדדו`, which is what this clause used to say. `readElsewhere` counts
+     * atoms outside the discovery stratum: a statement about where a decision is read, not about
+     * whether an engine scored it. Asserted on both numbers, because the singular branch and the
+     * plural branch were two separate copies of the sentence and each could drift alone.
+     */
+    for (const reading of [one, many]) {
+      expect(reading.next, "the ledger claims a measurement it does not have").not.toMatch(
+        /נמדד\w* ונקרא/,
+      );
+    }
   });
 
   it("says nothing about decisions read elsewhere when there are none", () => {

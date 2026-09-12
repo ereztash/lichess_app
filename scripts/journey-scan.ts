@@ -8,7 +8,7 @@
 
 import { readFileSync } from "node:fs";
 import { relative } from "node:path";
-import { sourceFiles, type Finding } from "./gate-scan";
+import { sourceFiles, stripComments, type Finding } from "./gate-scan";
 
 const posix = (file: string) => file.replaceAll("\\", "/");
 
@@ -52,6 +52,74 @@ export function findGoalReadOutsideItsOwner(roots: string[]): Finding[] {
 
 /** The module that defines the read, and the one component allowed to perform it. */
 const GOAL_OWNERS = ["client/src/lib/player-goal.ts", "client/src/components/GoalNote.tsx"];
+
+/**
+ * The surfaces that may turn `readElsewhere` into a sentence, and the module that owns the words.
+ *
+ * `record-service.ts` and `record-dashboard.ts` COMPUTE the count; the rest RENDER it, and each
+ * of them must render it through `decisionsHeldElsewhere`. `plain-reading.ts` is where that string
+ * lives and is excluded from its own search.
+ */
+const ELSEWHERE_OWNERS = [
+  "shared/plain-reading.ts",
+  "shared/record-service.ts",
+  "shared/record-dashboard.ts",
+  "shared/resume-reading.ts",
+];
+
+/**
+ * A count that says WHERE a decision is read may not be rendered as a MEASUREMENT
+ * (`GATE-ELSEWHERE-NOT-MEASURED`).
+ *
+ * `readElsewhere` is every atom outside the discovery stratum. It says a decision is counted under
+ * another heading with its own denominator; it says nothing about whether an engine has scored it,
+ * and some of the decisions it counts are still waiting for one. `plain-reading.ts` wrote the
+ * argument down and owns the one string -- *"SO THE CLAUSE IS ONE STRING IN ONE PLACE... the
+ * acknowledgement itself may not drift between them"*.
+ *
+ * IT DRIFTED ANYWAY, IN TWO PLACES, AND BOTH SHIPPED. `loop-position.ts` rendered
+ * `1 נמדדו ונקראות בחלק אחר` on the strip at the top of every reveal, and `learning-journey.ts`
+ * rendered `נמדדה` / `נמדדו` in the ledger -- each with its own hand-rolled singular branch, and
+ * the strip's was the ungrammatical `1 נמדדו` on the one-decision record every new player has.
+ * Three copies of one clause, three defects, and the file that owned it had already argued against
+ * all of them.
+ *
+ * SO THE CHECK IS THE VERB AND NOT THE CALL. A scan for "does this file call
+ * `decisionsHeldElsewhere`" would pass any surface that says nothing at all, and a surface that
+ * says nothing is not the failure -- inventing the stronger verb is. This looks for a measurement
+ * verb bound to the elsewhere clause, in any file that is not one of the four allowed to speak
+ * about this count.
+ *
+ * WHAT IT CANNOT SEE: a surface that builds the sentence from fragments, or one that uses a
+ * measurement word this pattern does not name. It closes the shape that actually shipped twice.
+ *
+ * AND IT READS THE CODE WITHOUT THE COMMENTS, which it learnt on its first run. Both surfaces that
+ * carried this defect now carry a paragraph ABOUT the defect, quoting the sentence they used to
+ * print -- so the first version reported the two files it had just been written to clear, on the
+ * lines where the repair is explained. A scanner for a defect that gets documented when it is
+ * fixed cannot read prose, or it fires forever on the fix.
+ */
+export function findElsewhereClaimedAsMeasured(roots: string[]): Finding[] {
+  const out: Finding[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const path = posix(relative(process.cwd(), file));
+      if (ELSEWHERE_OWNERS.some((owner) => path.endsWith(owner))) continue;
+      const source = stripComments(readFileSync(file, "utf8"));
+      for (const [index, line] of source.split("\n").entries()) {
+        if (!/נמדד\S*\s+ונקרא/.test(line)) continue;
+        out.push({
+          file: path,
+          line: index + 1,
+          text:
+            "renders decisions read elsewhere as measured. readElsewhere says where a decision " +
+            "is read, not that an engine scored it -- use decisionsHeldElsewhere",
+        });
+      }
+    }
+  }
+  return out;
+}
 
 /**
  * A journey stage's number may be read in exactly one place (`GATE-CONSTRUCT-NAMED`).

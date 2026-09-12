@@ -39,6 +39,7 @@ import {
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
 import {
+  findElsewhereClaimedAsMeasured,
   findFindingsBelowTheirNumbers,
   findGoalBesideACount,
   findGoalReadOutsideItsOwner,
@@ -46,6 +47,7 @@ import {
   findUnnamedConstructs,
 } from "./journey-scan";
 import { findUnreachedMembers } from "./reachability-scan";
+import { findPlacementReadEvidence } from "./placement-scan";
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
 import { findUnobservableCues } from "./cue-scan.js";
@@ -179,6 +181,7 @@ const INERTIA_FIXTURES = "tests/fixtures/inertia";
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
 const JOURNEY_FIXTURES = "tests/fixtures/journey";
+const PLACEMENT_FIXTURES = "tests/fixtures/placement";
 
 /** A whole repository in miniature, carrying the drifts the real registers actually had. */
 const REGISTER_FIXTURES = "tests/fixtures/registers";
@@ -237,6 +240,18 @@ const findingsBelowTheirNumbers = (roots: string[]) =>
   fromFindings(
     findFindingsBelowTheirNumbers(roots),
     "every reading list is introduced by its own finding, in a finding's register",
+  );
+
+const placementReadAsEvidence = (roots: string[]) =>
+  fromFindings(
+    findPlacementReadEvidence(roots),
+    "the moves a player placed are carried and collected, never graded",
+  );
+
+const elsewhereClaimedAsMeasured = (roots: string[]) =>
+  fromFindings(
+    findElsewhereClaimedAsMeasured(roots),
+    "a count that says where a decision is read is never rendered as a measurement",
   );
 
 const goalReadOutsideItsOwner = (roots: string[]) =>
@@ -953,6 +968,34 @@ export const GATES: Gate[] = [
       "A panel's finding renders before the readings it is about, and never in the provenance register.",
     run: () => findingsBelowTheirNumbers(["client/src"]),
     positiveControl: () => findingsBelowTheirNumbers([JOURNEY_FIXTURES]),
+  },
+  {
+    /*
+     * WHY IT IS AN R1 GATE AND NOT A NOTE IN A REVIEW. R1 is the rule about a number that does not
+     * carry what it is a number OF. A deliberation score built from placements is exactly that,
+     * one level further in: the denominator is present and correct, and the NUMERATOR is a mixture
+     * of two mechanisms nothing in the record separates.
+     */
+    id: "GATE-PLACEMENT-NOT-EVIDENCE",
+    rule: "R1",
+    description:
+      "The moves a player placed on the board are carried and collected, and interpreted only where the limit of that interpretation is stated.",
+    run: () => placementReadAsEvidence(["shared", "client/src", "server"]),
+    positiveControl: () => placementReadAsEvidence([PLACEMENT_FIXTURES]),
+  },
+  {
+    /*
+     * R1 AGAIN, AND FOR THE SAME REASON AS `GATE-PLACEMENT-NOT-EVIDENCE`: what fails here is not a
+     * missing denominator but a verb that asserts more about the numerator than the field holds.
+     * `readElsewhere` says a decision is read under another heading. It does not say an engine has
+     * scored it, and some of the decisions it counts are still waiting for one.
+     */
+    id: "GATE-ELSEWHERE-NOT-MEASURED",
+    rule: "R1",
+    description:
+      "Decisions read under another heading are reported as recorded, never as measured, and the clause comes from the module that owns it.",
+    run: () => elsewhereClaimedAsMeasured(["shared", "client/src", "server"]),
+    positiveControl: () => elsewhereClaimedAsMeasured([JOURNEY_FIXTURES]),
   },
   {
     id: "GATE-GOAL-CONTAINED",

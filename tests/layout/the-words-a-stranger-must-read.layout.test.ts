@@ -98,8 +98,23 @@ const ABOVE_THE_FOLD_ON_A_PHONE: Partial<Record<Stage, number>> = {
    * thing in fewer lines scores worse. The cap is still the right guard against burying the reveal
    * under an added paragraph; it is the wrong judge of a shorter one, and only the totals beside it
    * can tell the two apart.
+   *
+   * 160 -> 162, AND THE TWO WORDS ARE A CORRECTION AND NOT CONTENT.
+   *
+   * The strip's elsewhere clause said `1 נמדדו ונקראות בחלק אחר של ההיסטוריה` -- seven words, a
+   * measurement claimed for a count that does not carry one, and `1 נמדדו`, which is not a sentence
+   * in Hebrew on the one-decision record every arrival has. It now comes from
+   * `decisionsHeldElsewhere`, the module that owns the clause and had already argued against both
+   * defects: `החלטה אחת שלך נרשמה ונקראת בחלק אחר של ההיסטוריה`. Nine words. The strip says nothing
+   * it did not say before and claims less.
+   *
+   * THE ROOM WAS LOOKED FOR FIRST AND IN THE WRONG PLACE. The same change added a limit to the
+   * reveal -- a placement is not a consideration -- and that was assumed to be the cost. It was cut
+   * from twenty words to eleven and the reading did not move by one: the limit fires only when the
+   * engine's move was among those placed, which the stranger's walk does not produce. Two words in,
+   * two words up, and the arithmetic says which two.
    */
-  reveal: 160,
+  reveal: 162,
 };
 
 let browser: Browser;

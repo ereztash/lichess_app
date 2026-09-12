@@ -6,6 +6,7 @@
  * decisions" -- those are different answers and section 4.5 is about exactly that difference.
  */
 import { describe, expect, it } from "vitest";
+import { decisionsHeldElsewhere } from "@shared/plain-reading";
 import {
   LOOP_STEPS,
   loopPosition,
@@ -178,13 +179,31 @@ describe("two registers, never one verb", () => {
    * as two registers. Measured in Chromium on production, walked from an empty profile.
    *
    * The fix was a noun, not an arithmetic change. This holds it to that: neither number may move
-   * and the two lines may not share `נמדדו`.
+   * and the two lines may not share a verb.
+   *
+   * AND THE SURVIVING VERB WAS ALSO WRONG, which is why these assertions no longer name it.
+   * Separating the two lines left `נמדדו` on this clause, and `plain-reading.ts` had already
+   * argued the opposite for the same field: `readElsewhere` counts every atom outside the
+   * discovery stratum, which says where a decision is READ and nothing about whether an engine
+   * scored it. Some of those decisions are still waiting for one. So the clause now comes from
+   * `decisionsHeldElsewhere`, the one place that owns it, and what is asserted here is the
+   * PROPERTY rather than the string: this line may not claim a measurement, and the two lines may
+   * not share a verb. A future rewording that kept both is welcome; one that claims a measurement
+   * for this count is the defect, whatever it is worded as.
    */
   const firstArrival = inputs({ recorded: 1, scored: 0, readElsewhere: 1, scoredStillNeeded: 60 });
 
+  it("does not claim a measurement for a count that only says where a decision is read", () => {
+    const at = loopPosition(firstArrival);
+    expect(at.headline).toContain(decisionsHeldElsewhere(1));
+    expect(
+      at.headline,
+      `the elsewhere clause claims an engine scored them: "${at.headline}"`,
+    ).not.toMatch(/נמדד\w* ונקרא/);
+  });
+
   it("does not report this search's count with the verb the other register uses", () => {
     const at = loopPosition(firstArrival);
-    expect(at.headline, "the other register must keep its own verb").toContain("נמדדו ונקראות");
     expect(
       at.basis,
       `this search's line still says נמדדו beside a different number: "${at.basis}"`,
@@ -193,8 +212,15 @@ describe("two registers, never one verb", () => {
 
   it("holds for the narrowed search too, which carries the same sentence", () => {
     const at = loopPosition({ ...firstArrival, narrowedTo: "פתיחה" });
-    expect(at.headline).toContain("נמדדו ונקראות");
+    expect(at.headline).toContain(decisionsHeldElsewhere(1));
+    expect(at.headline).not.toMatch(/נמדד\w* ונקרא/);
     expect(at.basis).not.toContain("נמדדו");
+  });
+
+  it("says it in Hebrew on the record every new player has", () => {
+    // `1 נמדדו` shipped on the one-decision case, which is the first strip every arrival reads.
+    expect(loopPosition(firstArrival).headline).not.toMatch(/\b1 (?:נמדדו|החלטות)/);
+    expect(loopPosition(firstArrival).headline).toContain("החלטה אחת");
   });
 
   it("moves neither number", () => {

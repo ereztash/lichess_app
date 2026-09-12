@@ -145,6 +145,54 @@ export interface RevealInputs {
 export const BUILD_LIMIT = "מנוע מקומי אחד, בלי מקור הערכה שני לבדוק אותו מולו.";
 
 /**
+ * WHETHER THE ENGINE'S MOVE WAS AMONG THE ONES PUT ON THE BOARD, ON A DECISION THAT COST SOMETHING.
+ *
+ * ONE PREDICATE AND NOT TWO, because `inferenceLimits` and `theOneThing` both need it and two
+ * copies of a condition are a condition that drifts. The limit below must fire on exactly the
+ * decisions `chose-past-it` speaks about -- a caveat that appeared on a neighbouring set would be
+ * qualifying a sentence that was never said, and missing the one that was.
+ */
+export function bestMoveWasPlaced(inputs: RevealInputs): boolean {
+  return (
+    inputs.cpLoss > ENGINE_NOISE_CP &&
+    inputs.cpLoss >= MATERIAL_LOSS_CP &&
+    inputs.candidatesConsidered.includes(inputs.bestMove)
+  );
+}
+
+/**
+ * THE PRESENCE DIRECTION OF A DISTINCTION THIS FILE ALREADY MAKES IN THE ABSENCE DIRECTION.
+ *
+ * `inferenceLimits` has long said that a move weighed WITHOUT being placed is not recorded, so an
+ * absent candidate is not evidence of absent thought. The reverse was never said, and it is the
+ * direction on which a claim is actually made: a move that IS in the list was placed on the board,
+ * and placing carries at least two mechanisms that this record cannot separate. It was weighed and
+ * rejected. Or a piece was dragged to look at a square and dragged back. Or a finger landed on the
+ * wrong square and the move was corrected before the commit, which the deciding screen invites by
+ * saying "אפשר לשנות עד הרישום".
+ *
+ * WHY THE ASYMMETRY MATTERED. `chose-past-it` used to close with "כאן הקושי לא היה למצוא את המהלך,
+ * אלא לבחור בינו לבין האחר" -- a statement about WHICH difficulty the player had, and the two
+ * mechanisms above call for opposite work. A mis-drag read as deliberation sends a player to
+ * practise choosing between candidates when nothing was chosen between.
+ *
+ * AND IT IS ELEVEN WORDS, WHICH IS NOT A STYLE CHOICE. The reveal's first phone screen is held at
+ * 160 words by a ratchet that only ever comes down. The first version of this caveat, written
+ * alongside a note that said the same thing again, put it at 162. The room came from saying it
+ * once and from dropping the second example: a finger passing over a square and a drag that came
+ * back are one mechanism, and a caveat that lists both spends a line to say "also".
+ *
+ * WHY THIS IS A SENTENCE AND NOT A FIELD. The cheapest reliable discriminator would be asking, and
+ * asking after the reveal asks under hindsight: the player now knows the engine liked that move.
+ * Asking before it, on every decision, buys one bit on the rare branch where it matters and costs a
+ * question on all the others. Until a discriminator exists that is worth its price, the weakest
+ * truthful claim is the whole of what may be said -- and the player is the one who knows which
+ * mechanism it was, so the discrimination is handed to them rather than guessed at here.
+ */
+export const PLACEMENT_IS_NOT_CONSIDERATION =
+  "הרישום סופר מהלכים שהונחו על הלוח, גם כשהיד רק עברה שם.";
+
+/**
  * SECTION 4.2 STEP 1: what cannot be inferred here. Rendered before any number, always.
  * This list is never empty -- at minimum, one decision is one decision.
  */
@@ -211,6 +259,13 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
         "מהלכים שנשקלו בלי להניח אותם על הלוח אינם נרשמים.",
     );
   }
+  /*
+   * DIRECTLY AFTER THE ABSENCE DIRECTION, because it is the other half of one distinction and the
+   * two are mutually exclusive by construction: the first needs at most one candidate, this one
+   * needs the engine's move to be among them. A reader meets whichever half applies to the decision
+   * in front of them, and never both.
+   */
+  if (bestMoveWasPlaced(inputs)) limits.push(PLACEMENT_IS_NOT_CONSIDERATION);
   return limits;
 }
 
@@ -376,7 +431,6 @@ export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
  */
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
-  const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
   /*
    * NAMED ONCE, HERE, so every branch below says the move the same way. The comparison on the line
    * above stays in UCI on purpose: `candidatesConsidered` is stored in UCI and matching a display
@@ -398,7 +452,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
    *
    * Phrased as "you recorded it" rather than "you saw it", per the field's own caveat.
    */
-  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && rejectedTheBest) {
+  if (bestMoveWasPlaced(inputs)) {
     return {
       kind: "chose-past-it",
       /*
@@ -416,7 +470,31 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * make, and one they may simply know to be false.
        */
       text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
-      note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
+      /*
+       * THE NOTE ASKS INSTEAD OF CONCLUDING, AND THAT IS THE REPAIR.
+       *
+       * It read "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר" -- which difficulty
+       * the player had, asserted from the fact that a move was on the board. `PLACEMENT_IS_NOT_
+       * CONSIDERATION`, rendered above this in the limits, is why that cannot be said: a mis-drag
+       * and a weighed-and-rejected move are the same entry in this record.
+       *
+       * AND IT STAYS ON THE BOARD, WHICH `the-player-sees-chess.test.tsx` ENFORCES. A first
+       * wording asked whether the player had weighed the move, and `MIND_WORDS` caught `שקלת` --
+       * correctly, because "did you weigh it" is still a sentence about the mind, only phrased as
+       * a question. What the record holds is a gesture: the piece went up and came down. So the
+       * discrimination offered is the one the HAND can answer, whether it stopped there or passed
+       * through, and the player supplies the mental half nobody else can.
+       *
+       * NOTHING STORES THE ANSWER. A field here would be a new question on the rare branch where
+       * this fires, asked after the engine has already said the move was best -- which is asking
+       * under hindsight, and a hindsight answer is worth less than no answer at all.
+       *
+       * AND IT SAYS THE RULE ONCE. `PLACEMENT_IS_NOT_CONSIDERATION` states the general fact in the
+       * limits above; this states only the discrimination, about this move. A first version said
+       * both here and put the reveal's first phone screen at 162 words against a ceiling of 160 --
+       * a ratchet that only ever comes down, catching a caveat that had been written twice.
+       */
+      note: `רק אתם יודעים אם ${best} עצר על הלוח או רק עבר.`,
       basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים ששקלתם, ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
