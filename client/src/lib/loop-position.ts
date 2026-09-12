@@ -1,4 +1,5 @@
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
+import { decisionsHeldElsewhere } from "@shared/decisions-elsewhere";
 /**
  * Where you are in the loop, and the one thing that moves you along it.
  *
@@ -378,11 +379,21 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        not counted in this search -- and read together they said the record was broken. Walked
        in Chromium from an empty profile: one bank decision, and the strip carried both lines.
 
-       So the two registers no longer share a bare verb. `נמדדו` stays with the decisions that
-       were measured; the line that reports this search says `נספרות`, which is what it counts.
-       Neither number moved and neither denominator moved. */
-    const elsewhere =
-      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של ההיסטוריה.` : "";
+       So the two registers no longer share a bare verb. The line that reports this search says
+       `נספרות`, which is what it counts. Neither number moved and neither denominator moved.
+
+       AND THEN THE SURVIVING VERB TURNED OUT TO BE THE WRONG ONE TOO. This clause kept `נמדדו`,
+       and `plain-reading.ts` had already argued the opposite for the same field: `readElsewhere`
+       is every atom outside the discovery stratum, a statement about where a decision is READ and
+       not about whether an engine scored it. Some of the decisions it counts are still waiting for
+       one, so `נמדדו` was this surface inventing a measurement claim out of a number that does not
+       carry it. Fixing the collision between two lines had left the weaker half of it standing.
+
+       It also read `1 נמדדו`, on the record every new player has, which is not a sentence in
+       Hebrew -- the same digit-plus-plural defect `elsewhereSentence` and the journey ledger each
+       fixed separately in their own copies of this clause. Three copies, three bugs, one string:
+       `decisionsHeldElsewhere` is the place that owns it. */
+    const elsewhere = readElsewhere > 0 ? ` ${decisionsHeldElsewhere(readElsewhere)}.` : "";
 
     if (narrowedTo) {
       /*

@@ -1,0 +1,61 @@
+{
+ "calibration_version": "0.1",
+ "task_id": "CAL-LICHESS-ORCHESTRATION-001",
+ "telos": {
+  "statement": "Decide whether an orchestration surface in Decision Lab may render what deriveNextAction proposes, and what such a surface may state about where the player stands, without inventing a claim the frozen evidence ceiling forbids or breaking the product's own published refusal to recommend what to learn.",
+  "success_condition": "A disposition that names which of four hypotheses may be built, what it may say, and what authority owns anything it may not say. It must hold in the state where no personal pattern is ever found, must not introduce a progress percentage or a rating denominator, and must not require the product to break a refusal it publishes to its own users."
+ },
+ "current_state": {
+  "summary": "Decision Lab records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. The measurement and learning machinery is built and gated: a six-bucket detector, player-authored rules, a spaced retrieval queue, drills, prompted transfer checks, refutation and retirement, an import diagnostic, and a nine-stage learning-object ledger. 44 repository gates, each with a positive control that must go red. WHAT IS BUILT AND OWNS NOTHING: shared/next-action.ts derives the whole next-action union from record facts, and shared/primary-action.ts maps each kind onto a closed vocabulary of primary acts via actFor/agreesWith. client/src/lib/next-action-shadow.ts runs the derivation beside one screen and writes the comparison to a trial ledger. A test asserts the set of callers is exactly [ResumeScreen.tsx], that the screen does not bind the return value, and that the shadow reads no more of the ledger than idempotency needs. docs/decisions/D22-next-action-ownership.md records mode DEFER at evidence level E2 and names four reversal conditions. Its stated reason is section 23's coaching rule applied to the product's own navigation: a claim of this shape may not act on a player until something could have shown it wrong. Its second reason is cost: instrumenting the other two shadow surfaces live would pull the blitz reading chain at +16.1 kB raw / +5.1 kB gzipped into two hot routes to write a row nobody reads. THE PRODUCT PUBLISHES A REFUSAL LIST TO ITS OWN USERS, in the help overlay WhatThisIs: no score, no rating, no streak, no badge; 'it will not recommend what to learn -- it measures, it does not coach'; it will not say more about you than it measured; it will not grade itself a success. WHAT THE JOURNEY LOOKS LIKE TODAY, walked at 390x844 on the shipped build. The record page is the route '/'. In source order it renders: the resume card, the first-decision card, an outcome summary, WhatIsUnclear, WhatIsUnderTest, an anchor control, the record dashboard, the player's own goal sentence, the learning-object ledger, and the import diagnostic. The goal -- the player's own words about why they are here -- is BELOW every count on the page, placed there deliberately so it can never render beside one. 'What is still unclear' is near the top and is eleven rows on a small record, five of which end in the identical quantity 'another 30 decisions'.",
+  "known_constraints": [
+   "EVIDENCE CEILING: the frozen mechanism research states CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are unreachable by the discovery pipeline under any result, and that the claim ladder is unchanged by sample size. No surface may promise improvement.",
+   "A GOAL IS FRAMING AND NEVER A DENOMINATOR. shared/goal.ts stores one sentence in the player's words, capped at 140 characters and never parsed for a number, because three numbers in a row are an arithmetic problem the reader will solve. GATE-GOAL-NOT-A-DENOMINATOR refuses a goal rendered in the same element as a count.",
+   "THE PRODUCT PUBLISHES 'it will not recommend what to learn -- it measures, it does not coach' TO ITS USERS. Any surface that recommends breaks a promise the product makes on screen.",
+   "EVIDENCE_POLICY v4: discovery reads free-play decisions and nothing else -- not the front door's handoff, not the shared bank, not a drill, not a transfer check, not an imported game, not a row that never recorded its context. Its own words: a source does not become eligible because excluding it leaves too little data.",
+   "GUIDED PRACTICE, PROMPTED RECALL AND UNPROMPTED PLAY ARE THREE CONSTRUCTS AND NEVER ONE NUMBER. Maximum transfer is what a learner can do when prompted; typical transfer is what they do when nobody prompts them.",
+   "TIME TO VALUE IS AN INSTRUMENT CONSTRAINT: MIN_BUCKET_N is 30 and is needed inside and outside a bucket, so 60 measured decisions precede any claim. The calibration wait is not automatically removable friction.",
+   "THE SHIPPED DETECTOR IS NOT THE VALIDATED RESEARCH PIPELINE. The six-bucket detector returns not-separable on the owner's whole 2,209-game record while a frozen research pipeline finds a residual on that same record which survives its own within-game permutation null. Any sentence about finding nothing is a sentence about the detector."
+  ],
+  "available_resources": [
+   "RND",
+   "NETA",
+   "SCAFFOLD",
+   "OWNER",
+   "REPO",
+   "ENVIRONMENT",
+   "FIELD"
+  ]
+ },
+ "decision_blocked": {
+  "statement": "May an orchestration surface render what deriveNextAction proposes, and what may it state about where the player stands? H-1: render the proposal's REASON and not its choice -- the surface keeps offering exactly the act it offers today, and the derivation supplies the sentence saying what completing it makes knowable. H-2: hand the act over as well, since the walk found agreement and ownership is the point of the sequence. H-3: neither -- D22's E2 is about the mapping and not about the screens, and two agreeing states are not evidence that a third would agree; wait for the acquisition trial. H-4: the binding constraint is not ownership at all but the instrument-first ordering -- the player's purpose is below every count and the shortfall wall is above them; re-order and decide nothing.",
+  "current_default": "H-1. Render the reason, change no act, add no progress number, add no rating denominator, add no telemetry.",
+  "reversal_condition": "Change the default if rendering a reason attached to an act is itself a recommendation under the product's own published refusal, or if 'what completing this makes knowable' cannot be stated without an INTERVENTION claim. Either collapses H-1 into H-2's problem and the answer becomes H-3."
+ },
+ "signals": [
+  "OWNER: The owner has now asked twice, in consecutive missions, for one orchestration surface answering: my goal, what is being investigated now, where that stands, what I do now, why that, and what is still unknown. The owner is not research authority for whether the product may recommend.",
+  "REPO: D22's first reversal condition -- a screen and the derivation disagreeing in a walk over the built app -- has now been performed for the first time. At 390x844 from an empty profile: the record page empty proposes play-first-decision and offers play-first-decision; the record page with one decision proposes play-blitz and offers play-blitz. Two states, both agree. Agreement is not the condition; disagreement is.",
+  "REPO: D22's cost argument may rest on a routing conflation. It treats 'the front door' and 'the record page' as two surfaces, and App.tsx routes '/' to Record. Checked before stating it and it is narrower than it looks: ResumeScreen is lazy-loaded, so the reading chain is a separate chunk fetched only when ResumeScreen renders -- which is for a returning player and not a cold arrival. The price is real for a first visit and already paid for a return.",
+  "REPO: The same conflation produced a false finding an hour earlier: a first draft of the walk navigated to a URL the router does not have, read the 404 as a surface offering nothing, and reported D22's reversal condition as met. It was a typo. Weigh the routing observation accordingly.",
+  "REPO: next-action.ts states its own line in writing: 'A layer that recommended would be measuring the player and then changing what they see, which changes what is being measured.' Every action it derives is justified by a fact about the RECORD -- a game nothing has scored, a bucketing with too few decisions on one side, a run left half-finished -- and never by a prediction about the player.",
+  "FIELD: Three cold users have used this product. Two of three could not complete the core move. That was repaired and NO COLD USER HAS SEEN THE REPAIRED BUILD. Nobody has ever been observed using the learning layer or the record page."
+ ],
+ "allowed_resources": [
+  "RND",
+  "NETA",
+  "SCAFFOLD",
+  "OWNER",
+  "REPO",
+  "ENVIRONMENT",
+  "FIELD"
+ ],
+ "context_refs": [
+  "docs/SHARED_EPISTEMIC_KERNEL.md",
+  "docs/REALITY_AUTHORITY_PERMISSION.md",
+  "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+  "docs/TELOS.md"
+ ],
+ "budget": {
+  "max_resource_calls": 3,
+  "max_parallel_calls": 1
+ }
+}

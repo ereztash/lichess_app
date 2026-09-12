@@ -38,6 +38,7 @@
  */
 
 import { MIN_BUCKET_N } from "./detector.js";
+import { decisionsHeldElsewhere } from "./decisions-elsewhere.js";
 import type { LearningRule } from "./learning-record.js";
 import { RETRIEVAL_INTERVAL_DAYS, TRANSFER_POSITION_COUNT } from "./learning-record.js";
 
@@ -270,12 +271,24 @@ export function recordJourney(input: {
    * says. The first record a player has is exactly the one-decision case, so the ungrammatical
    * branch is the one every new player would have read.
    */
+  /*
+   * `נרשמו` AND NOT `נמדדו`, AND THE CLAUSE COMES FROM THE ONE PLACE THAT OWNS IT.
+   *
+   * This said `נמדדה` / `נמדדו`, and `plain-reading.ts` had already written down why that is the
+   * wrong verb for this field: `readElsewhere` is every atom outside the discovery stratum, which
+   * says where a decision is READ and nothing about whether an engine scored it. Some of the
+   * decisions in that count are still waiting for one. The stronger verb is this surface inventing
+   * a measurement claim out of a number that does not carry it.
+   *
+   * The same file also says the clause is one string in one place, so that the acknowledgement
+   * cannot drift between the surfaces that make it. Two call sites had their own copy; this is one
+   * of them. Only the tail is this reading's, because only the tail is about the denominator.
+   */
   const elsewhere =
     input.readElsewhere === 0
       ? ""
-      : input.readElsewhere === 1
-        ? " החלטה אחת נמדדה ונקראת בחלק אחר של ההיסטוריה, עם מכנה משלה."
-        : ` ${input.readElsewhere} החלטות נמדדו ונקראות בחלק אחר של ההיסטוריה, עם מכנה משלהן.`;
+      : ` ${decisionsHeldElsewhere(input.readElsewhere)}, ` +
+        `עם מכנה מש${input.readElsewhere === 1 ? "לה" : "להן"}.`;
   if (input.hasClaim) {
     return {
       stage: "CANDIDATE",

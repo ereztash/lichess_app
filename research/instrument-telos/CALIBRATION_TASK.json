@@ -1,0 +1,67 @@
+{
+  "calibration_version": "0.1",
+  "task_id": "CAL-LICHESS-INSTRUMENT-TELOS-001",
+  "telos": {
+    "statement": "Determine whether a large class of Decision Lab's current journey problems are manifestations of one mechanism, the Instrument-Telos Gap, in which the product asks the player to incur cost whose primary beneficiary is the measurement system, or whether they are better explained by competing hypotheses that were frozen before the audit: UX legibility, time-to-value, the unreachable learning layer, dual-ontology leakage, market mismatch, or no structural problem at all.",
+    "success_condition": "The audit discriminates rather than confirms. The answer names which hypothesis the measured evidence supports, names at least one FIELD observation that would weaken the owner's own hypothesis, and does not credit that hypothesis for costs that a feature flag, better wording, or an earlier payoff would cover."
+  },
+  "current_state": {
+    "summary": "Decision Lab records a chess decision BEFORE the engine answers. A frozen product-state walk of the shipped bundle established what is reachable. The core loop pays every time: place a move, submit, and the reveal returns what the move cost, what the record cannot support, and a question. Three instruments sit on top of that loop. Confidence is asked always on first/anchor/drill/transfer and at ASK_RATE=0.15 on ordinary play; it is the only source of the calibration gap and nothing an engine can produce afterwards substitutes for it. The two read fields are coupled to the same draw and are consumed immediately: shared/reveal.ts nextQuestion anchors the reveal's question to the player's own stated unknown, which the file calls the one thing on screen the engine did not produce. The counterfactual probe fires on 35 percent of eligible decisions; its immediate payoff, the named alternative scored beside the played move, exists but sits behind a disclosure, and its full four-way reading needs 30 probed decisions. Two measured walks of the built bundle at 390x844: six decisions cost 34 taps and four decisions cost 26 taps, and in both the discovery counter ended at 1 of 60, because first is refused by discovery and only one play decision drew the confidence question. The product states the floor twice in plain words and states that even at 60 the result would be a hypothesis and not a finding; it never states the conversion rate between decisions taken and decisions counted. The record page shows two denominators from two populations, 60 counted decisions and 30 blitz games, with nothing saying they are two. A blitz game writes nothing to the record until it finishes. The whole Evidence to Learning to Transfer half is unreachable because EXPERIMENTAL_LEARNING_ENABLED is off, a decision recorded in D25. The audit artefacts available to this run are: a frozen seven-hypothesis plan with a discrimination table fixed before the evidence; an action-value ledger over sixteen reachable costly actions with eight permitted verdicts, built by walking the built bundle; a counterfactual delete audit; a value-debt map over seven journey paths; an internal-ontology leakage classification; an instrumentation burden audit; a value-repayment map; a telos chain; a founder-translation audit; and a frozen FIELD protocol with measures M1 to M8, assistance levels A0 to A3 and interpretation rules fixed before any participant.",
+    "known_constraints": [
+      "EXPERIMENTAL_LEARNING_ENABLED stays off. No flag change is permitted by this mission.",
+      "The two evidence lanes stay unmerged. D26 records the owner's decision to defer consolidation until after a FIELD run so that the leakage is observed rather than repaired first.",
+      "No sampling rate, threshold, denominator, orchestration surface, onboarding or wording pass may be changed. The FIELD stimulus is frozen at product source 4c39563.",
+      "The evidence policy refuses drill, transfer, import, anchor and first from discovery, so that an attempt to fix a weakness cannot manufacture the next one. This separation is load-bearing and may not be simplified away.",
+      "The product may not claim chess improvement, rating improvement or intervention efficacy. D25 reached CONSTRUCT-UNDERIDENTIFIED with zero humans measured.",
+      "Zero cold users have used the audited build. Every claim about comprehension, payoff or pull is FIELD-owned."
+    ],
+    "available_resources": [
+      "RND",
+      "NETA",
+      "REPO",
+      "OWNER",
+      "FIELD"
+    ]
+  },
+  "decision_blocked": {
+    "statement": "Is the Instrument-Telos Gap a real root mechanism in this product, a local effect, or an artefact of a lens that can absorb any friction; and if it is real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+    "current_default": "Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate through M6 and M7.",
+    "reversal_condition": "Evidence that the uncovered costs are each separately explained by a flag, by wording, or by distance to payoff, in which case they belong to H4, H2 and H3 and the mechanism claim collapses; or evidence that the core loop's per-decision repayment is not actually experienced as repayment, in which case the mechanism is broader than the audit found."
+  },
+  "signals": [
+    "MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60.",
+    "MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8.",
+    "REPO: shared/reveal.ts nextQuestion consumes statedUnknown, so the read fields have an immediate differentiated payoff on the next screen, contradicting an older repository comment that said nothing downstream reads them.",
+    "REPO: the read fields were once required on every decision and were cut to a sample with the reason written down, that six decisions in seven bought nothing measurable. The repository has already run this mission's delete test on itself and acted on the answer.",
+    "REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement and not a measurement, and states that nothing has measured what rate a player tolerates.",
+    "REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement, and the file separates the two.",
+    "REPO: a blitz game in progress writes nothing to the record. Measured: after twelve moves the record held only a progress log and a time control.",
+    "REPO: the record page renders two denominators from two populations, and the same act feeds both, so neither number changes what the player should do next.",
+    "REPO: the import panel states the value contract completely in one sentence, naming what retrospective games structurally cannot hold and that no quantity fixes it.",
+    "REPO: five differentiated payoffs are AVAILABLE_NOW, three are REQUIRES_N, and four are FEATURE_FLAGGED.",
+    "REPO: the telos chain closes per decision and breaks in two places across decisions, once at the accumulation threshold and once at the flag boundary.",
+    "FIELD: zero humans have used this build. M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull."
+  ],
+  "allowed_resources": [
+    "RND",
+    "NETA",
+    "REPO",
+    "OWNER",
+    "FIELD"
+  ],
+  "context_refs": [
+    "ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+    "ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+    "ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+    "ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+    "ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+    "ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+    "ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+    "ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+    "ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+  ],
+  "budget": {
+    "max_resource_calls": 6,
+    "max_parallel_calls": 2
+  }
+}

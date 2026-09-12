@@ -872,12 +872,40 @@ const INDEX = `${ROOT}/index.html`;
  * wrappers around a module that something else keeps resident is pure cost. Both were reverted.
  *
  * 678 AND 771 LEAVE 0.6 kB AND 0.9 kB.
+ *
+ * ---
+ *
+ * THE GZIP CEILING'S LAST TENTH, SPENT ON A CORRECTION. 212 -> 213; raw and initial did not move and
+ * keep their numbers.
+ *
+ * The strip at the top of every reveal said `1 נמדדו ונקראות בחלק אחר של ההיסטוריה`: a measurement
+ * claimed for a count that only says WHERE a decision is read, and not a sentence in Hebrew on the
+ * one-decision record every arrival has. It now comes from the module that owns the clause. The
+ * honest sentence is two words longer than the wrong one, and two words is what this tenth buys.
+ *
+ *                                          entry raw   gzipped   initial raw
+ *     before                                 677.4      212.0       770.2
+ *     + the clause, imported from            678.8      212.5       771.7   ALL THREE OVER
+ *       `plain-reading.ts`
+ *     + the clause in its own module         677.7      212.1       770.5   raw and initial back under
+ *
+ * THE WEIGHT WAS TAKEN BACK BEFORE THE CEILING MOVED, which is the order this file asks for. The
+ * first import pulled `plain-reading.ts` whole -- quartiles, time shapes, the usual-range floor --
+ * into the entry for one sentence, and put all three ceilings over at once. `shared/decisions-
+ * elsewhere.ts` holds the sentence and nothing else: 1.1 kB raw and 0.4 kB gzipped came straight
+ * back out, and what is left is the sentence itself.
+ *
+ * THE PREVIOUS PASS SAID THIS WOULD HAPPEN. It recorded "the gzip ceiling has no headroom left and
+ * that is said here rather than discovered later: 212.0 against 212 passes and the next tenth of a
+ * kilobyte in the entry does not." This is that tenth, and it is attributed rather than absorbed.
+ *
+ * 678, 213 AND 771 LEAVE 0.3 kB, 0.9 kB AND 0.5 kB.
  */
 
 const ENTRY_RAW_KB = 678;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 212;
+const ENTRY_GZIP_KB = 213;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *

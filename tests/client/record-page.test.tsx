@@ -23,6 +23,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { beginVisit, clearProgress } from "@/lib/progress-record";
 import { readCounterfactuals } from "@shared/counterfactual-reading";
 import { readVariables } from "@shared/bucket-variable";
 import { crossVariables } from "@shared/crossing";
@@ -178,6 +179,70 @@ describe("an empty record does not pretend to be a measurement", () => {
      */
     expect(container.textContent, "a percentage on a page with nothing behind it").not.toMatch(/%/);
     expect(container.querySelector("[data-testid='dashboard']")).toBeNull();
+  });
+
+  it("does not gate the player's own sentence on the instrument having something to say", () => {
+    /*
+     * THE ONE LINE ON THIS PAGE THAT IS THE PLAYER'S AND NOT THE INSTRUMENT'S, and it used to be
+     * absent from the screen it matters most on.
+     *
+     * `GoalNote` was rendered inside the "מה נלמד עליי עד עכשיו" layer, which is correctly gated on
+     * `measured > 0` because it has nothing to show on an empty record. The goal inherited that
+     * condition, so a note about WHY YOU ARE HERE appeared only after the product had something to
+     * say about you. A goal is not a thing learned about the player.
+     *
+     * THE CONDITION IS `returning`, WHICH IS THE FACT THE QUESTION IS ABOUT. `measured === 0` and
+     * "has never been here" are different states: somebody who recorded a decision the engine has
+     * not scored has the first and not the second. The cold front door is the product explaining
+     * itself to a stranger who has done nothing, and measured, an unconditional goal also put that
+     * stage at 141 words against a ceiling of 140.
+     *
+     * WHY THIS READS THE SOURCE AND THE TEST BELOW READS THE SCREEN. `GoalNote` is behind
+     * `lazyChunk`, and no test in this file has ever rendered a lazy component -- every existing
+     * assertion about one checks that it is ABSENT. Rendering it for real takes the page down the
+     * returning-visitor path, where `ResumeScreen` is unmocked and suspends on its own queries, and
+     * a positive assertion there was measuring the harness rather than the page. So the ABSENCE is
+     * asserted on the screen, where it works and where the risk of a false pass is real, and the
+     * CONDITION is asserted here, where it is decidable. A behavioural positive is the better
+     * instrument and is not available in this file; saying so is cheaper than a test that passes
+     * for a reason nobody can name.
+     */
+    const source = readFileSync(resolve(root, "client/src/pages/Record.tsx"), "utf8");
+    const render = source.indexOf("<GoalNote />");
+    expect(render, "GoalNote is not rendered at all").toBeGreaterThan(-1);
+    /*
+     * The last 200 characters of code before the call site, comments stripped. Read backwards from
+     * the render rather than searched for across the file, because the page has another
+     * `returning &&` -- `ResumeScreen`'s -- and a file-wide search would match that one and prove
+     * nothing. 200 is enough to clear the `<Suspense fallback={null}>` between the gate and the
+     * component, and short enough that it cannot reach the previous JSX block.
+     */
+    const before = source.slice(0, render).replace(/\/\*[\s\S]*?\*\//g, "");
+    const gate = before.slice(-200);
+    expect(gate, "the goal is gated on something other than whether the player has been here").toMatch(
+      /returning &&/,
+    );
+    expect(gate, "the goal is gated on the instrument having measured something").not.toMatch(
+      /measured/,
+    );
+  });
+
+  it("does not ask a stranger why they are here before they have done anything", async () => {
+    /*
+     * The other half. One visit is a first arrival, and the screen is the product introducing
+     * itself; a question about the player's purpose has nothing to be answered against yet.
+     *
+     * WAITS FOR SOMETHING ELSE TO ARRIVE FIRST, so this is not a race that passes by being early.
+     * `GoalNote` is behind `lazyChunk`; asserting its absence on the first tick would pass on a
+     * page that renders it a moment later. The import panel is lazy too, and this mount gives it a
+     * reading so it renders -- once it is on screen the lazy boundary has resolved, and an absent
+     * goal is an absent goal rather than a slow one.
+     */
+    clearProgress();
+    beginVisit();
+    mount({ importReading: { reading: keptReading, loading: false } });
+    await screen.findByTestId("import-panel");
+    expect(screen.queryByTestId("goal")).toBeNull();
   });
 
   it("shows no bucket rows counting toward a number", () => {

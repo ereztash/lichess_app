@@ -16,6 +16,8 @@ import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 import {
   ENGINE_NOISE_CP,
   MATERIAL_LOSS_CP,
+  PLACEMENT_IS_NOT_CONSIDERATION,
+  bestMoveWasPlaced,
   inferenceLimits,
   theOneThing,
   type RevealInputs,
@@ -54,15 +56,46 @@ describe("the reading itself", () => {
     expect(one.text).toContain("g8f6");
     expect(one.text).toContain("f8c5");
     /*
-     * THE READING NOW LIVES IN `note`, and the split is what this assertion follows.
+     * THE READING LIVES IN `note`, AND IT NO LONGER SAYS WHICH DIFFICULTY IT WAS.
      *
      * `text` is the chess event -- which move was on the board, which was played, what it cost.
-     * "the difficulty was choosing, not finding" is a reading OF that event, and it moved to its
-     * own field so the two do not render with the same certainty. The invariant is unchanged: the
-     * reading is present exactly when the board record licenses it, which is what the next test
-     * holds from the other side.
+     * The note used to close with "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר",
+     * which is a statement about the player's mind inferred from one fact about the board: the
+     * move was placed. A mis-drag corrected before the commit, and a move dragged to look at and
+     * dragged back, are the SAME entry in `candidatesConsidered` as a move weighed and rejected --
+     * and the deciding screen invites exactly that, by saying "אפשר לשנות עד הרישום".
+     *
+     * The two mechanisms call for opposite work, so naming the wrong one sends a player to
+     * practise choosing between candidates when nothing was chosen between. What the note does now
+     * is hand that discrimination to the only party who can make it.
      */
-    expect(one.note).toMatch(/לבחור/);
+    expect(one.note, "the note still names which difficulty it was").not.toMatch(
+      /הקושי|לבחור בינו|לא היה למצוא/,
+    );
+    expect(one.note, "the note dropped the reading instead of re-siting it").toMatch(/רק אתם/);
+  });
+
+  it("says, above the reading, that a placement is not a consideration", () => {
+    /*
+     * THE PRESENCE DIRECTION OF A DISTINCTION THIS FILE'S SUBJECT ALREADY MADE IN THE OTHER ONE.
+     *
+     * `inferenceLimits` has long said that a move weighed WITHOUT being placed is not recorded --
+     * absence is not evidence of absence. The reverse was never said anywhere, and it is the
+     * direction on which the claim is actually made. The limits render before any number, so this
+     * is the caveat arriving ahead of the sentence it qualifies rather than after it.
+     *
+     * ASSERTED ON THE SAME PREDICATE THE BRANCH USES, not on a neighbouring condition: a caveat
+     * that fired on a different set would be qualifying a sentence that was never said.
+     */
+    expect(bestMoveWasPlaced(rejected)).toBe(true);
+    expect(inferenceLimits(rejected)).toContain(PLACEMENT_IS_NOT_CONSIDERATION);
+  });
+
+  it("does not say it where no placement licensed a reading", () => {
+    // The positive control's other half: the caveat is about a specific record, not a disclaimer
+    // printed on every reveal. On `missed` the engine's move was never on the board.
+    expect(bestMoveWasPlaced(missed)).toBe(false);
+    expect(inferenceLimits(missed)).not.toContain(PLACEMENT_IS_NOT_CONSIDERATION);
   });
 
   it("says nothing of the kind when the move was never placed", () => {
@@ -88,7 +121,7 @@ describe("the reading itself", () => {
     const both = { ...rejected, confidence: CONFIDENCE_LEVELS };
     const one = theOneThing(both)!;
     expect(one.kind).toBe("chose-past-it");
-    expect(one.note).toMatch(/לבחור/);
+    expect(one.note).toMatch(/רק אתם/);
     expect(`${one.text} ${one.note ?? ""}`).not.toMatch(/אמרת שאתה בטוח/);
   });
 

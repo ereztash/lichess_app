@@ -24,13 +24,8 @@
  * place, so two screens cannot round the same think time differently.
  */
 import { AUTHORITY, type EvidenceAuthority } from "./evidence-authority.js";
-import {
-  COST_BAND_WORD,
-  type CostBand,
-  confidenceWord,
-  costBand,
-  decisionsHeldElsewhere,
-} from "./plain-reading.js";
+import { decisionsHeldElsewhere } from "./decisions-elsewhere.js";
+import { COST_BAND_WORD, type CostBand, confidenceWord, costBand } from "./plain-reading.js";
 import type { BlitzEvent, PostGameReading, PostGameSilence } from "./blitz-reading.js";
 
 /**

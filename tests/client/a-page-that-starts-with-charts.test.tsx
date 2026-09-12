@@ -203,7 +203,9 @@ describe("a page that starts with charts", () => {
 
     it("keeps the count out of the sentence, so the sentence cannot go stale", () => {
       render(<WhatIsUnclear items={items} />);
-      expect(document.querySelector(".unclear__needs")?.textContent).toBe("עוד 8 החלטות");
+      /* `לפחות` because the figure is a floor, not a countdown -- it assumes every next decision
+         lands on the side that needs one, and nothing makes that true. */
+      expect(document.querySelector(".unclear__needs")?.textContent).toBe("לפחות עוד 8 החלטות");
       expect(document.querySelector(".unclear__because")?.textContent).not.toMatch(/\d/);
     });
 

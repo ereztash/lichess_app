@@ -41,6 +41,25 @@
  * `docs/user-loop-integrity/FALSIFICATION_REGISTER.md` rather than repaired by guesswork about
  * what a finished live game should offer.
  *
+ * AND "NO REVEAL IS OPEN" IS NOT A PLY. It used to be `-1`, and `-1` is also where a game starts.
+ *
+ * `runReveal` is handed `positionPly = currentPly`, and `currentPly` is `-1` on a board whose
+ * history is empty -- which is every game `newGame` deals, because it clears the history and the
+ * player's opening move has not been played yet. So the opening decision of a live game produced
+ * `revealPly: -1`, the guard below read it as "no reveal is open", and the reveal came back with
+ * no continuation at all. Measured in Chromium on the built bundle at `4b322f2`, twice, on a game
+ * started through `משחק חדש` with the default `אחרי כל החלטה`: `CONTINUATION_CTA` absent, the board
+ * refusing every move, and the only ways on a bank position in a different game and the record.
+ *
+ * WHAT IT COST, which is more than one button. The only purpose a live game could then record was
+ * `first`, because `play` needs a ply that is not the first decision's -- and `first` is refused by
+ * `discovery` in `shared/evidence-policy.ts`. The population the whole search is defined over could
+ * not be fed by the default route to a live game at all.
+ *
+ * SO THE CALLER SAYS IT INSTEAD. `null` means no reveal is open, `Home` derives it from
+ * `stage === "revealed"` -- the one place that opens a reveal, on the line below the one that sets
+ * `revealAt` -- and no ply has to stand in for a state any more.
+ *
  * NULL IS A FIRST-CLASS ANSWER. The front door hands over exactly one position on purpose --
  * `pickFirstDecision` trims the game *"so nothing after it can leak"* -- so a loaded handoff
  * genuinely has no second decision in it, and passing the turn to nobody is not one. Saying so is
@@ -63,10 +82,10 @@ export type Continuation =
 export function continuationAfter(input: {
   source: AnalysisSource;
   history: readonly GameSnapshot[];
-  /** The ply the open reveal's decision was taken at, or -1 when no reveal is open. */
-  revealPly: number;
+  /** The ply the open reveal's decision was taken at, or null when no reveal is open. */
+  revealPly: number | null;
 }): Continuation | null {
-  if (input.revealPly < 0) return null;
+  if (input.revealPly === null) return null;
   if (input.source === "live") return { kind: "play" };
   const ply = input.revealPly + 2;
   const landing = input.history[ply];

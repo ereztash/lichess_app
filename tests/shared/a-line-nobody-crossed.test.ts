@@ -152,8 +152,13 @@ describe("a line nobody crossed", () => {
       const fast = reading.buckets.find((b) => b.key === "fast-under-45s")!;
       expect(fast.inside.n).toBe(MIN_BUCKET_N - 3);
       expect(fast.outside.n).toBe(0);
-      /* The old field answered "how far is INSIDE from the floor" and returned 3. */
-      expect(fast.shortBy).toBe(MIN_BUCKET_N);
+      /*
+       * The first version answered "how far is INSIDE from the floor" and returned 3. The second
+       * answered "how far is the BINDING side from the floor" and returned 30. Neither is what the
+       * row renders, which is what the player must still produce: 3 more inside and 30 more
+       * outside. On a record with both sides empty the second version said 30 where 60 are needed.
+       */
+      expect(fast.shortBy).toBe(3 + MIN_BUCKET_N);
     });
 
     it("does not call a small record's empty side a dead end", () => {

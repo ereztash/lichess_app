@@ -1,0 +1,812 @@
+{
+  "runtime_version": "0.2",
+  "rnd_telos_version": "0.2-candidate",
+  "task": {
+    "calibration_version": "0.1",
+    "task_id": "CAL-LICHESS-INSTRUMENT-TELOS-001",
+    "telos": {
+      "statement": "Determine whether a large class of Decision Lab's current journey problems are manifestations of one mechanism, the Instrument-Telos Gap, in which the product asks the player to incur cost whose primary beneficiary is the measurement system, or whether they are better explained by competing hypotheses that were frozen before the audit: UX legibility, time-to-value, the unreachable learning layer, dual-ontology leakage, market mismatch, or no structural problem at all.",
+      "success_condition": "The audit discriminates rather than confirms. The answer names which hypothesis the measured evidence supports, names at least one FIELD observation that would weaken the owner's own hypothesis, and does not credit that hypothesis for costs that a feature flag, better wording, or an earlier payoff would cover."
+    },
+    "current_state": {
+      "summary": "Decision Lab records a chess decision BEFORE the engine answers. A frozen product-state walk of the shipped bundle established what is reachable. The core loop pays every time: place a move, submit, and the reveal returns what the move cost, what the record cannot support, and a question. Three instruments sit on top of that loop. Confidence is asked always on first/anchor/drill/transfer and at ASK_RATE=0.15 on ordinary play; it is the only source of the calibration gap and nothing an engine can produce afterwards substitutes for it. The two read fields are coupled to the same draw and are consumed immediately: shared/reveal.ts nextQuestion anchors the reveal's question to the player's own stated unknown, which the file calls the one thing on screen the engine did not produce. The counterfactual probe fires on 35 percent of eligible decisions; its immediate payoff, the named alternative scored beside the played move, exists but sits behind a disclosure, and its full four-way reading needs 30 probed decisions. Two measured walks of the built bundle at 390x844: six decisions cost 34 taps and four decisions cost 26 taps, and in both the discovery counter ended at 1 of 60, because first is refused by discovery and only one play decision drew the confidence question. The product states the floor twice in plain words and states that even at 60 the result would be a hypothesis and not a finding; it never states the conversion rate between decisions taken and decisions counted. The record page shows two denominators from two populations, 60 counted decisions and 30 blitz games, with nothing saying they are two. A blitz game writes nothing to the record until it finishes. The whole Evidence to Learning to Transfer half is unreachable because EXPERIMENTAL_LEARNING_ENABLED is off, a decision recorded in D25. The audit artefacts available to this run are: a frozen seven-hypothesis plan with a discrimination table fixed before the evidence; an action-value ledger over sixteen reachable costly actions with eight permitted verdicts, built by walking the built bundle; a counterfactual delete audit; a value-debt map over seven journey paths; an internal-ontology leakage classification; an instrumentation burden audit; a value-repayment map; a telos chain; a founder-translation audit; and a frozen FIELD protocol with measures M1 to M8, assistance levels A0 to A3 and interpretation rules fixed before any participant.",
+      "known_constraints": [
+        "EXPERIMENTAL_LEARNING_ENABLED stays off. No flag change is permitted by this mission.",
+        "The two evidence lanes stay unmerged. D26 records the owner's decision to defer consolidation until after a FIELD run so that the leakage is observed rather than repaired first.",
+        "No sampling rate, threshold, denominator, orchestration surface, onboarding or wording pass may be changed. The FIELD stimulus is frozen at product source 4c39563.",
+        "The evidence policy refuses drill, transfer, import, anchor and first from discovery, so that an attempt to fix a weakness cannot manufacture the next one. This separation is load-bearing and may not be simplified away.",
+        "The product may not claim chess improvement, rating improvement or intervention efficacy. D25 reached CONSTRUCT-UNDERIDENTIFIED with zero humans measured.",
+        "Zero cold users have used the audited build. Every claim about comprehension, payoff or pull is FIELD-owned."
+      ],
+      "available_resources": [
+        "RND",
+        "NETA",
+        "REPO",
+        "OWNER",
+        "FIELD"
+      ]
+    },
+    "decision_blocked": {
+      "statement": "Is the Instrument-Telos Gap a real root mechanism in this product, a local effect, or an artefact of a lens that can absorb any friction; and if it is real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+      "current_default": "Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate through M6 and M7.",
+      "reversal_condition": "Evidence that the uncovered costs are each separately explained by a flag, by wording, or by distance to payoff, in which case they belong to H4, H2 and H3 and the mechanism claim collapses; or evidence that the core loop's per-decision repayment is not actually experienced as repayment, in which case the mechanism is broader than the audit found."
+    },
+    "signals": [
+      "MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60.",
+      "MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8.",
+      "REPO: shared/reveal.ts nextQuestion consumes statedUnknown, so the read fields have an immediate differentiated payoff on the next screen, contradicting an older repository comment that said nothing downstream reads them.",
+      "REPO: the read fields were once required on every decision and were cut to a sample with the reason written down, that six decisions in seven bought nothing measurable. The repository has already run this mission's delete test on itself and acted on the answer.",
+      "REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement and not a measurement, and states that nothing has measured what rate a player tolerates.",
+      "REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement, and the file separates the two.",
+      "REPO: a blitz game in progress writes nothing to the record. Measured: after twelve moves the record held only a progress log and a time control.",
+      "REPO: the record page renders two denominators from two populations, and the same act feeds both, so neither number changes what the player should do next.",
+      "REPO: the import panel states the value contract completely in one sentence, naming what retrospective games structurally cannot hold and that no quantity fixes it.",
+      "REPO: five differentiated payoffs are AVAILABLE_NOW, three are REQUIRES_N, and four are FEATURE_FLAGGED.",
+      "REPO: the telos chain closes per decision and breaks in two places across decisions, once at the accumulation threshold and once at the flag boundary.",
+      "FIELD: zero humans have used this build. M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull."
+    ],
+    "allowed_resources": [
+      "RND",
+      "NETA",
+      "REPO",
+      "OWNER",
+      "FIELD"
+    ],
+    "context_refs": [
+      "ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+      "ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+      "ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+      "ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+      "ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+      "ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+      "ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+      "ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+      "ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+    ],
+    "budget": {
+      "max_resource_calls": 6,
+      "max_parallel_calls": 2
+    }
+  },
+  "diagnosis": {
+    "material_question": "Is the Instrument-Telos Gap a real root mechanism in Decision Lab, a local effect confined to the three instruments layered on the core loop, or an artefact of a lens elastic enough to absorb any friction; and if real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+    "bottleneck": "The lens has no recorded refusal. Every measured cost so far cited in its support — the 8-tap instrumented decision against the 3-to-4-tap uninstrumented one, the discovery counter ending at 1 of 60 after six decisions, the two denominators from two populations — is also fully consistent with three hypotheses frozen before the audit: H4 (the flag makes the Evidence-to-Learning-to-Transfer half unreachable, so instrument cost has no visible terminus), H2 (the conversion rate between decisions taken and decisions counted is never stated anywhere in the product), and H3 (distance to the accumulation threshold of 30 and 60). Until each uncovered cost is tested against a lens that can decline to apply, the audit confirms rather than discriminates, and the success condition is unmet by construction. Compounding this, all nine context_refs failed delivery, so the frozen discrimination table, the sixteen-action ledger verdicts and the delete audit — the only artefacts that record what the lens already refused — are not in hand for this diagnosis.",
+    "resource_assessment": [
+      {
+        "resource": "RND",
+        "expected_contribution": "Run the absorbency test in-house: take each of the sixteen reachable costly actions and ask whether a flag, a wording/conversion-rate statement, or distance-to-payoff fully covers its cost. Actions fully covered belong to H4/H2/H3 and must be subtracted from the mechanism claim; only the uncovered residue can carry it. Also derive the unstated decisions-taken-to-decisions-counted conversion rate from the two measured walks and locate it as a wording debt rather than a mechanism.",
+        "authority_ceiling": "Can re-partition existing measured evidence and name what would falsify the lens. Cannot generate a human observation, cannot change the product, cannot settle whether the owner accepts a reduced mechanism claim.",
+        "uncertainty": "Whether the residue after subtraction is large enough to be a mechanism at all, or collapses to the confidence draw alone; and whether subtraction is legitimate given that the flag and the threshold may themselves be expressions of the same mechanism rather than competitors to it.",
+        "expected_delta": {
+          "decision": true,
+          "action": false,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "NETA",
+        "expected_contribution": "Adjudicate the signal-to-interpretation step the whole audit rests on: whether tap count is an admissible proxy for cost-whose-beneficiary-is-the-measurement-system, whether the discovery counter at 1 of 60 reads as instrument-serving burden or as a legible progress signal against a stated floor, and whether the 500/5000 simulated-game characterisation of the confidence draw is being read as evidence about players when the file itself separates measured behaviour from owner judgement on level.",
+        "authority_ceiling": "Can refuse or qualify an interpretation and name a competing mechanism. Cannot supply the human observation that would settle it, and holds no authority over the frozen hypothesis set or the FIELD protocol.",
+        "uncertainty": "Whether Neta's reading diverges from RND's or merely agrees, which would add no delta; and whether proxy criticism arrives early enough to change what FIELD measures given the protocol is already frozen at M1 to M8.",
+        "expected_delta": {
+          "decision": true,
+          "action": false,
+          "reversal": true,
+          "evidence": false,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "REPO",
+        "expected_contribution": "Deliver the nine artefacts that failed this run: the frozen seven-hypothesis discrimination table fixed before the evidence, the sixteen-action ledger with its eight permitted verdicts, the counterfactual delete audit, the value-debt map, the telos chain, the field discrimination map, the product-state walk, and D25/D26. These record what the lens has already declined to explain — the strongest available refutation of absorbency — and the repository has already run this mission's delete test on itself by cutting the read fields from every decision to a sample with the reason written down.",
+        "authority_ceiling": "Authoritative on what the code and the frozen artefacts state, including that PROBE_PROBABILITY is judgement not measurement and that nextQuestion consumes statedUnknown. Silent on how any human experiences the loop; cannot supply comprehension, payoff or pull.",
+        "uncertainty": "Whether the delivery failure is a path/permission issue recoverable at low cost or a missing-artefact condition; and whether the frozen discrimination table already contains the refusal case, in which case the absorbency worry is largely answered without FIELD.",
+        "expected_delta": {
+          "decision": true,
+          "action": false,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": true
+        }
+      },
+      {
+        "resource": "OWNER",
+        "expected_contribution": "Settle three things only the owner owns: whether a mechanism claim reduced to the uncovered residue still counts as the root-cause finding sought, whether PARTIAL_ROOT_CAUSE with named uncovered costs is an acceptable disposition before FIELD, and confirmation that the D26 deferral of lane consolidation is deliberate so the leakage is observed rather than repaired first.",
+        "authority_ceiling": "Owns the flag, the frozen stimulus at 4c39563, the deferral decision and the acceptance criterion. Owner judgement cannot function as evidence for or against the owner's own hypothesis, and must not be credited as triangulation.",
+        "uncertainty": "Whether asking now biases the audit toward the owner's hypothesis at the exact moment discrimination is the success condition; a mistimed OWNER call trades independence for permission that the current default already has.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": false,
+          "evidence": false,
+          "allocation": true,
+          "distinction": false
+        }
+      },
+      {
+        "resource": "FIELD",
+        "expected_contribution": "The only resource that can produce the evidence class the telos names. M6 and M7 are the sole measures that separate the owner's hypothesis from time-to-value and market pull, and zero cold users have touched the audited build, so every claim about comprehension, payoff or pull is FIELD-owned. A FIELD run is also the only route to the reversal condition's second branch: whether the core loop's per-decision repayment is actually experienced as repayment.",
+        "authority_ceiling": "Authoritative on human experience of the frozen build only. Cannot retroactively license the audit's REPO-derived attribution, and its interpretation rules are already fixed before any participant, so it cannot answer questions the protocol did not pre-commit to.",
+        "uncertainty": "Cost and latency are the highest of any resource here, and it is already the current default path; the live question is whether any cheaper move changes what the FIELD run is expected to discriminate, not whether FIELD is eventually needed.",
+        "expected_delta": {
+          "decision": true,
+          "action": true,
+          "reversal": true,
+          "evidence": true,
+          "allocation": true,
+          "distinction": true
+        }
+      }
+    ],
+    "candidate_moves": [
+      {
+        "move": "RECOVER",
+        "resource": "REPO",
+        "expected_decision_value": "Highest value per unit cost. The frozen discrimination table and the ledger's eight permitted verdicts plausibly already contain a case the lens refused; recovering them either defeats the absorbency worry outright or confirms it, and no other move can be soundly evaluated while the nine named artefacts are undelivered.",
+        "reversibility": "Fully reversible. Reading artefacts changes nothing in the product, touches no flag and no frozen stimulus."
+      },
+      {
+        "move": "USE_EXISTING",
+        "resource": "RND",
+        "expected_decision_value": "High. Subtracting from the mechanism claim every cost that a flag, a stated conversion rate, or an earlier payoff would cover directly serves the success condition's prohibition on crediting the owner's hypothesis for such costs. Likely to relocate the 1-of-60 counter and the two-denominator page into H2/H4 and leave the confidence draw as the residue.",
+        "reversibility": "Fully reversible. A re-partition of held evidence, recorded as a derivation with its subtraction rule stated so it can be reversed if REPO contradicts it."
+      },
+      {
+        "move": "INVOKE_NETA",
+        "resource": "NETA",
+        "expected_decision_value": "Moderate to high, and the needs profile is squarely in Neta's band: proxy substitution is live (taps for instrument-serving burden), competing mechanisms are frozen and plural, and the work is about to become an intervention-siting decision. Most valuable after REPO delivery so Neta reads the frozen table rather than a summary.",
+        "reversibility": "Fully reversible, provided Neta is given the prospective framing only and not RND's subtraction result, to preserve independence."
+      },
+      {
+        "move": "WAIT",
+        "resource": "OWNER",
+        "expected_decision_value": "Moderate but timing-sensitive. Valuable for the acceptance criterion on a reduced mechanism claim; harmful if invoked before the subtraction is done, because it invites the owner to adjudicate their own hypothesis while discrimination is still open.",
+        "reversibility": "Low once made. An owner ruling is hard to un-hear and can contaminate the remaining discrimination; defer until the residue is named."
+      },
+      {
+        "move": "COLLECT_FIELD",
+        "resource": "FIELD",
+        "expected_decision_value": "Decisive but not yet cheapest. M6 and M7 are the only discriminators against time-to-value and market pull, and the protocol is frozen; the diagnosis should first establish which residue FIELD is being asked to test so the run is read as discrimination and not confirmation.",
+        "reversibility": "Partially irreversible. Participants are spent, the stimulus is frozen at 4c39563, and interpretation rules are fixed before any participant."
+      },
+      {
+        "move": "STOP",
+        "resource": "RND",
+        "expected_decision_value": "Low as a first move, credible as a disposition. Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate; this is the current default and remains correct if the cheap moves above do not shift the residue.",
+        "reversibility": "Fully reversible. Changing nothing preserves every constraint, including the unmerged lanes and the off flag."
+      }
+    ],
+    "needs": {
+      "signal_interpretation_ambiguity": true,
+      "multiple_plausible_mechanisms": true,
+      "proxy_substitution_risk": true,
+      "research_to_intervention_transition": true,
+      "broad_reasoning_needed": false,
+      "architecture_alternatives_needed": false,
+      "novel_synthesis_needed": false,
+      "external_research_needed": false,
+      "owner_authority_needed": true,
+      "repo_authority_needed": true,
+      "environment_authority_needed": false,
+      "field_authority_needed": true
+    },
+    "rationale": "The telos is discrimination, not confirmation, so the miscalibration to fix is in the lens rather than in the product. Three of the costs currently cited for the Instrument-Telos Gap are each separately covered by a hypothesis frozen before the audit — the unreachable learning half by the flag, the never-stated conversion between decisions taken and decisions counted by wording, and the 30-and-60 thresholds by distance to payoff — which is precisely the reversal condition already written into this task. The cheapest decision-changing learning is therefore not a new observation at all: it is recovering the nine undelivered artefacts, since the frozen discrimination table and the ledger's eight permitted verdicts record where the lens has already declined to apply, and the repository has demonstrably run this mission's own delete test on itself by cutting the read fields from every decision to a sample and writing down that six decisions in seven bought nothing measurable. That is evidence of a lens that refuses, and it is held in REPO, not in FIELD. Only after subtracting the covered costs is it worth paying NETA, whose band this squarely is — tap count is a proxy for instrument-serving burden, the discovery counter is a proxy for progress, and the 500/5000 simulated games are a proxy for player tolerance that the repository itself marks as judgement rather than measurement. OWNER is deferred deliberately: an owner ruling on the owner's own hypothesis, taken before the residue is named, would contaminate the discrimination the success condition demands, and owner agreement would not constitute triangulation in any case. FIELD stays the eventual discriminator because zero humans have used the audited build and M6 and M7 are the only measures that separate the mechanism from time-to-value and market pull, but it is already the default path and its protocol is frozen; the value of this diagnosis is to fix which residue the run is testing so its result reads as discrimination. No move proposed here touches the flag, the frozen stimulus at 4c39563, the unmerged lanes, the sampling rates, or the evidence policy's refusal of drill, transfer, import, anchor and first from discovery. The expected deltas above are ex-ante commitments about which decision-state dimensions each resource could still move if invoked now; RND and NETA are marked evidence-false because neither produces a new observation, and OWNER is marked reversal-false because the reversal condition is evidence-shaped and authority cannot satisfy it."
+  },
+  "routing": {
+    "resources": [
+      "NETA"
+    ],
+    "fired": {
+      "NETA": [
+        "multiple_plausible_mechanisms",
+        "proxy_substitution_risk",
+        "research_to_intervention_transition",
+        "signal_interpretation_ambiguity"
+      ],
+      "AUTHORITY": [
+        "owner_authority_needed",
+        "repo_authority_needed",
+        "field_authority_needed"
+      ]
+    },
+    "authority_handoffs": [
+      "FIELD",
+      "OWNER",
+      "REPO"
+    ]
+  },
+  "resource_invocations": [
+    {
+      "resource": "RND",
+      "phase": "DIAGNOSE",
+      "request": {
+        "resource": "RND",
+        "phase": "DIAGNOSE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-INSTRUMENT-TELOS-001",
+          "telos": {
+            "statement": "Determine whether a large class of Decision Lab's current journey problems are manifestations of one mechanism, the Instrument-Telos Gap, in which the product asks the player to incur cost whose primary beneficiary is the measurement system, or whether they are better explained by competing hypotheses that were frozen before the audit: UX legibility, time-to-value, the unreachable learning layer, dual-ontology leakage, market mismatch, or no structural problem at all.",
+            "success_condition": "The audit discriminates rather than confirms. The answer names which hypothesis the measured evidence supports, names at least one FIELD observation that would weaken the owner's own hypothesis, and does not credit that hypothesis for costs that a feature flag, better wording, or an earlier payoff would cover."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers. A frozen product-state walk of the shipped bundle established what is reachable. The core loop pays every time: place a move, submit, and the reveal returns what the move cost, what the record cannot support, and a question. Three instruments sit on top of that loop. Confidence is asked always on first/anchor/drill/transfer and at ASK_RATE=0.15 on ordinary play; it is the only source of the calibration gap and nothing an engine can produce afterwards substitutes for it. The two read fields are coupled to the same draw and are consumed immediately: shared/reveal.ts nextQuestion anchors the reveal's question to the player's own stated unknown, which the file calls the one thing on screen the engine did not produce. The counterfactual probe fires on 35 percent of eligible decisions; its immediate payoff, the named alternative scored beside the played move, exists but sits behind a disclosure, and its full four-way reading needs 30 probed decisions. Two measured walks of the built bundle at 390x844: six decisions cost 34 taps and four decisions cost 26 taps, and in both the discovery counter ended at 1 of 60, because first is refused by discovery and only one play decision drew the confidence question. The product states the floor twice in plain words and states that even at 60 the result would be a hypothesis and not a finding; it never states the conversion rate between decisions taken and decisions counted. The record page shows two denominators from two populations, 60 counted decisions and 30 blitz games, with nothing saying they are two. A blitz game writes nothing to the record until it finishes. The whole Evidence to Learning to Transfer half is unreachable because EXPERIMENTAL_LEARNING_ENABLED is off, a decision recorded in D25. The audit artefacts available to this run are: a frozen seven-hypothesis plan with a discrimination table fixed before the evidence; an action-value ledger over sixteen reachable costly actions with eight permitted verdicts, built by walking the built bundle; a counterfactual delete audit; a value-debt map over seven journey paths; an internal-ontology leakage classification; an instrumentation burden audit; a value-repayment map; a telos chain; a founder-translation audit; and a frozen FIELD protocol with measures M1 to M8, assistance levels A0 to A3 and interpretation rules fixed before any participant.",
+            "known_constraints": [
+              "EXPERIMENTAL_LEARNING_ENABLED stays off. No flag change is permitted by this mission.",
+              "The two evidence lanes stay unmerged. D26 records the owner's decision to defer consolidation until after a FIELD run so that the leakage is observed rather than repaired first.",
+              "No sampling rate, threshold, denominator, orchestration surface, onboarding or wording pass may be changed. The FIELD stimulus is frozen at product source 4c39563.",
+              "The evidence policy refuses drill, transfer, import, anchor and first from discovery, so that an attempt to fix a weakness cannot manufacture the next one. This separation is load-bearing and may not be simplified away.",
+              "The product may not claim chess improvement, rating improvement or intervention efficacy. D25 reached CONSTRUCT-UNDERIDENTIFIED with zero humans measured.",
+              "Zero cold users have used the audited build. Every claim about comprehension, payoff or pull is FIELD-owned."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "REPO",
+              "OWNER",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Is the Instrument-Telos Gap a real root mechanism in this product, a local effect, or an artefact of a lens that can absorb any friction; and if it is real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+            "current_default": "Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate through M6 and M7.",
+            "reversal_condition": "Evidence that the uncovered costs are each separately explained by a flag, by wording, or by distance to payoff, in which case they belong to H4, H2 and H3 and the mechanism claim collapses; or evidence that the core loop's per-decision repayment is not actually experienced as repayment, in which case the mechanism is broader than the audit found."
+          },
+          "signals": [
+            "MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60.",
+            "MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8.",
+            "REPO: shared/reveal.ts nextQuestion consumes statedUnknown, so the read fields have an immediate differentiated payoff on the next screen, contradicting an older repository comment that said nothing downstream reads them.",
+            "REPO: the read fields were once required on every decision and were cut to a sample with the reason written down, that six decisions in seven bought nothing measurable. The repository has already run this mission's delete test on itself and acted on the answer.",
+            "REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement and not a measurement, and states that nothing has measured what rate a player tolerates.",
+            "REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement, and the file separates the two.",
+            "REPO: a blitz game in progress writes nothing to the record. Measured: after twelve moves the record held only a progress log and a time control.",
+            "REPO: the record page renders two denominators from two populations, and the same act feeds both, so neither number changes what the player should do next.",
+            "REPO: the import panel states the value contract completely in one sentence, naming what retrospective games structurally cannot hold and that no quantity fixes it.",
+            "REPO: five differentiated payoffs are AVAILABLE_NOW, three are REQUIRES_N, and four are FEATURE_FLAGGED.",
+            "REPO: the telos chain closes per decision and breaks in two places across decisions, once at the accumulation threshold and once at the flag boundary.",
+            "FIELD: zero humans have used this build. M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "REPO",
+            "OWNER",
+            "FIELD"
+          ],
+          "context_refs": [
+            "ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+            "ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+            "ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+            "ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+            "ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+            "ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+            "ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+            "ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+            "ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+          ],
+          "budget": {
+            "max_resource_calls": 6,
+            "max_parallel_calls": 2
+          }
+        },
+        "instruction": "Diagnose resource↔telos miscalibration, map candidate resource moves, commit ex ante to which decision-state dimensions each assessed resource could change, and return exactly the Calibration Loop v0.2 diagnosis shape."
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "NETA",
+      "phase": "ANALYZE",
+      "request": {
+        "resource": "NETA",
+        "phase": "ANALYZE",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-INSTRUMENT-TELOS-001",
+          "telos": {
+            "statement": "Determine whether a large class of Decision Lab's current journey problems are manifestations of one mechanism, the Instrument-Telos Gap, in which the product asks the player to incur cost whose primary beneficiary is the measurement system, or whether they are better explained by competing hypotheses that were frozen before the audit: UX legibility, time-to-value, the unreachable learning layer, dual-ontology leakage, market mismatch, or no structural problem at all.",
+            "success_condition": "The audit discriminates rather than confirms. The answer names which hypothesis the measured evidence supports, names at least one FIELD observation that would weaken the owner's own hypothesis, and does not credit that hypothesis for costs that a feature flag, better wording, or an earlier payoff would cover."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers. A frozen product-state walk of the shipped bundle established what is reachable. The core loop pays every time: place a move, submit, and the reveal returns what the move cost, what the record cannot support, and a question. Three instruments sit on top of that loop. Confidence is asked always on first/anchor/drill/transfer and at ASK_RATE=0.15 on ordinary play; it is the only source of the calibration gap and nothing an engine can produce afterwards substitutes for it. The two read fields are coupled to the same draw and are consumed immediately: shared/reveal.ts nextQuestion anchors the reveal's question to the player's own stated unknown, which the file calls the one thing on screen the engine did not produce. The counterfactual probe fires on 35 percent of eligible decisions; its immediate payoff, the named alternative scored beside the played move, exists but sits behind a disclosure, and its full four-way reading needs 30 probed decisions. Two measured walks of the built bundle at 390x844: six decisions cost 34 taps and four decisions cost 26 taps, and in both the discovery counter ended at 1 of 60, because first is refused by discovery and only one play decision drew the confidence question. The product states the floor twice in plain words and states that even at 60 the result would be a hypothesis and not a finding; it never states the conversion rate between decisions taken and decisions counted. The record page shows two denominators from two populations, 60 counted decisions and 30 blitz games, with nothing saying they are two. A blitz game writes nothing to the record until it finishes. The whole Evidence to Learning to Transfer half is unreachable because EXPERIMENTAL_LEARNING_ENABLED is off, a decision recorded in D25. The audit artefacts available to this run are: a frozen seven-hypothesis plan with a discrimination table fixed before the evidence; an action-value ledger over sixteen reachable costly actions with eight permitted verdicts, built by walking the built bundle; a counterfactual delete audit; a value-debt map over seven journey paths; an internal-ontology leakage classification; an instrumentation burden audit; a value-repayment map; a telos chain; a founder-translation audit; and a frozen FIELD protocol with measures M1 to M8, assistance levels A0 to A3 and interpretation rules fixed before any participant.",
+            "known_constraints": [
+              "EXPERIMENTAL_LEARNING_ENABLED stays off. No flag change is permitted by this mission.",
+              "The two evidence lanes stay unmerged. D26 records the owner's decision to defer consolidation until after a FIELD run so that the leakage is observed rather than repaired first.",
+              "No sampling rate, threshold, denominator, orchestration surface, onboarding or wording pass may be changed. The FIELD stimulus is frozen at product source 4c39563.",
+              "The evidence policy refuses drill, transfer, import, anchor and first from discovery, so that an attempt to fix a weakness cannot manufacture the next one. This separation is load-bearing and may not be simplified away.",
+              "The product may not claim chess improvement, rating improvement or intervention efficacy. D25 reached CONSTRUCT-UNDERIDENTIFIED with zero humans measured.",
+              "Zero cold users have used the audited build. Every claim about comprehension, payoff or pull is FIELD-owned."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "REPO",
+              "OWNER",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Is the Instrument-Telos Gap a real root mechanism in this product, a local effect, or an artefact of a lens that can absorb any friction; and if it is real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+            "current_default": "Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate through M6 and M7.",
+            "reversal_condition": "Evidence that the uncovered costs are each separately explained by a flag, by wording, or by distance to payoff, in which case they belong to H4, H2 and H3 and the mechanism claim collapses; or evidence that the core loop's per-decision repayment is not actually experienced as repayment, in which case the mechanism is broader than the audit found."
+          },
+          "signals": [
+            "MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60.",
+            "MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8.",
+            "REPO: shared/reveal.ts nextQuestion consumes statedUnknown, so the read fields have an immediate differentiated payoff on the next screen, contradicting an older repository comment that said nothing downstream reads them.",
+            "REPO: the read fields were once required on every decision and were cut to a sample with the reason written down, that six decisions in seven bought nothing measurable. The repository has already run this mission's delete test on itself and acted on the answer.",
+            "REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement and not a measurement, and states that nothing has measured what rate a player tolerates.",
+            "REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement, and the file separates the two.",
+            "REPO: a blitz game in progress writes nothing to the record. Measured: after twelve moves the record held only a progress log and a time control.",
+            "REPO: the record page renders two denominators from two populations, and the same act feeds both, so neither number changes what the player should do next.",
+            "REPO: the import panel states the value contract completely in one sentence, naming what retrospective games structurally cannot hold and that no quantity fixes it.",
+            "REPO: five differentiated payoffs are AVAILABLE_NOW, three are REQUIRES_N, and four are FEATURE_FLAGGED.",
+            "REPO: the telos chain closes per decision and breaks in two places across decisions, once at the accumulation threshold and once at the flag boundary.",
+            "FIELD: zero humans have used this build. M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "REPO",
+            "OWNER",
+            "FIELD"
+          ],
+          "context_refs": [
+            "ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+            "ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+            "ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+            "ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+            "ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+            "ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+            "ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+            "ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+            "ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+          ],
+          "budget": {
+            "max_resource_calls": 6,
+            "max_parallel_calls": 2
+          }
+        },
+        "requested_focus": [
+          "multiple_plausible_mechanisms",
+          "proxy_substitution_risk",
+          "research_to_intervention_transition",
+          "signal_interpretation_ambiguity"
+        ],
+        "independence_rule": "Analyze the task independently. Do not infer another resource's conclusion and do not turn agreement into independent evidence.",
+        "prompt_ref": "prompts/SYSTEM.md",
+        "role_boundary": "Challenge framing, proxy substitution, mechanism collapse and premature intervention. Do not decide external research validity or architecture doctrine."
+      },
+      "expected_delta": {
+        "decision": true,
+        "action": false,
+        "reversal": true,
+        "evidence": false,
+        "allocation": true,
+        "distinction": true
+      },
+      "observed_delta": {
+        "decision": "Disposition moved from an unscoped PARTIAL_ROOT_CAUSE to SCOPE_LIMITED_PARTIAL: refuted per-decision, category-error at the record page, surviving only in the accumulation and flag regions.",
+        "action": "Added a concrete pre-FIELD act not previously in the plan — a written declaration, before any participant, that the counterfactual arm is non-discriminating unless disclosure-opening is already recorded in M1-M8. Ex-ante commitment for this dimension was false; the mismatch is that Neta acted on the research-to-intervention transition by constraining the frozen protocol's interpretation rather than only interpreting signals.",
+        "reversal": "The written reversal condition is now partially met ahead of FIELD: the accumulation and flag breaks are exactly what H3 and H4 were frozen to explain, so the surviving region is currently indistinguishable from its pre-registered competitors on REPO-derived evidence.",
+        "evidence": null,
+        "allocation": "A cheap REPO tap decomposition and conversion-rate derivation are promoted ahead of both the bulk nine-artefact recovery and the FIELD run; the candidate highest-value owner decision is relocated from the confidence draw's level to PROBE_PROBABILITY=0.35, conditional on how the fork resolves.",
+        "distinction": "Three distinctions that the ledger's verdict vocabulary cannot express: rendered is not noticed (salience vs beneficiary); a zero-cost defect is outside the delete audit's unit of a costly action; and taps-per-decision is a burden measure being read as an attribution claim about who a cost benefits, since two actions at identical tap cost can differ entirely in beneficiary."
+      },
+      "material": true,
+      "result": {
+        "resource": "NETA",
+        "summary": "RAW SIGNAL preserved: \"the product asks the player to incur cost whose primary beneficiary is the measurement system.\" On the evidence actually present in this request, that mechanism is not supported as a global root cause, is contradicted in the per-decision region, and is under-discriminated in the accumulation region. Three separate observations are being bundled under one lens and they do not share a mechanism. (1) The confidence draw is scored as having an immediate differentiated payoff — shared/reveal.ts nextQuestion consumes statedUnknown on the very next screen — and the repository has already run this mission's delete test on itself, cutting the field from required to sampled with the reason recorded. An instrument that feeds the next screen and that has already survived a self-administered delete test is the lens's own strongest predicted case, and it fails the prediction. (2) The counterfactual probe has a payoff that exists but sits behind a disclosure. That is a salience and progressive-disclosure problem, not a beneficiary problem; rendered is not noticed, and the ledger's AVAILABLE_NOW verdict cannot distinguish the two. (3) The record page's two denominators from two populations cost the player nothing to render. Folding a trust and ontology defect into a cost-attribution mechanism is a category error, because the delete audit's unit is a costly action and this is not one. What survives is narrower and sharper than the owner's framing: the telos chain closes per decision and breaks across decisions, once at the accumulation threshold and once at the flag boundary. Both break points are exactly what H3 (distance to payoff) and H4 (the unreachable learning layer) were frozen to explain. So in the one region where the owner's mechanism still holds, it is currently indistinguishable from the two competitors the plan pre-registered against it — which is the written reversal condition, already partially met before FIELD. Central proxy substitution: taps-per-decision is a burden measure being read as an attribution claim. Tap count cannot say who the cost is for; two actions at identical tap cost can differ completely in beneficiary. The same substitution runs through the discovery counter: 1 of 60 after six decisions is an exchange-rate opacity — the product never states the conversion between decisions taken and decisions counted — not evidence about who benefits. Both walks were run by the owner, who knows the refusal rules; owner behavior is not stranger behavior, so the felt meaning of that counter is FIELD-owned even though the tap counts are MEASURED. AUTHORITY: the cost decomposition is REPO; the threshold and flag tradeoffs are OWNER; comprehension, payoff and pull are FIELD. EVIDENCE STATE: MECHANISM_SUPPORTED for the accumulation break, contradicted for the per-decision loop, FIELD_REQUIRED for everything about felt repayment. Recommended posture: the current default (report PARTIAL_ROOT_CAUSE, change nothing, let M6 and M7 discriminate) is right, but PARTIAL should be stated as scope-limited to the accumulation and flag regions rather than as a weaker version of the whole claim, and one cheap REPO decomposition should run before FIELD because it is non-interventional and could collapse the remaining support.",
+        "unique_delta": "An arithmetic check on the two frozen walks, using only numbers already in this request, shows the tap cost is not mostly instrument cost — and nobody has decomposed it. Walk A: 6 decisions, 34 taps, 1 confidence draw. At the stated 3-4 taps uninstrumented and 8 instrumented, the expected total is 23-28 taps. Measured 34, residual 6-11. Walk B: 4 decisions, 26 taps, 1 draw. Expected 17-20. Measured 26, residual 6-9. The residual is stable at roughly 6-9 taps per walk and does not scale with decision count, which is the signature of fixed orchestration or navigation overhead, not per-decision instrumentation. There is exactly one competing account: the counterfactual probe fires on 35 percent of eligible decisions and would be expected to fire about twice in a six-decision walk, which could absorb much of the residual. Those two accounts have opposite consequences and are cheap to separate. If the residual is navigation, then a quarter to a third of the cost the audit attributes to the Instrument-Telos Gap belongs to orchestration, the mechanism is being over-credited, and H1 legibility gains ground. If the residual is counterfactual probes, the instrument cost is materially higher than the 8-tap figure implies, and the 35 percent rate — which shared/counterfactual.ts already marks as judgement rather than measurement, with nothing having measured what rate a player tolerates — becomes the single highest-value owner decision rather than the confidence draw. CHEAP DISCRIMINATOR, and it is the one I would run before FIELD: re-publish the existing two walks as a tap ledger decomposed by tap target — board interaction, submit, reveal, confidence, counterfactual, navigation between surfaces — with no re-walk, no flag change, no threshold change, no wording change and no touch to the frozen stimulus at 4c39563. This is a re-reading of measurements already taken, so it does not alter intervention and measurement simultaneously and does not remove instrument friction by accident. A second, equally cheap REPO computation: derive the expected decisions-counted per decisions-taken from the refusal rules plus ASK_RATE=0.15, and check whether 1-of-6 is the designed conversion or a tail. If it is the designed conversion, the complaint is that the exchange rate is never stated, which is legibility and OWNER-decidable, not a beneficiary mismatch. Second contribution, on the research-to-intervention transition: the frozen FIELD run currently carries an uninterpretable arm. The counterfactual's immediate payoff sits behind a disclosure, so a negative M6 or M7 on that arm cannot distinguish absent payoff from unseen payoff. Unless M1-M8 already record whether a participant ever opened that disclosure, that ambiguity should be pre-declared in writing now, before any participant, as a known non-discriminating arm. Declaring a limit is not a protocol change; discovering it after the run would be, and would tempt a post-hoc repair. Third, a falsifiability guard on the lens itself, since the task asks whether it can absorb any friction: name in advance, before FIELD, at least one costly action the lens predicts should read as aversive and which the ledger independently scores AVAILABLE_NOW with a differentiated same-screen payoff. The confidence draw is that case and it already goes the wrong way for the lens. A lens that cannot be shown a case like this is doing no discriminating work, and the audit should say so about its own instrument.",
+        "evidence_refs": [
+          "task.current_state.summary (frozen product-state walk; ASK_RATE=0.15; PROBE_PROBABILITY 35 percent; counterfactual full four-way reading needs 30 probed decisions; two walks at 390x844 of 6 decisions/34 taps and 4 decisions/26 taps, both ending at discovery counter 1 of 60; conversion rate between decisions taken and decisions counted never stated; two denominators from two populations on the record page)",
+          "task.signals[0] MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60",
+          "task.signals[1] MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8",
+          "task.signals[2] REPO: shared/reveal.ts nextQuestion consumes statedUnknown, immediate differentiated payoff on the next screen",
+          "task.signals[3] REPO: the read fields were cut from required to sampled with the reason recorded; the repository already ran the delete test on itself",
+          "task.signals[4] REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement, not a measurement",
+          "task.signals[5] REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement",
+          "task.signals[7] REPO: the record page renders two denominators from two populations and neither number changes what the player should do next",
+          "task.signals[9] REPO: five differentiated payoffs AVAILABLE_NOW, three REQUIRES_N, four FEATURE_FLAGGED",
+          "task.signals[10] REPO: the telos chain closes per decision and breaks in two places across decisions, at the accumulation threshold and at the flag boundary",
+          "task.signals[11] FIELD: zero humans have used this build; M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull",
+          "task.decision_blocked.statement and .reversal_condition (the pre-registered collapse conditions naming H2, H3 and H4)",
+          "task.telos.success_condition (the audit must discriminate rather than confirm and must not credit the owner's hypothesis for costs a flag, wording or an earlier payoff would cover)",
+          "task.current_state.known_constraints (EXPERIMENTAL_LEARNING_ENABLED off; lanes unmerged per D26; stimulus frozen at 4c39563; no rate, threshold, denominator, orchestration, onboarding or wording change; D25 CONSTRUCT-UNDERIDENTIFIED with zero humans measured)"
+        ],
+        "limitations": [
+          "All nine context_refs were reported NOT DELIVERED in the manifest (DR_PLAN_0, ACTION_VALUE_LEDGER, COUNTERFACTUAL_DELETE_AUDIT, VALUE_DEBT_MAP, TELOS_CHAIN, FIELD_DISCRIMINATION_MAP, PRODUCT_STATE_WALK, D25, D26). Every statement above is derived only from the signals and current_state prose in this request; I have not read the frozen discrimination table, the eight permitted ledger verdicts, the M1-M8 definitions or the A0-A3 assistance levels, and I do not assume their contents.",
+          "The tap arithmetic depends on whether the quoted 3-4 and 8 tap figures include or exclude inter-surface navigation, and on how many counterfactual probes actually fired in each walk. Neither is stated in this request, so the residual is a fork to be resolved by REPO, not a finding. If the figures are already walk-inclusive, the residual claim weakens or disappears.",
+          "I cannot tell from this request whether M1-M8 already record disclosure-opening behaviour. If they do, the uninterpretable-arm concern is already covered and only the pre-declaration is redundant.",
+          "Per role boundary I do not rule on external research validity of the FIELD protocol, nor on the architecture doctrine in D25 or the deferral in D26. Whether the two lanes stay unmerged is an owner decision I am treating as fixed.",
+          "Both walks were performed by the owner, who knows the refusal and sampling rules. Tap counts are MEASURED; the felt meaning of the 1-of-60 counter, of the disclosure, and of per-decision repayment is FIELD_REQUIRED and cannot be closed by repository or owner reasoning.",
+          "I did not use the requested focus item proxy_substitution_risk to rule on whether taps-per-decision is the right burden measure in general — only that it cannot carry an attribution claim about who a cost benefits.",
+          "No intervention is proposed. Both suggested actions are re-readings of existing measurements plus one written pre-declaration; neither changes the frozen stimulus, any rate, threshold, denominator, or the flag, and neither should be executed as a design change."
+        ],
+        "_adapter_meta": {
+          "adapter": "claude_cli_adapter",
+          "resource": "NETA",
+          "transport": "claude CLI --print",
+          "provider": "anthropic",
+          "requested_model": "opus",
+          "served_model": "claude-opus-5",
+          "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+          "uuid": "ab093d68-4ff2-4064-94b8-2bb3fbfbbe3b",
+          "num_turns": 1,
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.2936405,
+          "context_delivery": {
+            "requested": 9,
+            "delivered": 0,
+            "manifest": [
+              "- `ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+              "- `ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+              "- `ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+              "- `ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+              "- `ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+              "- `ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+              "- `ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+              "- `ereztash/lichess_app docs/decisions/D25-evidence-architecture.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+              "- `ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+            ]
+          },
+          "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+          "phase": "ANALYZE"
+        }
+      },
+      "state": "COMPLETE"
+    },
+    {
+      "resource": "RND",
+      "phase": "SYNTHESIZE",
+      "request": {
+        "resource": "RND",
+        "phase": "SYNTHESIZE",
+        "prompt_ref": "prompts/RND_AGENT_V0_2_CANDIDATE.md",
+        "telos_ref": "research/RND_AGENT_TELOS_REFOUNDATION_V0_2.md",
+        "task": {
+          "calibration_version": "0.1",
+          "task_id": "CAL-LICHESS-INSTRUMENT-TELOS-001",
+          "telos": {
+            "statement": "Determine whether a large class of Decision Lab's current journey problems are manifestations of one mechanism, the Instrument-Telos Gap, in which the product asks the player to incur cost whose primary beneficiary is the measurement system, or whether they are better explained by competing hypotheses that were frozen before the audit: UX legibility, time-to-value, the unreachable learning layer, dual-ontology leakage, market mismatch, or no structural problem at all.",
+            "success_condition": "The audit discriminates rather than confirms. The answer names which hypothesis the measured evidence supports, names at least one FIELD observation that would weaken the owner's own hypothesis, and does not credit that hypothesis for costs that a feature flag, better wording, or an earlier payoff would cover."
+          },
+          "current_state": {
+            "summary": "Decision Lab records a chess decision BEFORE the engine answers. A frozen product-state walk of the shipped bundle established what is reachable. The core loop pays every time: place a move, submit, and the reveal returns what the move cost, what the record cannot support, and a question. Three instruments sit on top of that loop. Confidence is asked always on first/anchor/drill/transfer and at ASK_RATE=0.15 on ordinary play; it is the only source of the calibration gap and nothing an engine can produce afterwards substitutes for it. The two read fields are coupled to the same draw and are consumed immediately: shared/reveal.ts nextQuestion anchors the reveal's question to the player's own stated unknown, which the file calls the one thing on screen the engine did not produce. The counterfactual probe fires on 35 percent of eligible decisions; its immediate payoff, the named alternative scored beside the played move, exists but sits behind a disclosure, and its full four-way reading needs 30 probed decisions. Two measured walks of the built bundle at 390x844: six decisions cost 34 taps and four decisions cost 26 taps, and in both the discovery counter ended at 1 of 60, because first is refused by discovery and only one play decision drew the confidence question. The product states the floor twice in plain words and states that even at 60 the result would be a hypothesis and not a finding; it never states the conversion rate between decisions taken and decisions counted. The record page shows two denominators from two populations, 60 counted decisions and 30 blitz games, with nothing saying they are two. A blitz game writes nothing to the record until it finishes. The whole Evidence to Learning to Transfer half is unreachable because EXPERIMENTAL_LEARNING_ENABLED is off, a decision recorded in D25. The audit artefacts available to this run are: a frozen seven-hypothesis plan with a discrimination table fixed before the evidence; an action-value ledger over sixteen reachable costly actions with eight permitted verdicts, built by walking the built bundle; a counterfactual delete audit; a value-debt map over seven journey paths; an internal-ontology leakage classification; an instrumentation burden audit; a value-repayment map; a telos chain; a founder-translation audit; and a frozen FIELD protocol with measures M1 to M8, assistance levels A0 to A3 and interpretation rules fixed before any participant.",
+            "known_constraints": [
+              "EXPERIMENTAL_LEARNING_ENABLED stays off. No flag change is permitted by this mission.",
+              "The two evidence lanes stay unmerged. D26 records the owner's decision to defer consolidation until after a FIELD run so that the leakage is observed rather than repaired first.",
+              "No sampling rate, threshold, denominator, orchestration surface, onboarding or wording pass may be changed. The FIELD stimulus is frozen at product source 4c39563.",
+              "The evidence policy refuses drill, transfer, import, anchor and first from discovery, so that an attempt to fix a weakness cannot manufacture the next one. This separation is load-bearing and may not be simplified away.",
+              "The product may not claim chess improvement, rating improvement or intervention efficacy. D25 reached CONSTRUCT-UNDERIDENTIFIED with zero humans measured.",
+              "Zero cold users have used the audited build. Every claim about comprehension, payoff or pull is FIELD-owned."
+            ],
+            "available_resources": [
+              "RND",
+              "NETA",
+              "REPO",
+              "OWNER",
+              "FIELD"
+            ]
+          },
+          "decision_blocked": {
+            "statement": "Is the Instrument-Telos Gap a real root mechanism in this product, a local effect, or an artefact of a lens that can absorb any friction; and if it is real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+            "current_default": "Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate through M6 and M7.",
+            "reversal_condition": "Evidence that the uncovered costs are each separately explained by a flag, by wording, or by distance to payoff, in which case they belong to H4, H2 and H3 and the mechanism claim collapses; or evidence that the core loop's per-decision repayment is not actually experienced as repayment, in which case the mechanism is broader than the audit found."
+          },
+          "signals": [
+            "MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60.",
+            "MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8.",
+            "REPO: shared/reveal.ts nextQuestion consumes statedUnknown, so the read fields have an immediate differentiated payoff on the next screen, contradicting an older repository comment that said nothing downstream reads them.",
+            "REPO: the read fields were once required on every decision and were cut to a sample with the reason written down, that six decisions in seven bought nothing measurable. The repository has already run this mission's delete test on itself and acted on the answer.",
+            "REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement and not a measurement, and states that nothing has measured what rate a player tolerates.",
+            "REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement, and the file separates the two.",
+            "REPO: a blitz game in progress writes nothing to the record. Measured: after twelve moves the record held only a progress log and a time control.",
+            "REPO: the record page renders two denominators from two populations, and the same act feeds both, so neither number changes what the player should do next.",
+            "REPO: the import panel states the value contract completely in one sentence, naming what retrospective games structurally cannot hold and that no quantity fixes it.",
+            "REPO: five differentiated payoffs are AVAILABLE_NOW, three are REQUIRES_N, and four are FEATURE_FLAGGED.",
+            "REPO: the telos chain closes per decision and breaks in two places across decisions, once at the accumulation threshold and once at the flag boundary.",
+            "FIELD: zero humans have used this build. M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull."
+          ],
+          "allowed_resources": [
+            "RND",
+            "NETA",
+            "REPO",
+            "OWNER",
+            "FIELD"
+          ],
+          "context_refs": [
+            "ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+            "ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+            "ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+            "ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+            "ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+            "ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+            "ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+            "ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+            "ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+          ],
+          "budget": {
+            "max_resource_calls": 6,
+            "max_parallel_calls": 2
+          }
+        },
+        "diagnosis": {
+          "material_question": "Is the Instrument-Telos Gap a real root mechanism in Decision Lab, a local effect confined to the three instruments layered on the core loop, or an artefact of a lens elastic enough to absorb any friction; and if real, where does the single highest-value intervention sit given that the core loop already repays every decision immediately?",
+          "bottleneck": "The lens has no recorded refusal. Every measured cost so far cited in its support — the 8-tap instrumented decision against the 3-to-4-tap uninstrumented one, the discovery counter ending at 1 of 60 after six decisions, the two denominators from two populations — is also fully consistent with three hypotheses frozen before the audit: H4 (the flag makes the Evidence-to-Learning-to-Transfer half unreachable, so instrument cost has no visible terminus), H2 (the conversion rate between decisions taken and decisions counted is never stated anywhere in the product), and H3 (distance to the accumulation threshold of 30 and 60). Until each uncovered cost is tested against a lens that can decline to apply, the audit confirms rather than discriminates, and the success condition is unmet by construction. Compounding this, all nine context_refs failed delivery, so the frozen discrimination table, the sixteen-action ledger verdicts and the delete audit — the only artefacts that record what the lens already refused — are not in hand for this diagnosis.",
+          "resource_assessment": [
+            {
+              "resource": "RND",
+              "expected_contribution": "Run the absorbency test in-house: take each of the sixteen reachable costly actions and ask whether a flag, a wording/conversion-rate statement, or distance-to-payoff fully covers its cost. Actions fully covered belong to H4/H2/H3 and must be subtracted from the mechanism claim; only the uncovered residue can carry it. Also derive the unstated decisions-taken-to-decisions-counted conversion rate from the two measured walks and locate it as a wording debt rather than a mechanism.",
+              "authority_ceiling": "Can re-partition existing measured evidence and name what would falsify the lens. Cannot generate a human observation, cannot change the product, cannot settle whether the owner accepts a reduced mechanism claim.",
+              "uncertainty": "Whether the residue after subtraction is large enough to be a mechanism at all, or collapses to the confidence draw alone; and whether subtraction is legitimate given that the flag and the threshold may themselves be expressions of the same mechanism rather than competitors to it.",
+              "expected_delta": {
+                "decision": true,
+                "action": false,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "NETA",
+              "expected_contribution": "Adjudicate the signal-to-interpretation step the whole audit rests on: whether tap count is an admissible proxy for cost-whose-beneficiary-is-the-measurement-system, whether the discovery counter at 1 of 60 reads as instrument-serving burden or as a legible progress signal against a stated floor, and whether the 500/5000 simulated-game characterisation of the confidence draw is being read as evidence about players when the file itself separates measured behaviour from owner judgement on level.",
+              "authority_ceiling": "Can refuse or qualify an interpretation and name a competing mechanism. Cannot supply the human observation that would settle it, and holds no authority over the frozen hypothesis set or the FIELD protocol.",
+              "uncertainty": "Whether Neta's reading diverges from RND's or merely agrees, which would add no delta; and whether proxy criticism arrives early enough to change what FIELD measures given the protocol is already frozen at M1 to M8.",
+              "expected_delta": {
+                "decision": true,
+                "action": false,
+                "reversal": true,
+                "evidence": false,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "REPO",
+              "expected_contribution": "Deliver the nine artefacts that failed this run: the frozen seven-hypothesis discrimination table fixed before the evidence, the sixteen-action ledger with its eight permitted verdicts, the counterfactual delete audit, the value-debt map, the telos chain, the field discrimination map, the product-state walk, and D25/D26. These record what the lens has already declined to explain — the strongest available refutation of absorbency — and the repository has already run this mission's delete test on itself by cutting the read fields from every decision to a sample with the reason written down.",
+              "authority_ceiling": "Authoritative on what the code and the frozen artefacts state, including that PROBE_PROBABILITY is judgement not measurement and that nextQuestion consumes statedUnknown. Silent on how any human experiences the loop; cannot supply comprehension, payoff or pull.",
+              "uncertainty": "Whether the delivery failure is a path/permission issue recoverable at low cost or a missing-artefact condition; and whether the frozen discrimination table already contains the refusal case, in which case the absorbency worry is largely answered without FIELD.",
+              "expected_delta": {
+                "decision": true,
+                "action": false,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": true
+              }
+            },
+            {
+              "resource": "OWNER",
+              "expected_contribution": "Settle three things only the owner owns: whether a mechanism claim reduced to the uncovered residue still counts as the root-cause finding sought, whether PARTIAL_ROOT_CAUSE with named uncovered costs is an acceptable disposition before FIELD, and confirmation that the D26 deferral of lane consolidation is deliberate so the leakage is observed rather than repaired first.",
+              "authority_ceiling": "Owns the flag, the frozen stimulus at 4c39563, the deferral decision and the acceptance criterion. Owner judgement cannot function as evidence for or against the owner's own hypothesis, and must not be credited as triangulation.",
+              "uncertainty": "Whether asking now biases the audit toward the owner's hypothesis at the exact moment discrimination is the success condition; a mistimed OWNER call trades independence for permission that the current default already has.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": false,
+                "evidence": false,
+                "allocation": true,
+                "distinction": false
+              }
+            },
+            {
+              "resource": "FIELD",
+              "expected_contribution": "The only resource that can produce the evidence class the telos names. M6 and M7 are the sole measures that separate the owner's hypothesis from time-to-value and market pull, and zero cold users have touched the audited build, so every claim about comprehension, payoff or pull is FIELD-owned. A FIELD run is also the only route to the reversal condition's second branch: whether the core loop's per-decision repayment is actually experienced as repayment.",
+              "authority_ceiling": "Authoritative on human experience of the frozen build only. Cannot retroactively license the audit's REPO-derived attribution, and its interpretation rules are already fixed before any participant, so it cannot answer questions the protocol did not pre-commit to.",
+              "uncertainty": "Cost and latency are the highest of any resource here, and it is already the current default path; the live question is whether any cheaper move changes what the FIELD run is expected to discriminate, not whether FIELD is eventually needed.",
+              "expected_delta": {
+                "decision": true,
+                "action": true,
+                "reversal": true,
+                "evidence": true,
+                "allocation": true,
+                "distinction": true
+              }
+            }
+          ],
+          "candidate_moves": [
+            {
+              "move": "RECOVER",
+              "resource": "REPO",
+              "expected_decision_value": "Highest value per unit cost. The frozen discrimination table and the ledger's eight permitted verdicts plausibly already contain a case the lens refused; recovering them either defeats the absorbency worry outright or confirms it, and no other move can be soundly evaluated while the nine named artefacts are undelivered.",
+              "reversibility": "Fully reversible. Reading artefacts changes nothing in the product, touches no flag and no frozen stimulus."
+            },
+            {
+              "move": "USE_EXISTING",
+              "resource": "RND",
+              "expected_decision_value": "High. Subtracting from the mechanism claim every cost that a flag, a stated conversion rate, or an earlier payoff would cover directly serves the success condition's prohibition on crediting the owner's hypothesis for such costs. Likely to relocate the 1-of-60 counter and the two-denominator page into H2/H4 and leave the confidence draw as the residue.",
+              "reversibility": "Fully reversible. A re-partition of held evidence, recorded as a derivation with its subtraction rule stated so it can be reversed if REPO contradicts it."
+            },
+            {
+              "move": "INVOKE_NETA",
+              "resource": "NETA",
+              "expected_decision_value": "Moderate to high, and the needs profile is squarely in Neta's band: proxy substitution is live (taps for instrument-serving burden), competing mechanisms are frozen and plural, and the work is about to become an intervention-siting decision. Most valuable after REPO delivery so Neta reads the frozen table rather than a summary.",
+              "reversibility": "Fully reversible, provided Neta is given the prospective framing only and not RND's subtraction result, to preserve independence."
+            },
+            {
+              "move": "WAIT",
+              "resource": "OWNER",
+              "expected_decision_value": "Moderate but timing-sensitive. Valuable for the acceptance criterion on a reduced mechanism claim; harmful if invoked before the subtraction is done, because it invites the owner to adjudicate their own hypothesis while discrimination is still open.",
+              "reversibility": "Low once made. An owner ruling is hard to un-hear and can contaminate the remaining discrimination; defer until the residue is named."
+            },
+            {
+              "move": "COLLECT_FIELD",
+              "resource": "FIELD",
+              "expected_decision_value": "Decisive but not yet cheapest. M6 and M7 are the only discriminators against time-to-value and market pull, and the protocol is frozen; the diagnosis should first establish which residue FIELD is being asked to test so the run is read as discrimination and not confirmation.",
+              "reversibility": "Partially irreversible. Participants are spent, the stimulus is frozen at 4c39563, and interpretation rules are fixed before any participant."
+            },
+            {
+              "move": "STOP",
+              "resource": "RND",
+              "expected_decision_value": "Low as a first move, credible as a disposition. Report PARTIAL_ROOT_CAUSE with the uncovered costs named, change nothing, and let the frozen FIELD run discriminate; this is the current default and remains correct if the cheap moves above do not shift the residue.",
+              "reversibility": "Fully reversible. Changing nothing preserves every constraint, including the unmerged lanes and the off flag."
+            }
+          ],
+          "needs": {
+            "signal_interpretation_ambiguity": true,
+            "multiple_plausible_mechanisms": true,
+            "proxy_substitution_risk": true,
+            "research_to_intervention_transition": true,
+            "broad_reasoning_needed": false,
+            "architecture_alternatives_needed": false,
+            "novel_synthesis_needed": false,
+            "external_research_needed": false,
+            "owner_authority_needed": true,
+            "repo_authority_needed": true,
+            "environment_authority_needed": false,
+            "field_authority_needed": true
+          },
+          "rationale": "The telos is discrimination, not confirmation, so the miscalibration to fix is in the lens rather than in the product. Three of the costs currently cited for the Instrument-Telos Gap are each separately covered by a hypothesis frozen before the audit — the unreachable learning half by the flag, the never-stated conversion between decisions taken and decisions counted by wording, and the 30-and-60 thresholds by distance to payoff — which is precisely the reversal condition already written into this task. The cheapest decision-changing learning is therefore not a new observation at all: it is recovering the nine undelivered artefacts, since the frozen discrimination table and the ledger's eight permitted verdicts record where the lens has already declined to apply, and the repository has demonstrably run this mission's own delete test on itself by cutting the read fields from every decision to a sample and writing down that six decisions in seven bought nothing measurable. That is evidence of a lens that refuses, and it is held in REPO, not in FIELD. Only after subtracting the covered costs is it worth paying NETA, whose band this squarely is — tap count is a proxy for instrument-serving burden, the discovery counter is a proxy for progress, and the 500/5000 simulated games are a proxy for player tolerance that the repository itself marks as judgement rather than measurement. OWNER is deferred deliberately: an owner ruling on the owner's own hypothesis, taken before the residue is named, would contaminate the discrimination the success condition demands, and owner agreement would not constitute triangulation in any case. FIELD stays the eventual discriminator because zero humans have used the audited build and M6 and M7 are the only measures that separate the mechanism from time-to-value and market pull, but it is already the default path and its protocol is frozen; the value of this diagnosis is to fix which residue the run is testing so its result reads as discrimination. No move proposed here touches the flag, the frozen stimulus at 4c39563, the unmerged lanes, the sampling rates, or the evidence policy's refusal of drill, transfer, import, anchor and first from discovery. The expected deltas above are ex-ante commitments about which decision-state dimensions each resource could still move if invoked now; RND and NETA are marked evidence-false because neither produces a new observation, and OWNER is marked reversal-false because the reversal condition is evidence-shaped and authority cannot satisfy it."
+        },
+        "routing": {
+          "resources": [
+            "NETA"
+          ],
+          "fired": {
+            "NETA": [
+              "multiple_plausible_mechanisms",
+              "proxy_substitution_risk",
+              "research_to_intervention_transition",
+              "signal_interpretation_ambiguity"
+            ],
+            "AUTHORITY": [
+              "owner_authority_needed",
+              "repo_authority_needed",
+              "field_authority_needed"
+            ]
+          },
+          "authority_handoffs": [
+            "FIELD",
+            "OWNER",
+            "REPO"
+          ]
+        },
+        "resource_results": [
+          {
+            "resource": "NETA",
+            "summary": "RAW SIGNAL preserved: \"the product asks the player to incur cost whose primary beneficiary is the measurement system.\" On the evidence actually present in this request, that mechanism is not supported as a global root cause, is contradicted in the per-decision region, and is under-discriminated in the accumulation region. Three separate observations are being bundled under one lens and they do not share a mechanism. (1) The confidence draw is scored as having an immediate differentiated payoff — shared/reveal.ts nextQuestion consumes statedUnknown on the very next screen — and the repository has already run this mission's delete test on itself, cutting the field from required to sampled with the reason recorded. An instrument that feeds the next screen and that has already survived a self-administered delete test is the lens's own strongest predicted case, and it fails the prediction. (2) The counterfactual probe has a payoff that exists but sits behind a disclosure. That is a salience and progressive-disclosure problem, not a beneficiary problem; rendered is not noticed, and the ledger's AVAILABLE_NOW verdict cannot distinguish the two. (3) The record page's two denominators from two populations cost the player nothing to render. Folding a trust and ontology defect into a cost-attribution mechanism is a category error, because the delete audit's unit is a costly action and this is not one. What survives is narrower and sharper than the owner's framing: the telos chain closes per decision and breaks across decisions, once at the accumulation threshold and once at the flag boundary. Both break points are exactly what H3 (distance to payoff) and H4 (the unreachable learning layer) were frozen to explain. So in the one region where the owner's mechanism still holds, it is currently indistinguishable from the two competitors the plan pre-registered against it — which is the written reversal condition, already partially met before FIELD. Central proxy substitution: taps-per-decision is a burden measure being read as an attribution claim. Tap count cannot say who the cost is for; two actions at identical tap cost can differ completely in beneficiary. The same substitution runs through the discovery counter: 1 of 60 after six decisions is an exchange-rate opacity — the product never states the conversion between decisions taken and decisions counted — not evidence about who benefits. Both walks were run by the owner, who knows the refusal rules; owner behavior is not stranger behavior, so the felt meaning of that counter is FIELD-owned even though the tap counts are MEASURED. AUTHORITY: the cost decomposition is REPO; the threshold and flag tradeoffs are OWNER; comprehension, payoff and pull are FIELD. EVIDENCE STATE: MECHANISM_SUPPORTED for the accumulation break, contradicted for the per-decision loop, FIELD_REQUIRED for everything about felt repayment. Recommended posture: the current default (report PARTIAL_ROOT_CAUSE, change nothing, let M6 and M7 discriminate) is right, but PARTIAL should be stated as scope-limited to the accumulation and flag regions rather than as a weaker version of the whole claim, and one cheap REPO decomposition should run before FIELD because it is non-interventional and could collapse the remaining support.",
+            "unique_delta": "An arithmetic check on the two frozen walks, using only numbers already in this request, shows the tap cost is not mostly instrument cost — and nobody has decomposed it. Walk A: 6 decisions, 34 taps, 1 confidence draw. At the stated 3-4 taps uninstrumented and 8 instrumented, the expected total is 23-28 taps. Measured 34, residual 6-11. Walk B: 4 decisions, 26 taps, 1 draw. Expected 17-20. Measured 26, residual 6-9. The residual is stable at roughly 6-9 taps per walk and does not scale with decision count, which is the signature of fixed orchestration or navigation overhead, not per-decision instrumentation. There is exactly one competing account: the counterfactual probe fires on 35 percent of eligible decisions and would be expected to fire about twice in a six-decision walk, which could absorb much of the residual. Those two accounts have opposite consequences and are cheap to separate. If the residual is navigation, then a quarter to a third of the cost the audit attributes to the Instrument-Telos Gap belongs to orchestration, the mechanism is being over-credited, and H1 legibility gains ground. If the residual is counterfactual probes, the instrument cost is materially higher than the 8-tap figure implies, and the 35 percent rate — which shared/counterfactual.ts already marks as judgement rather than measurement, with nothing having measured what rate a player tolerates — becomes the single highest-value owner decision rather than the confidence draw. CHEAP DISCRIMINATOR, and it is the one I would run before FIELD: re-publish the existing two walks as a tap ledger decomposed by tap target — board interaction, submit, reveal, confidence, counterfactual, navigation between surfaces — with no re-walk, no flag change, no threshold change, no wording change and no touch to the frozen stimulus at 4c39563. This is a re-reading of measurements already taken, so it does not alter intervention and measurement simultaneously and does not remove instrument friction by accident. A second, equally cheap REPO computation: derive the expected decisions-counted per decisions-taken from the refusal rules plus ASK_RATE=0.15, and check whether 1-of-6 is the designed conversion or a tail. If it is the designed conversion, the complaint is that the exchange rate is never stated, which is legibility and OWNER-decidable, not a beneficiary mismatch. Second contribution, on the research-to-intervention transition: the frozen FIELD run currently carries an uninterpretable arm. The counterfactual's immediate payoff sits behind a disclosure, so a negative M6 or M7 on that arm cannot distinguish absent payoff from unseen payoff. Unless M1-M8 already record whether a participant ever opened that disclosure, that ambiguity should be pre-declared in writing now, before any participant, as a known non-discriminating arm. Declaring a limit is not a protocol change; discovering it after the run would be, and would tempt a post-hoc repair. Third, a falsifiability guard on the lens itself, since the task asks whether it can absorb any friction: name in advance, before FIELD, at least one costly action the lens predicts should read as aversive and which the ledger independently scores AVAILABLE_NOW with a differentiated same-screen payoff. The confidence draw is that case and it already goes the wrong way for the lens. A lens that cannot be shown a case like this is doing no discriminating work, and the audit should say so about its own instrument.",
+            "evidence_refs": [
+              "task.current_state.summary (frozen product-state walk; ASK_RATE=0.15; PROBE_PROBABILITY 35 percent; counterfactual full four-way reading needs 30 probed decisions; two walks at 390x844 of 6 decisions/34 taps and 4 decisions/26 taps, both ending at discovery counter 1 of 60; conversion rate between decisions taken and decisions counted never stated; two denominators from two populations on the record page)",
+              "task.signals[0] MEASURED: two walks of the built bundle, 26 and 34 taps, both ending with the discovery counter at 1 of 60",
+              "task.signals[1] MEASURED: an uninstrumented decision costs 3 to 4 taps and an instrumented one costs 8",
+              "task.signals[2] REPO: shared/reveal.ts nextQuestion consumes statedUnknown, immediate differentiated payoff on the next screen",
+              "task.signals[3] REPO: the read fields were cut from required to sampled with the reason recorded; the repository already ran the delete test on itself",
+              "task.signals[4] REPO: shared/counterfactual.ts marks PROBE_PROBABILITY as a judgement, not a measurement",
+              "task.signals[5] REPO: the confidence draw's behaviour is measured over 500 and 5000 simulated games; its level is owner judgement",
+              "task.signals[7] REPO: the record page renders two denominators from two populations and neither number changes what the player should do next",
+              "task.signals[9] REPO: five differentiated payoffs AVAILABLE_NOW, three REQUIRES_N, four FEATURE_FLAGGED",
+              "task.signals[10] REPO: the telos chain closes per decision and breaks in two places across decisions, at the accumulation threshold and at the flag boundary",
+              "task.signals[11] FIELD: zero humans have used this build; M6 and M7 are the only measures that discriminate the owner's hypothesis from time-to-value and market pull",
+              "task.decision_blocked.statement and .reversal_condition (the pre-registered collapse conditions naming H2, H3 and H4)",
+              "task.telos.success_condition (the audit must discriminate rather than confirm and must not credit the owner's hypothesis for costs a flag, wording or an earlier payoff would cover)",
+              "task.current_state.known_constraints (EXPERIMENTAL_LEARNING_ENABLED off; lanes unmerged per D26; stimulus frozen at 4c39563; no rate, threshold, denominator, orchestration, onboarding or wording change; D25 CONSTRUCT-UNDERIDENTIFIED with zero humans measured)"
+            ],
+            "limitations": [
+              "All nine context_refs were reported NOT DELIVERED in the manifest (DR_PLAN_0, ACTION_VALUE_LEDGER, COUNTERFACTUAL_DELETE_AUDIT, VALUE_DEBT_MAP, TELOS_CHAIN, FIELD_DISCRIMINATION_MAP, PRODUCT_STATE_WALK, D25, D26). Every statement above is derived only from the signals and current_state prose in this request; I have not read the frozen discrimination table, the eight permitted ledger verdicts, the M1-M8 definitions or the A0-A3 assistance levels, and I do not assume their contents.",
+              "The tap arithmetic depends on whether the quoted 3-4 and 8 tap figures include or exclude inter-surface navigation, and on how many counterfactual probes actually fired in each walk. Neither is stated in this request, so the residual is a fork to be resolved by REPO, not a finding. If the figures are already walk-inclusive, the residual claim weakens or disappears.",
+              "I cannot tell from this request whether M1-M8 already record disclosure-opening behaviour. If they do, the uninterpretable-arm concern is already covered and only the pre-declaration is redundant.",
+              "Per role boundary I do not rule on external research validity of the FIELD protocol, nor on the architecture doctrine in D25 or the deferral in D26. Whether the two lanes stay unmerged is an owner decision I am treating as fixed.",
+              "Both walks were performed by the owner, who knows the refusal and sampling rules. Tap counts are MEASURED; the felt meaning of the 1-of-60 counter, of the disclosure, and of per-decision repayment is FIELD_REQUIRED and cannot be closed by repository or owner reasoning.",
+              "I did not use the requested focus item proxy_substitution_risk to rule on whether taps-per-decision is the right burden measure in general — only that it cannot carry an attribution claim about who a cost benefits.",
+              "No intervention is proposed. Both suggested actions are re-readings of existing measurements plus one written pre-declaration; neither changes the frozen stimulus, any rate, threshold, denominator, or the flag, and neither should be executed as a design change."
+            ],
+            "_adapter_meta": {
+              "adapter": "claude_cli_adapter",
+              "resource": "NETA",
+              "transport": "claude CLI --print",
+              "provider": "anthropic",
+              "requested_model": "opus",
+              "served_model": "claude-opus-5",
+              "session_id": "caeaf8b6-db3f-53b1-89d9-27e4935cd67f",
+              "uuid": "ab093d68-4ff2-4064-94b8-2bb3fbfbbe3b",
+              "num_turns": 1,
+              "stop_reason": "end_turn",
+              "total_cost_usd": 0.2936405,
+              "context_delivery": {
+                "requested": 9,
+                "delivered": 0,
+                "manifest": [
+                  "- `ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/DR_PLAN_0.md",
+                  "- `ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/ACTION_VALUE_LEDGER.md",
+                  "- `ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md",
+                  "- `ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/VALUE_DEBT_MAP.md",
+                  "- `ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/TELOS_CHAIN.md",
+                  "- `ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/instrument-telos/FIELD_DISCRIMINATION_MAP.md",
+                  "- `ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app research/player-path/PRODUCT_STATE_WALK.md",
+                  "- `ereztash/lichess_app docs/decisions/D25-evidence-architecture.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app docs/decisions/D25-evidence-architecture.md",
+                  "- `ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md` NOT DELIVERED: prompt_ref not found: ereztash/lichess_app docs/decisions/D26-primary-evidence-path.md"
+                ]
+              },
+              "independence_caveat": "Same model lineage as the other resources in this run. Agreement between resources is role-conditioned execution, not independent triangulation.",
+              "phase": "ANALYZE"
+            }
+          }
+        ],
+        "instruction": "Compare resource deltas against the ex-ante expected_delta commitments, update the blocked decision, choose the cheapest next calibration move, and record what the system learned about future resource allocation. For each invoked resource, report observed_delta by decision/action/reversal/evidence/allocation/distinction. Do not average disagreements away."
+      },
+      "state": "COMPLETE"
+    }
+  ],
+  "synthesis": {
+    "decision_before": "Treat the Instrument-Telos Gap as a single candidate root mechanism whose support is currently indistinguishable from H2/H3/H4, and default to reporting PARTIAL_ROOT_CAUSE with the uncovered costs named, changing nothing, and letting the frozen FIELD run discriminate via M6 and M7. Planned sequence: bulk RECOVER of the nine undelivered artefacts, then an RND in-house subtraction of covered costs, then NETA on the residue, with OWNER and FIELD deferred. Expectation carried into the invocation: the residue surviving subtraction would be the confidence draw.",
+    "decision_after": "The mechanism claim is no longer one claim. It is refuted in the per-decision region, mis-specified in the record-page region, and scope-limited to the accumulation and flag regions where it remains indistinguishable from H3 and H4. (a) The confidence draw is the case the lens most strongly predicts should read as aversive, and it goes the wrong way: shared/reveal.ts nextQuestion consumes statedUnknown on the next screen, and the repository already ran this mission's delete test on itself, cutting the read fields from required to sampled with the reason recorded. That is the recorded refusal the pre-invocation diagnosis said the lens lacked, and it was in hand rather than in FIELD. (b) The record page's two denominators cost the player nothing to render, so they fail the delete audit's own unit of a costly action; folding them in is a category error against a trust/ontology defect. (c) The counterfactual's payoff exists but sits behind a disclosure, which is salience, not beneficiary mismatch. What survives is the telos chain breaking at the accumulation threshold and the flag boundary — precisely the two competitors pre-registered against the owner's hypothesis — so the written reversal condition is now partially met before any FIELD contact, on REPO-derived grounds. Disposition therefore becomes SCOPE_LIMITED_PARTIAL, stated as a bounded region claim and not as a weaker version of the whole claim. A new unresolved fork also opened: the two frozen walks carry a stable ~6-11 and ~6-9 tap residual that does not scale with decision count, which is either fixed navigation/orchestration overhead (over-crediting the mechanism, strengthening H1) or unmeasured counterfactual probe firings (under-stating instrument cost and relocating the highest-value owner decision from confidence-draw level to PROBE_PROBABILITY=0.35). This fork is REPO-decidable and was not visible before the invocation.",
+    "next_move": "RECOVER, narrowly scoped to REPO and non-interventional, before any OWNER or FIELD call. Three items, all re-readings of measurements already taken: (1) resolve the context-delivery failure and read the frozen seven-hypothesis discrimination table, the sixteen-action ledger with its eight permitted verdicts, and the counterfactual delete audit, which remain unread and are the authority on what the lens has already declined to explain; (2) re-publish the two existing walks as a tap ledger decomposed by tap target — board, submit, reveal, confidence, counterfactual, inter-surface navigation — with no re-walk, to settle the navigation-vs-probe fork; (3) compute the designed decisions-counted-per-decisions-taken conversion from the refusal rules plus ASK_RATE=0.15 and check whether 1-of-6 is the designed rate or a tail, which decides whether the discovery-counter complaint is an unstated exchange rate (legibility, OWNER-decidable) or a beneficiary mismatch. Then write, before any participant, a pre-FIELD declaration that the counterfactual arm is non-discriminating unless M1-M8 already record whether a participant opened the disclosure. Nothing here touches the flag, the frozen stimulus at 4c39563, the sampling rates, the thresholds, the denominators, the lane split, or any wording.",
+    "resource_deltas": [
+      {
+        "resource": "NETA",
+        "material": true,
+        "unique_delta": "Split one bundled mechanism claim into three observations that do not share a mechanism, and identified the confidence draw as the lens's own strongest predicted case failing its prediction — supplying the recorded refusal the diagnosis had assumed was missing, from REPO signals already in hand rather than from FIELD. Separately, an arithmetic check on the two frozen walks using only numbers already present (expected 23-28 vs measured 34; expected 17-20 vs measured 26) exposed a ~6-11 and ~6-9 tap residual that is flat in decision count, opening a navigation-vs-probe fork with opposite allocation consequences. Also flagged that the frozen FIELD run currently carries an uninterpretable arm, because a negative M6/M7 on the counterfactual cannot separate absent payoff from unseen payoff behind a disclosure.",
+        "observed_delta": {
+          "decision": "Disposition moved from an unscoped PARTIAL_ROOT_CAUSE to SCOPE_LIMITED_PARTIAL: refuted per-decision, category-error at the record page, surviving only in the accumulation and flag regions.",
+          "action": "Added a concrete pre-FIELD act not previously in the plan — a written declaration, before any participant, that the counterfactual arm is non-discriminating unless disclosure-opening is already recorded in M1-M8. Ex-ante commitment for this dimension was false; the mismatch is that Neta acted on the research-to-intervention transition by constraining the frozen protocol's interpretation rather than only interpreting signals.",
+          "reversal": "The written reversal condition is now partially met ahead of FIELD: the accumulation and flag breaks are exactly what H3 and H4 were frozen to explain, so the surviving region is currently indistinguishable from its pre-registered competitors on REPO-derived evidence.",
+          "evidence": null,
+          "allocation": "A cheap REPO tap decomposition and conversion-rate derivation are promoted ahead of both the bulk nine-artefact recovery and the FIELD run; the candidate highest-value owner decision is relocated from the confidence draw's level to PROBE_PROBABILITY=0.35, conditional on how the fork resolves.",
+          "distinction": "Three distinctions that the ledger's verdict vocabulary cannot express: rendered is not noticed (salience vs beneficiary); a zero-cost defect is outside the delete audit's unit of a costly action; and taps-per-decision is a burden measure being read as an attribution claim about who a cost benefits, since two actions at identical tap cost can differ entirely in beneficiary."
+        }
+      }
+    ],
+    "learning_records": [
+      {
+        "record": "Expected-vs-observed on NETA: five of six ex-ante dimensions matched (decision, reversal, allocation, distinction non-null; evidence null). The mismatch is action, committed false and observed non-null. Neta did not merely interpret signals; it constrained a frozen protocol's interpretation by naming a non-discriminating arm. Future needs profiles that include research_to_intervention_transition should expect NETA to move action, not only decision and distinction."
+      },
+      {
+        "record": "The diagnosis's own prediction was wrong in a way worth keeping: it expected the confidence draw to be the residue that carries the mechanism after subtraction. Neta argued the opposite — the confidence draw is the lens's strongest predicted case and it fails, making it the refutation rather than the residue. These are a genuine disagreement and are not averaged. Neta's reading is better grounded in signals[2] and [3] (nextQuestion consumes statedUnknown; required-to-sampled cut with reason recorded), so it is adopted as the working position, while the diagnosis's reading is preserved as the position that must be re-tested if the frozen ledger's verdict on the draw contradicts it."
+      },
+      {
+        "record": "Absorbency test result, partial: the diagnosis claimed the lens had no recorded refusal. It had one, in REPO signals already delivered, not in the nine undelivered artefacts and not in FIELD. Future calibration should run the falsifiability check against signals in hand before pricing a recovery or a field run to obtain it."
+      },
+      {
+        "record": "Routing mismatch, single instance, not yet a pattern: the cost-subtraction and decomposition work was assigned to RND as USE_EXISTING, and NETA performed a sharper version of it unprompted. This is one attractive case, not repeated evidence, so no routing change is proposed. If a second and third case show NETA outperforming RND on held-evidence re-partition, the amendment to consider is narrowing RND's subtraction role rather than widening NETA's mandate."
+      },
+      {
+        "record": "Authority ceilings preserved and unresolved. The tap residual fork is REPO-owned and neither NETA nor RND can close it. The 35 percent probe rate is OWNER judgement, explicitly marked in shared/counterfactual.ts as judgement not measurement, with nothing having measured player tolerance. Comprehension, felt repayment and pull remain FIELD-owned with zero humans on the build. Neta's arithmetic depends on whether the 3-4 and 8 tap figures are walk-inclusive and on how many probes actually fired, neither of which is stated; until REPO answers, the residual is a fork, not a finding, and must not be reported as one."
+      },
+      {
+        "record": "Unresolved infrastructure state: all nine context_refs failed delivery for this run and the failure is not diagnosed. The frozen discrimination table, the eight permitted ledger verdicts, the delete audit and D25/D26 were read by no resource in this run. Every claim above about what the lens already refused rests on the signals prose. If delivery cannot be repaired, that limitation must travel with the final disposition rather than being absorbed into confidence."
+      },
+      {
+        "record": "Independence: NETA ran on the same model lineage as RND under the adapter's own caveat. Its agreement with any RND position is role-conditioned execution, not independent triangulation, and must not be counted toward discrimination. The only independent sources available to this task are REPO artefacts and FIELD participants."
+      },
+      {
+        "record": "Both frozen walks were performed by the owner, who knows the refusal and sampling rules. Tap counts are MEASURED and transferable; the felt meaning of the 1-of-60 counter, of the disclosure, and of per-decision repayment is not. Owner walks may not be used as a proxy for stranger behaviour in any later reading of these numbers."
+      },
+      {
+        "record": "Budget state: 1 of 6 permitted resource calls used, on NETA. The remaining sequence is REPO (recovery plus two non-interventional derivations), then OWNER only after the residue is named, then FIELD. OWNER remains deliberately deferred: an owner ruling on the owner's own hypothesis taken while discrimination is open would trade independence for permission the current default already has."
+      }
+    ],
+    "stop_or_continue": "CONTINUE",
+    "routing_amendment_proposed": null
+  },
+  "final_state": "COMPLETE",
+  "failure": null
+}

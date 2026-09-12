@@ -564,7 +564,30 @@ export function readRecord(
       inside,
       outside,
       measurable,
-      shortBy: Math.max(0, MIN_BUCKET_N - Math.min(inside.n, outside.n)),
+      /*
+       * BOTH SIDES, BECAUSE THE FLOOR IS ON BOTH SIDES. This has been repaired once already, from
+       * counting only `inside` -- which reported that a split with an empty comparison set needed
+       * nothing -- to `MIN_BUCKET_N - min(inside, outside)`, the gap on the binding side.
+       *
+       * THAT IS STILL NOT WHAT A PLAYER HAS TO DO, and the gap is widest exactly where the number
+       * is read most. `whatIsUnclear` renders this as "עוד N החלטות", a statement about what the
+       * player must go and produce. On a fresh record both sides are empty: the binding side is 30
+       * short, so the screen said "another 30 decisions" while the bucket cannot be read under 60.
+       * Off by a factor of two, on the first record every arrival has, on the surface whose whole
+       * job is to say whether going on helps -- which is the defect class this field was repaired
+       * for the first time.
+       *
+       * The two agree once either side is full, which is why the existing tests of this field did
+       * not see it: they are all records where one side already holds its thirty.
+       *
+       * IT IS A LOWER BOUND AND THE COPY SAYS SO. Even this assumes every new decision lands on the
+       * side that needs it, which nothing guarantees -- a player who keeps playing fast can add a
+       * hundred decisions to `outside` and close none of `inside`. "At least" is not hedging here;
+       * it is the only honest reading of a number computed as if they did, which is the same
+       * sentence `blitz-words.ts` wrote about the same kind of figure.
+       */
+      shortBy:
+        Math.max(0, MIN_BUCKET_N - inside.n) + Math.max(0, MIN_BUCKET_N - outside.n),
       unmeasurableReason: measurable
         ? null
         : noClock
