@@ -16,6 +16,21 @@ any participant was recruited, and is not to be edited after the first session.
 * Deployment: the production deployment of this commit, phone-first. Participants use their own
   phone where possible; record the device and viewport.
 
+## Owner decisions recorded before the run
+
+Taken by the owner after the product-state walk and before any participant was recruited.
+`docs/decisions/D26-primary-evidence-path.md` holds the reasoning and the reversal conditions.
+
+1. The long-term primary product evidence path is prospective decision evidence, `decisions`.
+2. A blitz game is a context in which decisions occur. `blitzGames` must not ultimately compete
+   with `decisions` as a co-equal user-facing meaning of progress.
+3. **The consolidation is not implemented before this run.** `C-1` is left visible on purpose.
+4. `EXPERIMENTAL_LEARNING_ENABLED` stays off. Do not enable it for any session.
+5. PR #105 is frozen as the stimulus under test.
+
+The run's purpose, given those: determine whether the product, **with these structural facts left
+visible**, is understandable and worth continuing through without founder interpretation.
+
 ## Why this run exists
 
 Every question `PRODUCT_STATE_WALK.md` could answer from the repository has been answered. What is
@@ -113,11 +128,33 @@ Two additions, for hazards this build specifically carries. Both were written be
   claim-boundary problem, not a copy problem. The sentences already say the result is valid; if
   they do not land, the layer at fault is the contract, not the wording.
 
+### The four-way discrimination
+
+Not a new rule. A restatement of the frozen mapping above, in terms of what the participant file
+has to be good enough to separate, because these four look identical from outside at the moment a
+participant stops and they imply different product decisions.
+
+| What happened | How it reads in the frozen rules |
+|---|---|
+| Cannot understand | M1 or M2 fails |
+| Understands but cannot act | M1 and M2 pass, M3 or M4 fails |
+| Can act but the next effort is not worth it | M3 and M4 pass, M6 fails |
+| Finds value but does not voluntarily continue | M1 to M6 pass, M7 fails. Product pull, not legibility |
+
+The field that decides which one it was is the exact state where hesitation, abandonment or
+assistance **first** occurred. It cannot be reconstructed after the session.
+
 ### What is not the dependent variable
 
 Whether a participant spontaneously asks the six orientation questions of `§5`. That decomposition
 is an analytical instrument, not a thing users produce. The test is whether they can orient
 correctly when probed behaviourally and neutrally. Recurrence of that phrasing measures nothing.
+
+## The session package
+
+`research/player-path/field/` operationalises this protocol without restating it: recruitment and
+screening, the moderator script with every probe written verbatim, the per-participant file and the
+analysis template. Read `field/README.md` first.
 
 ## Recording
 

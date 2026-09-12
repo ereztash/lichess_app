@@ -223,15 +223,19 @@ What that changes in the rows above, and only this:
   here: the cheap fix is a sentence, the honest fix is a decision about which lane the product
   leads with, and that is B-3's owner.
 
-**OWNER decision**
+**OWNER decision.** Both were subsequently decided, in
+`docs/decisions/D26-primary-evidence-path.md`.
 
 * **B-3. Which lane is the product.** Blitz is the only lane a cold user can complete end to end
   today, and it is the record page's own primary action; the decision lane is the one the reveal,
-  the policy and the floor are written for. Both ship. Choosing is not a repository question.
+  the policy and the floor are written for. Both ship.
+  **Decided:** `decisions` is the long-term user-facing denominator and a blitz game is a context
+  in which decisions occur. The consolidation is deliberately deferred until after the FIELD run,
+  so `C-1` is observed rather than repaired first.
 * **B-4. `EXPERIMENTAL_LEARNING_ENABLED`.** Six of the seventeen states are unreachable because
   this flag is off, which `docs/decisions/D25-evidence-architecture.md` decided on the evidence
-  available. Leaving it off is a defensible product position. It also means the product ships an
-  evidence loop with no learning object at the end of it.
+  available. It means the product ships an evidence loop with no learning object at the end of it.
+  **Decided:** it stays off for the FIELD run.
 
 **RESEARCH** — none open that a repository run could close. The Calibration Loop result on the
 orchestration surface stands.
