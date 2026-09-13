@@ -11,31 +11,43 @@ does not restate it; it operationalises it.
 
 ## The build
 
-Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, merged to `main` in
-[PR #105](https://github.com/ereztash/lichess_app/pull/105) and now the production deployment at
-`b2d8865`. Do not push product source to `main` while sessions are running: production tracks it.
+Product source frozen at `e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, the production deployment.
+Do not push product source to `main` while sessions are running: production tracks it.
+
+**THIS SECTION HAD DRIFTED, AND THE DRIFT IS RECORDED RATHER THAN QUIETLY OVERWRITTEN.** It named
+`4c39563` and `b2d8865` while claiming the `index-DUEXf-qq.js` bundle, which those two commits do
+not build. What happened: `9818a62` pointed this file at production when PR #105 merged, then
+`6053af2` re-froze the protocol and updated the HASH here without updating the commit identities
+beside it. Two identities for one build, in the one file a moderator opens before a session. It is
+fixed here and it is why the check below is the hash rather than a commit: **a sha in prose can
+disagree with the bytes, and a content hash cannot.**
 
 ## The URL participants get
 
 **`https://lichessapp.vercel.app/`**
 
-PR #105 merged on 2026-09-12 at 19:53Z, so the frozen build is now the production deployment and
-the access problem this section used to describe is gone. Verified signed-out, not assumed:
-`200`, titled `Decision Lab`, loading `assets/index-DUEXf-qq.js`, with `/build-identity.json`
-reporting `gitSha: b2d8865`, `target: production`, and `/api/health` answering `200` with
-`storage: "not-configured"`, which is the same storage model every walk was performed against.
+Production tracks `main`, so the frozen build is the production deployment and no share link is
+needed. Verified signed-out, not assumed, on 2026-09-13 at 19:25Z: `200`, titled `Decision Lab`,
+loading `assets/index-ZgOyRttd.js`, with `/build-identity.json` reporting
+`gitSha: e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, `builtAt: 2026-09-13T17:26:33Z` and
+`target: production`, and `/api/health` answering `200` with `storage: "not-configured"`, which is
+the same storage model every walk was performed against.
 
-The build under test did not move. Between the frozen product source `4c39563` and merged `main`,
-the only change to anything the build reads is a corrected comment in
-`shared/confidence-asked.ts`. Comments do not ship, and the content hash is the proof: the bundle
-is the same `index-DUEXf-qq.js` the pre-registration names.
+**THE BUILD UNDER TEST HAS MOVED TWICE AND WILL MOVE AGAIN UNLESS SOMETHING CHANGES.** Both moves
+were merges to `main`, and this file's own rule -- do not push product source while sessions are
+running -- is a request that nothing enforces. `../FIELD_RUN_CURRENT.md` records the three ways out
+and deliberately chooses none. Until one is chosen, **run the check below every single time**: it is
+not a formality, it is the only thing standing between a session and a stimulus nobody registered.
 
 ### Before each session
 
 1. Open the URL **in a browser that is not signed in to Vercel**, or a private window.
-2. Confirm the page loads `assets/index-DUEXf-qq.js`. The build is content-hashed, so that one
+2. Confirm the page loads `assets/index-ZgOyRttd.js`. The build is content-hashed, so that one
    string is the whole freeze check, and anything that moves it has changed the stimulus.
-3. Hand the participant the URL. Nothing else is said.
+3. If it does **not** match, stop. Do not run the session against whatever is there and do not
+   update this file to match it: check with the owner first, because a hash that moved means either
+   a merge landed or the pre-registration is describing a build nobody is serving.
+4. Hand the participant the URL. Nothing else is said.
 
 ### What this replaced, kept because the reasoning still applies
 

@@ -5,28 +5,56 @@ any participant was recruited, and is not to be edited after the first session.
 
 ## The build under test
 
-* Repository: `ereztash/lichess_app`, branch `claude/ux-ui-analysis-v6ao5u`.
-* **Product source frozen at** `dd30b3a`, page bundle `assets/index-DUEXf-qq.js`.
-* **RE-FROZEN ONCE, BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON IT IS ALLOWED.** The first
-  freeze was `4c39563` / `index-D_Il6CdA.js`. The owner then reported, from a phone frame, that
-  step 2's option list was scrolling inside a clipped box, and the repair changes the commitment
-  screen. A changed commitment screen is a changed stimulus, so the pre-registration names the new
-  one rather than pretending the old hash still describes what a participant will see.
-  **Zero participants have run**, which is what makes this bookkeeping rather than a protocol
-  violation. After the first session it would be one, and the same change would have to wait.
+* Repository: `ereztash/lichess_app`, branch `main`.
+* **Product source frozen at** `e663ebc`, page bundle `assets/index-ZgOyRttd.js`.
+* **RE-FROZEN TWICE, BOTH TIMES BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON EITHER WAS
+  ALLOWED.** **Zero participants have run**, which is what makes this bookkeeping rather than a
+  protocol violation. After the first session it would be one, and the same change would have to
+  wait.
+
+  | # | from | to | why |
+  |---|---|---|---|
+  | 1 | `4c39563` / `index-D_Il6CdA.js` | `dd30b3a` / `index-DUEXf-qq.js` | the owner reported, from a phone frame, that step 2's option list was scrolling inside a clipped box. The repair changes the commitment screen, and a changed commitment screen is a changed stimulus |
+  | 2 | `dd30b3a` / `index-DUEXf-qq.js` | `e663ebc` / `index-ZgOyRttd.js` | [PR #109](https://github.com/ereztash/lichess_app/pull/109) merged. Production tracks `main`, so the merge moved the deployment off the named hash |
+
+* **THE SECOND RE-FREEZE HAS A DIFFERENT CHARACTER FROM THE FIRST, AND THE DIFFERENCE IS THE POINT.**
+  The first was a changed stimulus: a participant would have seen something else. The second is a
+  changed BUNDLE with an unchanged participant-facing surface. Measured rather than assumed: between
+  `dd30b3a` and `e663ebc` the only file under `client/src` that moved is
+  `client/src/lib/next-action-shadow.ts`, which renders nothing, and everything else is `shared/`
+  read by the record's stratification, the journey ledger's refuted sentence (behind
+  `EXPERIMENTAL_LEARNING_ENABLED`, off) and two modules nothing renders. A participant arrives with
+  an empty record, so there are no strata to partition and no rule to grade.
+  **The limit of that statement:** it is an argument from the diff and the import graph, not a walk.
+  What is certain is the hash moved; what is argued is that nothing a cold participant meets did.
+
+* **THE FREEZE KEEPS BREAKING FOR A STRUCTURAL REASON, AND IT IS NOT THE MERGES.** The stimulus is
+  pinned to production and production tracks `main`, so the pre-registration is pinned to a moving
+  target: any merge invalidates it, and two have. A pre-registration that is re-pointed whenever the
+  code moves is weaker than one that cannot move. Three ways out, and the choice is the owner's:
+  **(a)** pin the run to an immutable per-deployment URL rather than the production alias, which is
+  what the PR-preview setup did before `9818a62` traded it for operational simplicity; **(b)** hold
+  `main` frozen for the run window, which `field/README.md` already asks for and which nothing
+  enforces; **(c)** keep re-freezing, which is honest only while the participant count is zero and
+  stops being available the moment it is not. **Nothing here chooses.** Recorded so that the next
+  re-freeze is a decision rather than a habit.
+
 * **Nothing else in this file moved.** The participants, the conditions, the assistance tags, M1 to
   M8 and the interpretation rules are exactly as first frozen. Only the build identity is new.
-* Verify before each session that the page loads `assets/index-DUEXf-qq.js`. Production tracks
-  `main`, so this hash is correct there once this change merges; until then the current production
-  build is the previous freeze and the two are not the same stimulus.
-* What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
-  repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
+* Verify before each session that the page loads `assets/index-ZgOyRttd.js`. Production tracks
+  `main`, and as of this file it serves exactly that: verified signed-out on 2026-09-13 at 19:25Z,
+  `/build-identity.json` reporting `gitSha: e663ebc6c249…` and `target: production`, the page `200`
+  loading `assets/index-ZgOyRttd.js`, and `/api/health` `200` with `storage: "not-configured"` --
+  the same storage model every walk was performed against.
+* What that commit contains beyond the previous freeze: the recursive spine and the policy-space
+  analysis of [PR #109](https://github.com/ereztash/lichess_app/pull/109), `D27` and `D28`. No new
+  surface, no new wording pass, and no change to any screen.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
   states are `NOT_REACHABLE` because `EXPERIMENTAL_LEARNING_ENABLED` is off. **Do not turn it on
   for this run.** A run against a different stimulus is a different run.
 * Deployment: phone-first, participants on their own device; record the device and viewport.
   Check the URL from a signed-out browser, never from the moderator's own, and confirm it loads
-  `assets/index-DUEXf-qq.js` before the participant touches it. `field/README.md` carries the
+  `assets/index-ZgOyRttd.js` before the participant touches it. `field/README.md` carries the
   procedure and why the signed-out check matters.
 
 ## Owner decisions recorded before the run
