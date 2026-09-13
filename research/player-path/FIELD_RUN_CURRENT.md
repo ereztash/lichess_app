@@ -6,24 +6,28 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `claude/ux-ui-analysis-v6ao5u`.
-* **Product source frozen at** `4c395637cd274c5faffb29ebb8429bfdac358eb1`.
-* Later commits on this branch change documentation only, and the build is content-hashed: the
-  page bundle stays `index-D_Il6CdA.js` across them, so the stimulus a participant sees is the same
-  bytes. The one file that does differ is `/build-identity.json`, which names the head commit and
-  the build time and is read only by the self-check overlay. Verify before a session that the
-  deployed bundle still carries that hash; if it does not, the stimulus has moved and the run is
-  against a different build.
+* **Product source frozen at** `dd30b3a`, page bundle `assets/index-DUEXf-qq.js`.
+* **RE-FROZEN ONCE, BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON IT IS ALLOWED.** The first
+  freeze was `4c39563` / `index-D_Il6CdA.js`. The owner then reported, from a phone frame, that
+  step 2's option list was scrolling inside a clipped box, and the repair changes the commitment
+  screen. A changed commitment screen is a changed stimulus, so the pre-registration names the new
+  one rather than pretending the old hash still describes what a participant will see.
+  **Zero participants have run**, which is what makes this bookkeeping rather than a protocol
+  violation. After the first session it would be one, and the same change would have to wait.
+* **Nothing else in this file moved.** The participants, the conditions, the assistance tags, M1 to
+  M8 and the interpretation rules are exactly as first frozen. Only the build identity is new.
+* Verify before each session that the page loads `assets/index-DUEXf-qq.js`. Production tracks
+  `main`, so this hash is correct there once this change merges; until then the current production
+  build is the previous freeze and the two are not the same stimulus.
 * What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
   repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
   states are `NOT_REACHABLE` because `EXPERIMENTAL_LEARNING_ENABLED` is off. **Do not turn it on
   for this run.** A run against a different stimulus is a different run.
 * Deployment: phone-first, participants on their own device; record the device and viewport.
-  The PR #105 preview is behind Vercel Authentication, so participants reach it through a
-  protection-bypass share link for that one deployment, generated fresh per session.
-  `field/README.md` carries the procedure and the reason. Check the URL from a signed-out browser,
-  never from the moderator's own, and confirm it loads `assets/index-D_Il6CdA.js` before the
-  participant touches it.
+  Check the URL from a signed-out browser, never from the moderator's own, and confirm it loads
+  `assets/index-DUEXf-qq.js` before the participant touches it. `field/README.md` carries the
+  procedure and why the signed-out check matters.
 
 ## Owner decisions recorded before the run
 

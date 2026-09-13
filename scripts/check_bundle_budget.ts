@@ -900,9 +900,24 @@ const INDEX = `${ROOT}/index.html`;
  * kilobyte in the entry does not." This is that tenth, and it is attributed rather than absorbed.
  *
  * 678, 213 AND 771 LEAVE 0.3 kB, 0.9 kB AND 0.5 kB.
+ *
+ * 678 -> 679 FOR TWO PARAGRAPHS OF HEBREW, and the weight was looked for first and was not there.
+ *
+ * The read steps grew a `למה?` disclosure saying what each field asks for and, on the second one,
+ * that the answer comes back as the reveal's next question. Measured: entry raw 678.0 -> 678.7,
+ * gzipped 212.2 -> 212.4, and the two paragraphs are about 350 characters of Hebrew, which is two
+ * bytes each in UTF-8 and accounts for essentially the whole 0.7 kB on its own.
+ *
+ * There is no fat under it. The only way to take this back is to shorten the sentences, and the
+ * sentences are the change: `research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md` found that
+ * these two fields pay the player back on the very next screen and that nothing told them so
+ * before they answered. Trading that against a tenth of a kilobyte would be spending the thing
+ * asked for to protect the number watching it.
+ *
+ * The gzip ceiling does not move: 212.4 against 213 still leaves 0.6 kB.
  */
 
-const ENTRY_RAW_KB = 678;
+const ENTRY_RAW_KB = 679;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 213;
@@ -1089,9 +1104,14 @@ const ENTRY_GZIP_KB = 213;
  * NOTHING MOVES. Neither entry figure changed at all, and on the merged tree the initial download
  * measures 777.5 against the 778 already standing. 776 would have left 0.9 kB on the branch; the
  * number that ships is 778, and it leaves 0.5 kB.
+ *
+ * 771 -> 772, AND THE STYLESHEET IS NOT WHY. The `למה?` disclosure's own CSS is 21 lines and the
+ * raised `.step-body` cap is one declaration inside a media query that already existed. What moved
+ * this number is the same 0.7 kB of Hebrew that moved the entry ceiling above: 770.8 -> 771.9.
+ * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 771;
+const INITIAL_RAW_KB = 772;
 
 interface Asset {
   name: string;
