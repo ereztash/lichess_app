@@ -1,0 +1,30 @@
+member                     max_z null_max   pass  committed                    verdict
+----------------------------------------------------------------------------------------------------
+abdohassan11                4.74     3.37    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+acid_1                      2.57     2.95     no  LEVEL_TYPICAL_ONLY           reproduces
+ajshaz17                    5.11     2.75    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+al3s                        8.56     3.45    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+archpopov                   5.20     3.48    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+beni_kpknldmi               3.82     2.79    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+bmyers2015                  4.15     3.09    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+boligarla                   2.90     3.55     no  LEVEL_TYPICAL_ONLY           reproduces
+dvoice                      none     3.71     no  LEVEL_TYPICAL_ONLY           reproduces
+egregiouschessplayer        5.42     3.08    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+fink4241                    3.61     2.96    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+goshich                     2.38     3.19     no  LEVEL_TYPICAL_ONLY           reproduces
+ingjaldurs                  5.64     4.50    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+maxkart19                   1.84     3.11     no  LEVEL_TYPICAL_ONLY           reproduces
+mcpolan                     4.26     3.49    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+montifiqe                   4.28     3.24    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+navaneethav                 4.68     2.78     no  LEVEL_TYPICAL_ONLY           reproduces
+newnampat64                 none     3.78     no  LEVEL_TYPICAL_ONLY           reproduces
+pablorocchi                 3.90     3.73    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+sofiyankhan                 5.13     3.07    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+superchango99               3.71     2.85    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+toscohg                     3.18     3.12     no  LEVEL_TYPICAL_ONLY           reproduces
+viktor19625                 6.04     2.89    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+williamsrya94               4.30     2.79    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+xuorig                      4.83     3.74    yes  PERSONAL_RESIDUAL_CANDIDATE  reproduces
+----------------------------------------------------------------------------------------------------
+complete: 25   reproduce: 25   MISMATCH: 0   in flight: 0
+null pass rate at bar 3.5: 6 / 10000 = 0.060%   highest null z: 4.50
