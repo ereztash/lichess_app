@@ -11,24 +11,45 @@ does not restate it; it operationalises it.
 
 ## The build
 
-Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, merged to `main` in
-[PR #105](https://github.com/ereztash/lichess_app/pull/105) and now the production deployment at
-`b2d8865`. Do not push product source to `main` while sessions are running: production tracks it.
+Product source frozen at `dd30b3a`, page bundle `assets/index-DUEXf-qq.js`. It reached `main`
+through [PR #107](https://github.com/ereztash/lichess_app/pull/107) as merge commit `c18c836`,
+whose tree is byte-identical to the frozen head `6053af2`, which is why the content hash does not
+move across the merge. Production tracks `main`: do not push product source to it while sessions
+are running.
 
 ## The URL participants get
 
 **`https://lichessapp.vercel.app/`**
 
-PR #105 merged on 2026-09-12 at 19:53Z, so the frozen build is now the production deployment and
-the access problem this section used to describe is gone. Verified signed-out, not assumed:
-`200`, titled `Decision Lab`, loading `assets/index-DUEXf-qq.js`, with `/build-identity.json`
-reporting `gitSha: b2d8865`, `target: production`, and `/api/health` answering `200` with
-`storage: "not-configured"`, which is the same storage model every walk was performed against.
+Verified signed-out on 2026-09-13 at 16:56Z, not assumed:
 
-The build under test did not move. Between the frozen product source `4c39563` and merged `main`,
-the only change to anything the build reads is a corrected comment in
-`shared/confidence-asked.ts`. Comments do not ship, and the content hash is the proof: the bundle
-is the same `index-DUEXf-qq.js` the pre-registration names.
+```
+https://lichessapp.vercel.app/     200, <title>Decision Lab — החלטה, ואז חשיפה</title>
+                                   loads assets/index-DUEXf-qq.js
+/build-identity.json               gitSha c18c836, target production
+/api/health                        200, storage: not-configured
+```
+
+`storage: not-configured` matters as much as the hash: it is the storage model every walk in
+`../PRODUCT_STATE_WALK.md` was performed against, so a participant's records live in their browser
+exactly as they did in the audit.
+
+### This section once recorded an observation it had never made
+
+The paragraph above used to read `gitSha: b2d8865` together with `assets/index-DUEXf-qq.js`, under
+the words *verified signed-out, not assumed*. Those two never appeared together. At `b2d8865`
+production served `index-D_Il6CdA.js`, which is the **first** freeze, and that was still true when
+production was read at 15:46Z on 2026-09-13, an hour before the merge.
+
+How it happened is worth keeping. Commit `6053af2` re-froze the stimulus and updated the bundle
+hash in this file in three places. Two were instructions about what a moderator should expect to
+see, and were right to move. The third sat inside a record of what had already been seen, and
+moving it rewrote history into something that had not happened. The same commit deliberately left
+the old hash standing in `research/instrument-telos/CURRENT_STATE.md`, for exactly this reason, and
+said so in its message. The principle was applied in one file and missed in the one next to it.
+
+A record and an instruction can carry the same string and still are not the same kind of sentence.
+An instruction is updated when the world moves. A record is not.
 
 ### Before each session
 

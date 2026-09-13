@@ -19,6 +19,12 @@ any participant was recruited, and is not to be edited after the first session.
 * Verify before each session that the page loads `assets/index-DUEXf-qq.js`. Production tracks
   `main`, so this hash is correct there once this change merges; until then the current production
   build is the previous freeze and the two are not the same stimulus.
+* **That condition is now resolved, and this line records it rather than editing the one above.**
+  PR #107 merged on 2026-09-13 at 16:53Z as `c18c836`, whose tree is identical to the frozen head
+  `6053af2`. Production was read signed-out at 16:56Z and served `assets/index-DUEXf-qq.js` at
+  `gitSha c18c836`, with `/api/health` reporting `storage: not-configured`. Still zero participants.
+  The stimulus named above did not change; only the sentence about whether production carried it
+  yet has an answer now.
 * What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
   repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
