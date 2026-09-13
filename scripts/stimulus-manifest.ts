@@ -44,7 +44,18 @@
  * nothing else, so the thing a reviewer has to agree with is a format rather than an IO script.
  */
 
-/** Where the deployed build serves its stimulus identity. Relative to the origin, as `/build-identity.json` is. */
+/**
+ * Where the deployed build serves its stimulus identity. Relative to the origin, as
+ * `/build-identity.json` is.
+ *
+ * A BUILD WITHOUT A MANIFEST ANSWERS `200 text/html` HERE, NOT `404`, and anything checking this
+ * path has to be written for that. `vercel.json`'s last route sends every unmatched path to
+ * `index.html`, so the request succeeds and a browser shows the product.
+ * `client/src/lib/self-check.ts` already refuses the same trap for `/build-identity.json`:
+ * *"an SPA fallback answers `200 text/html` for any unknown path, and reading that as 'an older
+ * build' would be a confident and false diagnosis."* Measured on production at 2026-09-13T21:05Z,
+ * where the frozen build predates this generator. **Check the content, never the status.**
+ */
 export const STIMULUS_MANIFEST_PATH = "/stimulus-manifest.json";
 
 /**

@@ -89,7 +89,12 @@ any participant was recruited, and is not to be edited after the first session.
 
 * **THE MANIFEST IS NOT ON PRODUCTION YET, AND THIS DOCUMENT DOES NOT PRETEND OTHERWISE.** `e663ebc`
   was built before the generator existed, so `https://lichessapp.vercel.app/stimulus-manifest.json`
-  currently `404`s. The `stimulus_sha256` this protocol will name is therefore **`PENDING`**, and
+  carries no manifest. **It does not answer `404`.** Measured signed-out on 2026-09-13 at 21:05Z it
+  answers **`200 text/html`**, the app itself, because `vercel.json` sends every unmatched path to
+  `index.html`. An earlier draft of this bullet said `404` and was wrong, which matters because the
+  pre-session step turns on it: the check is that the page is JSON carrying `stimulus_sha256`, never
+  that the request succeeded. `field/README.md` carries the step and the trap.
+  The `stimulus_sha256` this protocol will name is therefore **`PENDING`**, and
   writing a number here before a deployment serves it would be the exact defect -- a declaration
   that drifts from its subject -- the mechanism exists against. It gets filled in by reading the
   endpoint after the deploy, never by computing it locally: a production build inlines `VITE_`

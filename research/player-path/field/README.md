@@ -51,16 +51,26 @@ others: reachability is not the build, and the build is not the server configura
    answer `200`. A moderator's own browser loads the page whatever the protection says, which is
    exactly how a wall would go unnoticed until participant 1 is sitting there.
 
-2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json` and confirm
-   `stimulus_sha256` equals the one in `../FIELD_RUN_CURRENT.md`.
+2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json`. The page must be
+   **JSON, beginning `{`**, and its `stimulus_sha256` must equal the one in
+   `../FIELD_RUN_CURRENT.md`.
 
-   **That value is currently `PENDING` and the endpoint currently `404`s**, because the frozen build
-   predates the generator. Until the deploy that carries it, the interim check is the two
-   content-hashed filenames in the page source, `assets/index-ZgOyRttd.js` **and**
-   `assets/index-_bGdMEE1.css`. Two filenames is better than the one this file used to name, and it
-   is **still not sufficient**: nine `.woff2` faces, the favicon, the share card, `robots.txt`,
-   `_headers` and `_redirects` carry no content hash at all, so nothing about their names moves when
-   their bytes do. That is the whole reason the digest exists.
+   **IF THE APP LOADS INSTEAD, THE BUILD HAS NO MANIFEST — AND IT DOES NOT LOOK LIKE AN ERROR.**
+   Measured, not assumed, on 2026-09-13 at 21:05Z: that URL answers `200 text/html` on the frozen
+   build, because `vercel.json`'s last route sends every unmatched path to `index.html`. A browser
+   shows the product. There is no `404`, no red, nothing to notice. `client/src/lib/self-check.ts`
+   already refuses this trap by name — *"an SPA fallback answers `200 text/html` for any unknown
+   path, and reading that as 'an older build' would be a confident and false diagnosis"* — and the
+   first version of this step walked straight into it by claiming the endpoint `404`s.
+   **So the check is the content and never the status code.**
+
+   **The value in the protocol is currently `PENDING`** because the frozen build predates the
+   generator, so seeing the app there today is expected. Until the deploy that carries it, the
+   interim check is the two content-hashed filenames in the page source,
+   `assets/index-ZgOyRttd.js` **and** `assets/index-_bGdMEE1.css`. Two filenames is better than the
+   one this file used to name, and it is **still not sufficient**: nine `.woff2` faces, the favicon,
+   the share card, `robots.txt`, `_headers` and `_redirects` carry no content hash at all, so
+   nothing about their names moves when their bytes do. That is the whole reason the digest exists.
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
    `storage: "not-configured"`. This is not in the digest and cannot be: it is server configuration
