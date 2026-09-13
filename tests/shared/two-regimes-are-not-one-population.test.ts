@@ -33,6 +33,7 @@ const decision = (over: Partial<DecisionAtom> = {}) =>
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     ...over,
   }) as unknown as DecisionAtom;
 
@@ -50,8 +51,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "instrumented-blitz@legacy/legacy/legacy",
-      "instrumented-standard@legacy/legacy/legacy",
+      "instrumented-blitz@legacy/legacy/legacy/legacy",
+      "instrumented-standard@legacy/legacy/legacy/legacy",
     ]);
     for (const s of strata) expect(s.atoms).toHaveLength(1);
   });
@@ -68,8 +69,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "legacy@legacy/end-of-game/legacy",
-      "legacy@legacy/per-decision/legacy",
+      "legacy@legacy/end-of-game/legacy/legacy",
+      "legacy@legacy/per-decision/legacy/legacy",
     ]);
   });
 
@@ -92,8 +93,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "instrumented-standard@1/legacy/legacy",
-      "instrumented-standard@2/legacy/legacy",
+      "instrumented-standard@1/legacy/legacy/legacy",
+      "instrumented-standard@2/legacy/legacy/legacy",
     ]);
     for (const s of strata) expect(s.atoms).toHaveLength(1);
   });
@@ -110,9 +111,54 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "instrumented-standard@1/legacy/legacy",
-      "instrumented-standard@legacy/legacy/legacy",
+      "instrumented-standard@1/legacy/legacy/legacy",
+      "instrumented-standard@legacy/legacy/legacy/legacy",
     ]);
+  });
+
+  it("keeps two decisions that differ ONLY in which screen produced them out of the same population", () => {
+    /*
+     * THE THIRD TIME, AND THE FIRST ONE THAT IS ABOUT A POLICY RATHER THAN ABOUT A BUILD.
+     *
+     * `quiet_window_exposure` is an atom field, a wire field and a MySQL enum since migration
+     * `0019`, and until this case existed `stratumKeyOf` did not read it -- the same defect the two
+     * cases above fix for reveal timing and for the protocol's version. Under the arm the context
+     * ribbon renders nothing while evidence is being produced; the ribbon carries the record's own
+     * state during `DECIDE`, and `MEASUREMENT_REACTIVITY_EXPERIMENTS.md` X-5 asks whether that
+     * moves the confidence stated after it. If it does, these are two populations in the exact
+     * variable the calibration gap is computed from.
+     *
+     * NO VERSION BUMP COULD HAVE CAUGHT IT. The arm is a `VITE_` flag, and a flag moves without a
+     * commit -- so two deployments of one source differ in stimulus while agreeing on every version
+     * they carry. `protocolVersion` is constant across the arms by construction, which is why the
+     * axis is the only repair and why pooling would have been silent.
+     */
+    const strata = strataOf([
+      decision({ quiet_window_exposure: "context-ribbon-visible" }),
+      decision({ quiet_window_exposure: "context-ribbon-suppressed" }),
+    ]);
+    expect(strata).toHaveLength(2);
+    expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
+      "legacy@legacy/legacy/legacy/context-ribbon-suppressed",
+      "legacy@legacy/legacy/legacy/context-ribbon-visible",
+    ]);
+    for (const s of strata) expect(s.atoms).toHaveLength(1);
+  });
+
+  it("treats a row from before the arm existed as its own regime, not as the unexposed one", () => {
+    /*
+     * THE TEMPTING BACKFILL, REFUSED. The flag is opt-in and no deployment sets it, so a null row
+     * was "obviously" produced with the ribbon visible -- and `features.ts` is the very file that
+     * says a flag moves without a commit, so nothing in the tree can establish what environment a
+     * deployment carried. Calling a null row `visible` would assert a condition nobody wrote down,
+     * which is the argument this file already makes about a null protocol and a null timing.
+     */
+    const strata = strataOf([
+      decision({ quiet_window_exposure: "context-ribbon-visible" }),
+      decision({ quiet_window_exposure: null }),
+    ]);
+    expect(strata).toHaveLength(2);
+    expect(strata.some((s) => s.key.quietWindow === "legacy")).toBe(true);
   });
 
   it("treats a row that recorded nothing as its own regime, not as either of the others", () => {
@@ -159,7 +205,7 @@ describe("two regimes are not one population", () => {
     expect(chosen?.key.revealTiming).toBe("per-decision");
     expect(chosen?.atoms).toHaveLength(3);
     // Not silently gone: named, counted, and available to whatever explains a population.
-    expect(setAside).toEqual([{ id: "legacy@legacy/end-of-game/legacy", n: 1 }]);
+    expect(setAside).toEqual([{ id: "legacy@legacy/end-of-game/legacy/legacy", n: 1 }]);
   });
 
   it("chooses the same regime every time, whatever order the rows arrived in", () => {

@@ -37,7 +37,8 @@
  * place for that claim to accumulate, so it does not exist.
  */
 
-import { MIN_BUCKET_N } from "./detector.js";
+import type { ClaimState } from "./claim-state.js";
+import { DISCOVERY_FLOOR, MIN_BUCKET_N } from "./detector.js";
 import { decisionsHeldElsewhere } from "./decisions-elsewhere.js";
 import type { LearningRule } from "./learning-record.js";
 import { RETRIEVAL_INTERVAL_DAYS, TRANSFER_POSITION_COUNT } from "./learning-record.js";
@@ -60,6 +61,43 @@ export const JOURNEY_STAGES = [
   "RETIRED",
 ] as const;
 export type JourneyStage = (typeof JOURNEY_STAGES)[number];
+
+/**
+ * The record lane's claim state, said in this file's vocabulary.
+ *
+ * WHY THE CORRESPONDENCE IS STATED AND NOT ASSUMED. `shared/claim-state.ts` exists because the
+ * layer that decides what to do next could not see what the record had established. That gives one
+ * fact two representations -- a stage a player reads a sentence about, and a state a derivation
+ * branches on -- and `docs/decisions/D22-next-action-ownership.md` already settled what to do with
+ * a pair like that: *"State the correspondence once and test it."* It did that for proposals and
+ * controls with `actFor`; this is the same move one layer over, and
+ * `tests/shared/an-instrument-that-cannot-learn-from-its-own-result.test.ts` holds it in both
+ * directions.
+ *
+ * `unread` MAPS TO `ACCUMULATING`, AND THAT IS A DESCRIPTION OF TODAY RATHER THAN AN ENDORSEMENT.
+ * `recordReading(undefined)` already renders `ACCUMULATING` with a count of nought, so an unread
+ * record and an empty one are one sentence on screen. Separating them is a change to a surface a
+ * cold participant reaches, and `research/player-path/FIELD_RUN_CURRENT.md` freezes that surface
+ * until the run happens; the mapping records the aliasing where a reader will find it instead of
+ * repairing it quietly. `D27` carries the row.
+ *
+ * `decided` MAPS TO `CANDIDATE` FOR THE SAME KIND OF REASON. `recordJourney` branches on whether a
+ * claim exists and not on whether one has been graded, so both claim-bearing states render the same
+ * stage today. The derivation tells them apart because the ACT differs; the ledger does not because
+ * the SENTENCE has not been written. That is a gap with an owner, not a defect in the mapping.
+ */
+export function journeyStageOf(state: ClaimState): JourneyStage {
+  switch (state.kind) {
+    case "unread":
+    case "accumulating":
+      return "ACCUMULATING";
+    case "nothing-separated":
+      return "NOTHING_SEPARATED";
+    case "candidate":
+    case "decided":
+      return "CANDIDATE";
+  }
+}
 
 /**
  * A count that cannot be rendered without saying what it counts.
@@ -152,7 +190,27 @@ export function ruleJourney(input: RuleJourneyInputs): JourneyReading {
       stage: "REFUTED",
       question: "תנאי ההפרכה שכתבתי התקיים?",
       count: { construct: "תנאי הפרכה שהתקיים", n: 1, of: null },
-      next: "הכלל נשמר כמו שהוא ולא נבדק שוב. מה שנלמד כאן הוא שהניסוח לא החזיק.",
+      /*
+       * THE ONE TERMINAL IN THIS FAMILY THAT NAMED NO WAY ON, AND IT WAS THE NEGATIVE ONE.
+       *
+       * It used to end at *"הכלל נשמר כמו שהוא ולא נבדק שוב. מה שנלמד כאן הוא שהניסוח לא החזיק"* --
+       * true, complete, and with nothing after it. `RETIRED`, one branch up, closes on a rule the
+       * player themselves chose to close and still says a new one may be written after a reveal. So
+       * the stage a player arrives at by being WRONG was the only one with no sentence about what
+       * happens next, which is the shape that teaches a reader that a negative result is where the
+       * product stops.
+       *
+       * WHAT IS ADDED IS A SAVING AND NOT A GAIN. A refuted rule means practice on that wording
+       * stops, which is worth something on its own and is not an improvement in play; the class of
+       * decision it was about goes on being counted in ordinary games whether or not a rule
+       * describes it. Both halves are facts the record already holds. `notEstablished` below is
+       * untouched and still carries the limit: refuting the RULE is not refuting the description of
+       * the problem.
+       */
+      next:
+        "הכלל נשמר כמו שהוא ולא נבדק שוב. מה שנלמד כאן הוא שהניסוח לא החזיק, " +
+        "ולכן אין טעם להתאמן עליו. החלטות מאותו סוג ממשיכות להיספר במשחק רגיל, " +
+        "ואפשר לנסח כלל אחר אחרי חשיפה.",
       notEstablished: "הפרכה של הכלל לא אומרת שהתיאור של הבעיה היה שגוי.",
     };
   }
@@ -265,7 +323,14 @@ export function recordJourney(input: {
    */
   readElsewhere: number;
 }): JourneyReading {
-  const floor = MIN_BUCKET_N * 2;
+  /*
+   * THE FLOOR IS NAMED RATHER THAN RECOMPUTED. It was `MIN_BUCKET_N * 2` here and the same
+   * expression is now what `claimStateOf` reads to decide `accumulating` from `nothing-separated`.
+   * Two copies of one threshold is two chances for the sentence a player reads and the state a
+   * derivation reads to part company over a number, which is the exact class of drift
+   * `GATE-REGISTER-RECONCILED` exists about one layer up.
+   */
+  const floor = DISCOVERY_FLOOR;
   /*
    * SINGULAR AND PLURAL ARE DIFFERENT SENTENCES IN HEBREW, and "1 החלטות" is not a thing anyone
    * says. The first record a player has is exactly the one-decision case, so the ungrammatical
