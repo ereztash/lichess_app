@@ -132,7 +132,8 @@ any participant was recruited, and is not to be edited after the first session.
   above. As of this file production serves the frozen build: verified signed-out on 2026-09-13 at
   19:25Z, `/build-identity.json` reporting `gitSha: e663ebc6c249…` and `target: production`, the
   page `200` loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, and `/api/health`
-  `200` with `storage: "not-configured"`.
+  `200` with `checks.storage` equal to `"not-configured"` -- nested under `checks` rather than at the
+  top level, re-verified in that shape on 2026-09-13 at 22:29Z.
 * What that commit contains beyond the previous freeze: the recursive spine and the policy-space
   analysis of [PR #109](https://github.com/ereztash/lichess_app/pull/109), `D27` and `D28`. No new
   surface, no new wording pass, and no change to any screen.

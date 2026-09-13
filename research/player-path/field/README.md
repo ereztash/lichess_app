@@ -76,8 +76,11 @@ others: reachability is not the build, and the build is not the server configura
    nothing about their names moves when their bytes do. That is the whole reason the digest exists.
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
-   `storage: "not-configured"`. This is not in the digest and cannot be: it is server configuration
-   and it can change with no deployment at all, which is exactly why it is checked live.
+   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level;
+   the same response also carries `build.gitSha`, so this one request covers the commit as well.
+   Verified in that shape on 2026-09-13 at 22:29Z. Storage is not in the digest and cannot be: it is
+   server configuration and it can change with no deployment at all, which is exactly why it is
+   checked live.
 
 4. If **any** of the three does not match, **stop**. Do not run the session against whatever is
    there and do not update this file to match it: check with the owner first, because a mismatch
