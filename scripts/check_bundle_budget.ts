@@ -900,9 +900,42 @@ const INDEX = `${ROOT}/index.html`;
  * kilobyte in the entry does not." This is that tenth, and it is attributed rather than absorbed.
  *
  * 678, 213 AND 771 LEAVE 0.3 kB, 0.9 kB AND 0.5 kB.
+ *
+ * ---
+ *
+ * THE RAW CEILING, 678 -> 679, FOR AN ARM THE POOLING MODULE COULD NOT SEE. Measured on this build:
+ *
+ *                                                entry raw   gzipped   initial raw
+ *     main at b2d8865                              694,247      212.2       770.8
+ *     + the recursive spine (D27)                  694,264      212.2       770.8
+ *     + quietWindow as a stratum axis (D28)        694,321      212.2       770.9   RAW OVER BY 49 B
+ *
+ * WHAT THE 57 BYTES BUY. `quiet_window_exposure` has been an atom field, a wire field and a MySQL
+ * enum since migration `0019`, and `stratumKeyOf` did not read it -- so the product's only stimulus
+ * arm was stamped on every row and pooled anyway. It is the third time this exact defect has been
+ * found in that one key; `docs/decisions/D28-adaptive-policy-architecture.md` §M carries the other
+ * two and the reason the axis is the only repair a version bump could not have made.
+ *
+ * WHY IT IS NOT TAKEN BACK INSTEAD, which is what the pass above did and what this file prefers.
+ * The growth is 57 bytes of `stratumKeyOf` and one segment of `stratumId`, both in
+ * `shared/evidence-policy.ts`, which reaches the entry graph through `record-service` -> `record-api`
+ * -> the front door. There is nothing to fold: the four sibling lines are already one expression
+ * each. Taking it back would mean moving the record service off the entry chunk, which is a real
+ * change with a real argument and is not this one. `D27`'s own growth WAS taken back rather than
+ * raised, one commit ago, by moving `DISCOVERY_FLOOR` to a module both readers already imported --
+ * so this branch has spent nothing on the ratchet until now.
+ *
+ * THE OTHER TWO CEILINGS DID NOT FIRE AND KEEP THEIR NUMBERS. Gzip measures 212.2 against 213 and
+ * initial download 770.9 against 771: raising a ceiling that has not been crossed is loosening a
+ * budget for free, and the initial-download margin is now 0.1 kB, which is said here rather than
+ * discovered later. The next tenth of a kilobyte in the entry takes it over.
+ *
+ * 679 LEAVES 0.9 kB, which is the smallest headroom any raise in this file has left and is
+ * deliberate: the entry graph is where this product's weight problem is, and a raise that bought
+ * room for the next four changes would be a budget rather than a ratchet.
  */
 
-const ENTRY_RAW_KB = 678;
+const ENTRY_RAW_KB = 679;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 213;
