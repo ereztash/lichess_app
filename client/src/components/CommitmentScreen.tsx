@@ -552,6 +552,12 @@ export function CommitmentScreen({
         "known",
         <ReadField
           hint="בחרו כמה שרוצים"
+          meaning={
+            <p>
+              מה אתם מזהים בעמדה עכשיו, במילים שלכם, לפני שהמנוע מדבר. לא תחזית ולא תוכנית. אף
+              מספר כאן לא נקרא מהטקסט הזה, והוא זה שמבדיל בין מה שרשמתם לבין מה שהמנוע הוסיף.
+            </p>
+          }
           options={KNOWN_OPTIONS}
           selected={draft.knownTags}
           onToggle={(label) => setDraft((d) => ({ ...d, knownTags: toggle(d.knownTags, label) }))}
@@ -569,6 +575,12 @@ export function CommitmentScreen({
         "unknown",
         <ReadField
           hint="בחרו כמה שרוצים"
+          meaning={
+            <p>
+              מה שאתם לא יכולים להעריך בעמדה הזאת. מה שתסמנו כאן חוזר אליכם מיד אחרי הרישום:
+              השאלה שהחשיפה שואלת נבנית ממנו, וזה הדבר היחיד על אותו מסך שהמנוע לא ייצר.
+            </p>
+          }
           options={UNKNOWN_OPTIONS}
           selected={draft.unknownTags}
           onToggle={(label) =>
@@ -740,6 +752,8 @@ function toggle(current: string[], label: string): string[] {
 
 interface ReadFieldProps {
   hint: string;
+  /** What this field is asking for, in the player's terms. See the disclosure below. */
+  meaning: React.ReactNode;
   options: ReadOption[];
   selected: string[];
   onToggle: (label: string) => void;
@@ -764,6 +778,7 @@ interface ReadFieldProps {
  */
 function ReadField({
   hint,
+  meaning,
   options,
   selected,
   onToggle,
@@ -781,6 +796,26 @@ function ReadField({
   return (
     <fieldset className="read-field" disabled={pending}>
       <legend className="read-hint">{hint}</legend>
+      {/*
+        * WHAT THE FIELD MEANS, AND IT IS A DISCLOSURE RATHER THAN A HOVER.
+        *
+        * Asked for as a question mark with a tooltip. A tooltip is a hover, and this product is
+        * measured at 390x844: on the device it is built for there is no hover, so the explanation
+        * would exist for the desktop reader and not for the player. `<details>` opens on a tap and
+        * on a click, takes focus from a keyboard, and is read out as a disclosure -- and the
+        * product already carries exactly this control as `.context-why`, so this is the pattern
+        * reused rather than a second one invented.
+        *
+        * WHAT IT SAYS IS THE PART THAT WAS MISSING, not a gloss on the label. The audit in
+        * `research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md` found that these two fields
+        * pay the player back on the very next screen -- `nextQuestion` builds the reveal's
+        * question out of what they wrote -- and that nothing told them so before they answered.
+        * A cost whose payoff is never announced reads as a toll.
+        */}
+      <details className="read-why">
+        <summary>למה?</summary>
+        {meaning}
+      </details>
       <div className="read-options">
         {options.map((option) => {
           const on = selected.includes(option.label);

@@ -3424,6 +3424,24 @@ button:not(:disabled) {
  * refused before: nothing is removed from the list and nothing goes behind a "more" control, so
  * what a player is able to say about a position is unchanged. The four headers always fit
  * together, and the tallest step scrolls inside itself.
+ *
+ * AND THE CAP WAS 35px TOO LOW, WHICH PUT THE LIST BEHIND A "MORE" CONTROL AFTER ALL.
+ *
+ * Reported from a phone frame, then measured on the built panel at 390x844 with the second step
+ * open: the body's content is 325px against a cap of 290, so the last chip row and the write
+ * toggle sat under a native scrollbar. The rule 24 lines below this one says what that costs --
+ * *"no option is hidden behind a 'more' control"* -- and a scroll box that clips a row hides them
+ * the same way, worse for announcing itself less. Two rules, written for different reasons,
+ * neither aware of the other.
+ *
+ * THE RAISE IS SCOPED TO THE NARROW LAYOUT, BELOW, AND THE FIRST ATTEMPT WAS NOT.
+ *
+ * Raising this value for everyone fixed the phone and broke the desktop, measured: at 1440x900 the
+ * body wants 405px rather than 357, because above 1050px the panel is a 330px column beside the
+ * board and the same ten chips wrap into more rows. A 360px cap there cannot fit them either, and
+ * it pushed the fourth step header out of the window -- three of four instead of four of four,
+ * which is the exact property this cap was written to hold. The defect was reported on a phone and
+ * lives in the phone's layout, so that is where the fix belongs.
  */
 .step-body {
   display: flex;
@@ -3440,6 +3458,53 @@ button:not(:disabled) {
 .commitment-step[data-state] .step-body:has(> output) {
   max-block-size: none;
   overflow: visible;
+}
+/* AFTER the rule it overrides: same specificity, so source order is what decides. Written inside
+   the 1050px block first, where it lost silently to the default 900 lines below it. */
+@media (max-width: 1050px) {
+/*
+ * THE STEP BODY FITS ITS OWN LIST HERE, and this is the only width where it can.
+ *
+ * The panel is full width under the board in this band, so the ten chips wrap into fewer rows:
+ * measured at 390x844, the open second step wants 357px against the 290px default, and the last
+ * chip row and the write toggle sat under a native scrollbar. `.read-chip` says what that costs
+ * -- *"no option is hidden behind a 'more' control"* -- and a scroll box that clips a row hides
+ * them the same way while announcing itself less.
+ *
+ * BOTH TERMS HAD TO MOVE. At 844 the default `38vh` computes to 320.7px, so raising only the
+ * pixel term would have left the viewport term binding four pixels short of the content and the
+ * scrollbar would have survived the fix. 360 rather than 330 because the `למה?` disclosure added
+ * in the same change costs 32px even closed, and a cap that fits the chips but not the control
+ * explaining them moves the clipping rather than removing it.
+ *
+ * Measured after, at 390x844: body 357px inside 360px, no scroller, four of four step headers in
+ * the window. On a 667px-tall phone the viewport term still binds and the body still scrolls,
+ * which is correct: at that height something has to give, and it gives 34px later than it did.
+ */
+.step-body {
+  max-block-size: min(43vh, 360px);
+}
+}
+/*
+ * Borrows `.context-why`'s shape on purpose: one control, one behaviour, one thing to learn. It
+ * sits between the hint and the chips because that is where the question arises, and it is closed
+ * by default so the step's height is unchanged for a player who does not ask.
+ */
+.read-why summary {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.read-why summary:hover {
+  color: var(--ink);
+}
+.read-why p {
+  margin: 6px 0 0;
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
 }
 .read-field-foot {
   display: flex;

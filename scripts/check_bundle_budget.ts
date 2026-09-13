@@ -901,14 +901,47 @@ const INDEX = `${ROOT}/index.html`;
  *
  * 678, 213 AND 771 LEAVE 0.3 kB, 0.9 kB AND 0.5 kB.
  *
+ * 678 -> 679 FOR TWO PARAGRAPHS OF HEBREW, and the weight was looked for first and was not there.
+ *
+ * The read steps grew a `למה?` disclosure saying what each field asks for and, on the second one,
+ * that the answer comes back as the reveal's next question. Measured: entry raw 678.0 -> 678.7,
+ * gzipped 212.2 -> 212.4, and the two paragraphs are about 350 characters of Hebrew, which is two
+ * bytes each in UTF-8 and accounts for essentially the whole 0.7 kB on its own.
+ *
+ * There is no fat under it. The only way to take this back is to shorten the sentences, and the
+ * sentences are the change: `research/instrument-telos/COUNTERFACTUAL_DELETE_AUDIT.md` found that
+ * these two fields pay the player back on the very next screen and that nothing told them so
+ * before they answered. Trading that against a tenth of a kilobyte would be spending the thing
+ * asked for to protect the number watching it.
+ *
+ * The gzip ceiling does not move: 212.4 against 213 still leaves 0.6 kB.
+ *
  * ---
  *
- * THE RAW CEILING, 678 -> 679, FOR AN ARM THE POOLING MODULE COULD NOT SEE. Measured on this build:
+ * THE RAW CEILING, 678 -> 679, FOR AN ARM THE POOLING MODULE COULD NOT SEE.
+ *
+ * TWO RAISES TO ONE NUMBER, WRITTEN INDEPENDENTLY, AND THE NOTE ABOVE IS THE OTHER ONE. Both were
+ * measured from 678 on the same base, `b2d8865`, on two branches that did not know about each
+ * other: the Hebrew disclosure above took the entry to 678.7, and this one took it to 678.05. They
+ * met in the merge that carries this paragraph, and NEITHER measurement describes the merged tree.
  *
  *                                                entry raw   gzipped   initial raw
  *     main at b2d8865                              694,247      212.2       770.8
  *     + the recursive spine (D27)                  694,264      212.2       770.8
  *     + quietWindow as a stratum axis (D28)        694,321      212.2       770.9   RAW OVER BY 49 B
+ *     merged with main at c18c836                  695,047      212.4       790,482
+ *
+ * THE MERGE NEEDS NO FURTHER RAISE, and that is measured rather than hoped: 695,047 bytes against
+ * a 679 kB ceiling of 695,296 leaves 249 bytes. The two raises did not stack, because they are
+ * disjoint bytes and each was measured from the same 678.0 floor -- 0.7 kB of Hebrew and 57 bytes
+ * of stratum key, against 1.0 kB of new room.
+ *
+ * THE INITIAL-DOWNLOAD CEILING IS THE ONE TO WATCH NOW, and it came from main rather than from
+ * here: 790,482 bytes against 772 kB, which is 790,528. FORTY-SIX BYTES OF HEADROOM. It is said
+ * here rather than discovered later, exactly as the `decisions-elsewhere` pass said it about the
+ * gzip ceiling one raise ago and was right: the next character of Hebrew in the entry or the next
+ * rule in the stylesheet takes it over, and whoever crosses it should raise it with a measurement
+ * rather than absorb it.
  *
  * WHAT THE 57 BYTES BUY. `quiet_window_exposure` has been an atom field, a wire field and a MySQL
  * enum since migration `0019`, and `stratumKeyOf` did not read it -- so the product's only stimulus
@@ -916,23 +949,14 @@ const INDEX = `${ROOT}/index.html`;
  * found in that one key; `docs/decisions/D28-adaptive-policy-architecture.md` §M carries the other
  * two and the reason the axis is the only repair a version bump could not have made.
  *
- * WHY IT IS NOT TAKEN BACK INSTEAD, which is what the pass above did and what this file prefers.
- * The growth is 57 bytes of `stratumKeyOf` and one segment of `stratumId`, both in
+ * WHY IT IS NOT TAKEN BACK INSTEAD, which is what the `decisions-elsewhere` pass did and what this
+ * file prefers. The growth is 57 bytes of `stratumKeyOf` and one segment of `stratumId`, both in
  * `shared/evidence-policy.ts`, which reaches the entry graph through `record-service` -> `record-api`
  * -> the front door. There is nothing to fold: the four sibling lines are already one expression
  * each. Taking it back would mean moving the record service off the entry chunk, which is a real
  * change with a real argument and is not this one. `D27`'s own growth WAS taken back rather than
- * raised, one commit ago, by moving `DISCOVERY_FLOOR` to a module both readers already imported --
- * so this branch has spent nothing on the ratchet until now.
- *
- * THE OTHER TWO CEILINGS DID NOT FIRE AND KEEP THEIR NUMBERS. Gzip measures 212.2 against 213 and
- * initial download 770.9 against 771: raising a ceiling that has not been crossed is loosening a
- * budget for free, and the initial-download margin is now 0.1 kB, which is said here rather than
- * discovered later. The next tenth of a kilobyte in the entry takes it over.
- *
- * 679 LEAVES 0.9 kB, which is the smallest headroom any raise in this file has left and is
- * deliberate: the entry graph is where this product's weight problem is, and a raise that bought
- * room for the next four changes would be a budget rather than a ratchet.
+ * raised, by moving `DISCOVERY_FLOOR` to a module both readers already imported -- so this branch
+ * spent nothing on the ratchet until this commit.
  */
 
 const ENTRY_RAW_KB = 679;
@@ -1122,9 +1146,14 @@ const ENTRY_GZIP_KB = 213;
  * NOTHING MOVES. Neither entry figure changed at all, and on the merged tree the initial download
  * measures 777.5 against the 778 already standing. 776 would have left 0.9 kB on the branch; the
  * number that ships is 778, and it leaves 0.5 kB.
+ *
+ * 771 -> 772, AND THE STYLESHEET IS NOT WHY. The `למה?` disclosure's own CSS is 21 lines and the
+ * raised `.step-body` cap is one declaration inside a media query that already existed. What moved
+ * this number is the same 0.7 kB of Hebrew that moved the entry ceiling above: 770.8 -> 771.9.
+ * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 771;
+const INITIAL_RAW_KB = 772;
 
 interface Asset {
   name: string;
