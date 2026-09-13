@@ -33,30 +33,70 @@ loading `assets/index-ZgOyRttd.js`, with `/build-identity.json` reporting
 `target: production`, and `/api/health` answering `200` with `storage: "not-configured"`, which is
 the same storage model every walk was performed against.
 
-**THE BUILD UNDER TEST HAS MOVED TWICE AND WILL MOVE AGAIN UNLESS SOMETHING CHANGES.** Both moves
-were merges to `main`, and this file's own rule -- do not push product source while sessions are
-running -- is a request that nothing enforces. `../FIELD_RUN_CURRENT.md` records the three ways out
-and deliberately chooses none. Until one is chosen, **run the check below every single time**: it is
-not a formality, it is the only thing standing between a session and a stimulus nobody registered.
+**THE BUILD UNDER TEST HAS MOVED TWICE, AND THE OWNER HAS DECIDED HOW THAT STOPS.** Both moves were
+merges to `main`, and this file's own rule -- do not push product source while sessions are running
+-- is a request nothing enforces. The decision is option `(a)`, an immutable deployment, and
+`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
+dashboard action that has not been taken**: production branch set to a frozen branch instead of
+`main`, so merges stop moving the build behind this URL while `main` stays live for development.
+Until it is taken, production still tracks `main` and the check below is the only thing between a
+session and a stimulus nobody registered. **Run it every single time.**
 
 ### Before each session
 
-1. Open the URL **in a browser that is not signed in to Vercel**, or a private window.
-2. Confirm the page loads `assets/index-ZgOyRttd.js`. The build is content-hashed, so that one
-   string is the whole freeze check, and anything that moves it has changed the stimulus.
-3. If it does **not** match, stop. Do not run the session against whatever is there and do not
-   update this file to match it: check with the owner first, because a hash that moved means either
-   a merge landed or the pre-registration is describing a build nobody is serving.
-4. Hand the participant the URL. Nothing else is said.
+Three checks before the hand-over, and they are three because no one of them can cover the
+others: reachability is not the build, and the build is not the server configuration.
+
+1. Open the URL **in a browser that is not signed in to Vercel**, or a private window. The page must
+   answer `200`. A moderator's own browser loads the page whatever the protection says, which is
+   exactly how a wall would go unnoticed until participant 1 is sitting there.
+
+2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json` and confirm
+   `stimulus_sha256` equals the one in `../FIELD_RUN_CURRENT.md`.
+
+   **That value is currently `PENDING` and the endpoint currently `404`s**, because the frozen build
+   predates the generator. Until the deploy that carries it, the interim check is the two
+   content-hashed filenames in the page source, `assets/index-ZgOyRttd.js` **and**
+   `assets/index-_bGdMEE1.css`. Two filenames is better than the one this file used to name, and it
+   is **still not sufficient**: nine `.woff2` faces, the favicon, the share card, `robots.txt`,
+   `_headers` and `_redirects` carry no content hash at all, so nothing about their names moves when
+   their bytes do. That is the whole reason the digest exists.
+
+3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
+   `storage: "not-configured"`. This is not in the digest and cannot be: it is server configuration
+   and it can change with no deployment at all, which is exactly why it is checked live.
+
+4. If **any** of the three does not match, **stop**. Do not run the session against whatever is
+   there and do not update this file to match it: check with the owner first, because a mismatch
+   means either a merge landed or the pre-registration is describing a build nobody is serving.
+
+5. Hand the participant the URL. Nothing else is said.
+
+### Why the check is a digest and not a filename
+
+This file used to say that confirming one content-hashed JS filename was "the whole freeze check".
+The build emits **forty** files. The named one is 695,047 bytes of 8,865,024 -- **7.8%** -- and
+eighteen of the forty carry no content hash in their name at all. Swapping a Hebrew face changes
+what every participant reads and leaves the JS filename exactly where the protocol says it should
+be. The check would have passed.
+
+The repair is not a longer list of filenames, which is the same defect with a later expiry date.
+`scripts/write-stimulus-manifest.ts` walks whatever the build wrote, hashes every file and publishes
+one `stimulus_sha256`. The enumeration is the walk, so an asset kind nobody anticipated cannot slip
+past it.
 
 ### What this replaced, kept because the reasoning still applies
 
 Before the merge the build lived only on the PR preview, which answered a signed-out visitor with
 `302` to `vercel.com/sso-api`, and participants would have reached it through a protection-bypass
-share link generated fresh per session. That is no longer needed. The rule that produced it stands:
-**check the URL from a signed-out browser and never from the moderator's own**, because a
-moderator's laptop loads the page whatever the protection says, which is exactly how a wall would
-have gone unnoticed until participant 1 was sitting there.
+share link generated fresh per session. That is no longer needed for the URL above, and the same
+wall is why the run is not pinned to a per-deployment URL: measured signed-out on 2026-09-13,
+`lichessapp.vercel.app` answers `200` and the production deployment's own URL answers `302` to
+`vercel.com/sso-api`. The project protects every deployment URL and exempts the alias.
+
+The rule that produced all of this stands: **check the URL from a signed-out browser and never from
+the moderator's own**, because a moderator's laptop loads the page whatever the protection says,
+which is exactly how a wall would have gone unnoticed until participant 1 was sitting there.
 
 A share link, if one is ever needed again, is a bearer credential and does not go in this
 directory, a commit, a PR comment or a participant file.
