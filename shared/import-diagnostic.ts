@@ -174,6 +174,29 @@ function loadable(fen: string): boolean {
   }
 }
 
+/**
+ * What recording a live decision adds that an imported game cannot, said as a reason to act.
+ *
+ * THE SENTENCE EXISTED TWICE AND WAS A CAVEAT BOTH TIMES. `bucket-absent-note` says the calibration
+ * column is empty in every row; `review-caveat` says it will stay empty until decisions are
+ * recorded. Both are true, both are framed as limitations of what the player just did, and neither
+ * says the thing that makes them interesting: an old game carries no confidence stated before the
+ * engine spoke, so no amount of history can produce this kind of evidence, and one live decision
+ * can.
+ *
+ * IT IS AN EVIDENCE-TYPE CLAIM AND NOT AN OUTCOME CLAIM, which is the whole reason it may be said
+ * at all. It promises nothing about what will be found, holds on the first decision and on the
+ * thousandth, and stays true in the state where no personal pattern is ever found. A promise that
+ * something recurring WILL be found in this player would be an OUTCOME claim, and the frozen
+ * research states that rung is unreachable by this pipeline under any result.
+ *
+ * The reveal already says the same thing about a single decision, in `EVIDENCE_LABEL.process`.
+ * This is that fact at the import's scale, and the two are deliberately worded alike.
+ */
+export const LIVE_DECISION_ADDS =
+  "החלטה שתרשמו מוסיפה מה שהמשחקים האלה לא מחזיקים: ביטחון שהצהרתם לפני שהמנוע דיבר. " +
+  "משחק שכבר שוחק לא יכול לייצר את זה, בשום כמות.";
+
 export interface ImportedBucketReading {
   /** From BUCKETINGS. */
   key: string;
@@ -280,6 +303,35 @@ export interface StoredImportDiagnostic {
   games: number;
   /** When the scan finished. ISO 8601. */
   scanned_at: string;
+  /**
+   * The player's own rating in each scanned game, oldest first, with the site it came from.
+   *
+   * WHY IT IS KEPT AT ALL. Every imported game already carried `whiteRating` and `blackRating`;
+   * both were parsed at the boundary, by both adapters, and read by nothing. The product asked
+   * two chess sites for a number, was given it, and dropped it. That is the cheapest kind of
+   * defect to fix and the easiest to leave forever, because nothing breaks while it is broken.
+   *
+   * WHAT IT DELIBERATELY IS NOT. It is not a goal, a target, or a starting point, and nothing
+   * downstream treats it as one. Which rating a journey should be anchored to -- a site's, FIDE's,
+   * or a measure of this product's own -- is an open question with a real answer on either side,
+   * and this field takes no position on it. It stops the discard so that whichever answer is
+   * chosen later has a series to be computed from, rather than starting from the day it is
+   * chosen.
+   *
+   * A SERIES AND NOT AN AVERAGE. A single number cannot say whether a player is climbing, and
+   * climbing is the only thing anybody wants to know from a rating. Optional on the type, because
+   * a reading stored before this field existed is a reading, not a damaged one.
+   */
+  rating?: RatingReading[];
+}
+
+/** One rating, as one site reported it in one game. */
+export interface RatingReading {
+  /** ISO 8601, from the game's own timestamp rather than from the scan's. */
+  at: string;
+  value: number;
+  /** `lichess` or `chesscom`. Two sites' ratings are two scales and must never be pooled. */
+  source: string;
 }
 
 export interface ImportedGameInput {

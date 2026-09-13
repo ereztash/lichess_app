@@ -156,8 +156,8 @@ describe("the refusals the product wrote for the player survive", () => {
   it("keeps a TRPCError's message, including the owner gate's two", () => {
     // `ownerProcedure` deliberately answers a refused visitor and an unconfigured deployment with
     // two different sentences. Those are authored text and must reach the screen.
-    const forbidden = new TRPCError({ code: "FORBIDDEN", message: "הרשומה שייכת לחשבון אחר." });
-    expect(safeErrorMessage(forbidden)).toBe("הרשומה שייכת לחשבון אחר.");
+    const forbidden = new TRPCError({ code: "FORBIDDEN", message: "ההיסטוריה שייכת לחשבון אחר." });
+    expect(safeErrorMessage(forbidden)).toBe("ההיסטוריה שייכת לחשבון אחר.");
   });
 
   it("does not trust an authored message that happens to carry a value", () => {
@@ -165,7 +165,7 @@ describe("the refusals the product wrote for the player survive", () => {
      * A `RecordError` built by interpolating input would put the value back through the exemption.
      * Nothing does that today; this is the assertion that notices when something starts to.
      */
-    const careless = new RecordError("BAD_REQUEST", `לא ניתן לשמור: ${SECRET}`);
+    const careless = new RecordError("BAD_REQUEST", `אי אפשר לשמור: ${SECRET}`);
     expect(safeErrorMessage(careless, [SECRET])).toBe(INTERNAL_ERROR_MESSAGE);
   });
 });

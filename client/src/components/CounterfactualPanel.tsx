@@ -96,7 +96,7 @@ export function CounterfactualPanel({ reading }: { reading: CounterfactualRecord
           {!measurable && scored > 0 && (
             <p className="counterfactual-panel__short">
               עוד <bdi>{shortBy}</bdi> חלופות שנמדדו ואפשר יהיה לומר שיעור ולא רק ספירה (
-              <bdi>{MIN_BUCKET_N}</bdi> זה הרף שכל הרשומה עובדת לפיו).
+              <bdi>{MIN_BUCKET_N}</bdi> זה הרף שכל ההיסטוריה עובדת לפיו).
             </p>
           )}
         </>

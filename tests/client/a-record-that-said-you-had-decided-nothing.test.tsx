@@ -18,7 +18,7 @@
  * MEASURED, NOT REASONED. Chromium at 1440x900 and 390x844, clean profile, three complete bank
  * decisions, the explorer opened from the reveal. One screen then carried, top to bottom:
  *
- *     y= 108   עוד 60 החלטות מדודות ... 3 נמדדו ונקראות בחלק אחר של הרשומה
+ *     y= 108   עוד 60 החלטות מדודות ... 3 נמדדו ונקראות בחלק אחר של ההיסטוריה
  *     y= 233   נרשמו 4 החלטות. זה עדיין תיאור של ההחלטות האלה, לא של השחקן.
  *     y=1870   מהלכים שנרשמו 3 נרשמו
  *     y=2089   עוד לא נחשפה אף החלטה, ולכן אין מה למדוד.
@@ -176,7 +176,7 @@ describe("a record that has bank decisions in it has not decided nothing", () =>
     const reading = { ...(await service.recordReading(new MemoryRecordStore())), withoutConfidence: 2 };
     const { container } = render(<RecordDashboard reading={reading} />);
     const text = container.textContent ?? "";
-    expect(text).toContain("לא נרשמה עם ביטחון מוצהר");
+    expect(text).toContain("לא נרשמה עם ביטחון שנאמר מראש");
     expect(text).not.toContain(NOTHING_REVEALED);
   });
 });

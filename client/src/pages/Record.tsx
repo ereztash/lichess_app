@@ -95,6 +95,22 @@ const RecordDashboard = lazyChunk(() =>
  * IT IS ALSO THE HONEST SPLIT. A visitor who has never played blitz downloads none of this, and a
  * returning one pays for it once, after the first paint, behind a reserved block.
  */
+/*
+ * THE JOURNEY LAYER IS LAZY FOR THE REASON `RecordDashboard` IS.
+ *
+ * This page is the front door: its entry chunk is what every arrival downloads before they have
+ * done anything. The ledger and the goal note render BELOW the readings, on a screen a cold visitor
+ * has not scrolled to and a record that mostly has nothing in it yet. Statically imported they cost
+ * 7.2 kB raw of the first byte budget, which `npm run bundle:budget` refused -- and refusing was
+ * right: the correct answer to "this surface pushed us over" is almost never "raise the ceiling".
+ */
+const JourneyLedger = lazyChunk(() =>
+  import("@/components/JourneyLedger").then((m) => ({ default: m.JourneyLedger })),
+);
+const GoalNote = lazyChunk(() =>
+  import("@/components/GoalNote").then((m) => ({ default: m.GoalNote })),
+);
+
 const ResumeScreen = lazyChunk(() =>
   import("@/components/ResumeScreen").then((m) => ({ default: m.ResumeScreen })),
 );
@@ -260,8 +276,7 @@ function FirstDecision({
         * where they blundered would stage the result instead of measuring it.
         */}
       <p className="first-decision-note">
-        העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם — לא רצה עליה מנוע ולא נבדקה שום תוצאה.
-        המשחקים נמשכים מ-{SOURCE_LABEL[source]} ולא נשמרים כאן.
+        העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם. המשחקים לא נשמרים כאן.
       </p>
 
       {/*
@@ -285,10 +300,7 @@ function FirstDecision({
         * says what it is rather than competing for the same click.
         */}
       <div className="first-decision-alt">
-        <p>
-          אין לכם חשבון באף אחד מהם, או שלא בא לכם למסור שם משתמש? אפשר להתחיל מעמדה מהסט המשותף —
-          אותן עמדות שכולם עונים עליהן.
-        </p>
+        <p>אין חשבון? אפשר להתחיל מעמדה מהסט המשותף, אותן עמדות שכולם עונים עליהן.</p>
         <button
           type="button"
           className="ghost-control"
@@ -321,9 +333,7 @@ function FirstDecision({
         * records `first_position_presented` and `decision_committed`; nothing here guesses.
         */}
       <div className="first-decision-alt">
-        <p>
-          מעדיפים לשחק? משחק בליץ קצר רושם החלטה בכל מהלך, עם השעון רץ, והמנוע שותק עד סוף המשחק.
-        </p>
+        <p>מעדיפים לשחק? בליץ קצר, והמנוע שותק עד סוף המשחק.</p>
         <button
           type="button"
           className="ghost-control"
@@ -373,7 +383,7 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
         <b>הסט המשותף</b>
         <span>
           {answered.length} מתוך {ANCHOR_POSITIONS.length} עמדות. כולם עונים על אותן עמדות, ולכן
-          רק הקריאה הזאת ניתנת להשוואה למישהו אחר — בשאר הרשומה כל אחד פגש עמדות אחרות.
+          רק הקריאה הזאת ניתנת להשוואה למישהו אחר.
         </span>
       </div>
       <button type="button" className="primary-control" onClick={start} disabled={busy}>
@@ -429,7 +439,7 @@ export default function Record() {
         * TWO IDENTITIES, BECAUSE THERE ARE TWO VISITORS, and the page already branches on exactly
         * this distinction one element below.
         *
-        * A returning player IS visiting the record, and "הרשומה" is the right name for the thing
+        * A returning player IS visiting the record, and "ההיסטוריה" is the right name for the thing
         * they came back to. A cold arrival is asking a different question -- what is this -- and
         * the answer "the record" names a database object. The old header answered the returning
         * player's question to everybody, and then reached a research construct ("לא ידעתם שאתם
@@ -464,7 +474,7 @@ export default function Record() {
             </>
           ) : (
             <>
-              <h1>הרשומה</h1>
+              <h1>ההיסטוריה</h1>
               {/*
                 * §13: THE EXPLANATION IS NOT SHOWN AGAIN.
                 *
@@ -535,20 +545,17 @@ export default function Record() {
       )}
 
       {reading.isLoading ? (
-        <p className="record-page-loading">קורא את הרשומה…</p>
+        <p className="record-page-loading">קורא את ההיסטוריה…</p>
       ) : measured === 0 ? (
         <FirstDecision
           knownUsername={importReading.reading?.username}
           deferPrimary={returning}
         />
       ) : (
-        <section className="record-layer" aria-label="החלטות עם ביטחון מוצהר">
+        <section className="record-layer" aria-label="החלטות עם ביטחון שנאמר מראש">
           <div className="record-layer-head">
             <h2>נמדד עם ביטחון שהצהרתם מראש</h2>
-            <p>
-              רק כאן אפשר לקרוא פער כיול, מפני שרק כאן יש מה להשוות: מה אמרתם לפני שהמנוע דיבר,
-              מול מה שקרה.
-            </p>
+            <p>רק כאן יש מה להשוות: מה אמרתם לפני שהמנוע דיבר, מול מה שקרה.</p>
           </div>
           {/*
             * OUTCOME FIRST, INSTRUMENTATION SECOND, and the order on the page is the whole change.
@@ -612,6 +619,52 @@ export default function Record() {
       )}
 
       {/*
+        * WHAT THIS PRODUCT HAS LEARNED, AND HOW FAR EACH OF THOSE THINGS HAS GOT.
+        *
+        * Every state it renders was already reachable one at a time -- a claim in the claim panel, a
+        * drill in the drill runner, a rule in the learning queue, a retrieval test in the transfer
+        * runner -- and no screen answered the question a player has after a week, which is about all
+        * of them at once. It renders under the readings because it is a summary OF the record, and
+        * reading a summary first would be reading a summary of nothing.
+        *
+        * `measured > 0` IS THE SAME GATE THE READINGS USE, AND THREE TESTS INSISTED ON IT.
+        *
+        * It shipped without the gate and the front door grew from 137 words to 184, past a ceiling
+        * that only comes down; the empty record also scored 0.084 of layout shift on a phone against
+        * a budget of 0.02, because a lazy chunk arriving into a page with nothing else on it moves
+        * everything it lands above. Both were symptoms of the same wrong idea. A record with no
+        * decision in it has no journey to summarise, and `loopPosition` has said exactly that since
+        * the day a stranger was shown a sixty-decision countdown before their first move: an empty
+        * record is not sixty decisions short of anything, it is empty.
+        *
+        * The goal note goes with it rather than staying behind, and that is the harder call. A goal
+        * is the one thing here that is not a summary of evidence, so there is a real argument for
+        * asking a cold arrival why they came. The argument loses on this screen: a first arrival's
+        * whole task is the position in front of them, and the front door's word ceiling is the
+        * measurement of exactly that. It returns with the first decision, when there is a record for
+        * it to sit beside.
+        *
+        * The goal sits beside the ledger and not inside it. `GATE-GOAL-NOT-A-DENOMINATOR` refuses a
+        * goal in the same element as a count, and separate components is how that stops being a
+        * promise about where somebody types the JSX.
+        *
+        * NOT A `record-layer`, AND A TEST INSISTED ON THAT BEFORE THE CLASS CAME OFF. That class
+        * means "a measurement" on this page -- there are exactly two, walled apart so a calibration
+        * gap and imported move accuracy can never be read as one number, and `record-page.test.tsx`
+        * counts them. This summarises what those measurements produced, which is a different kind of
+        * object, and wearing the measurement class made it a third one.
+        */}
+      {measured > 0 && (
+        <section className="journey-layer" aria-label="מה נלמד עליי עד עכשיו">
+          <Suspense fallback={null}>
+            <GoalNote />
+
+            <JourneyLedger claim={claimView.data} />
+          </Suspense>
+        </section>
+      )}
+
+      {/*
         * The second layer, and the reason it is a layer rather than a row.
         *
         * An import can cover hundreds of games and still cannot produce a calibration gap: nobody
@@ -623,10 +676,10 @@ export default function Record() {
       {importReading.reading && (
         <section className="record-layer secondary" aria-label="משחקים שכבר שוחקו">
           <div className="record-layer-head">
-            <h2>נמדד בלי ביטחון מוצהר</h2>
+            <h2>נמדד בלי ביטחון שנאמר מראש</h2>
             <p>
-              דיוק מהלכים מול המנוע במשחקים שכבר שיחקתם. זו לא מדידת כיול ולא תהפוך לאחת — באותם
-              משחקים איש לא שאל אתכם כמה אתם בטוחים, ואי אפשר לחזור ולשאול.
+              דיוק מהלכים מול המנוע במשחקים שכבר שיחקתם. זו לא מדידת כיול ולא תהפוך לאחת: אז איש
+              לא שאל כמה אתם בטוחים.
             </p>
           </div>
           <ImportDiagnosticPanel
@@ -657,7 +710,7 @@ export default function Record() {
         *
         * Measured on the built app at 390x844: adding this notice took the front door from CLS
         * 0.00015 to 0.07811. It is the last element on the page, so when the record layers finish
-        * loading and replace "קורא את הרשומה…", it is pushed 289 pixels down -- and a shift of
+        * loading and replace "קורא את ההיסטוריה…", it is pushed 289 pixels down -- and a shift of
         * the LAST element is still a shift.
         *
         * Rendering it after the record has answered means it is inserted at its final position

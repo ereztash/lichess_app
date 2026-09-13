@@ -75,6 +75,46 @@ export function findFakeValues(files: string[]): Finding[] {
 const HAND_ROLLED_PERCENT =
   /`\$\{[^`]*\}%`|\)\s*\*\s*100\s*\)\s*\}%|toFixed\([^)]*\)\s*\}?%|\{[A-Za-z_$][\w.$?![\]]*\}\s*%/g;
 
+/**
+ * Is the denominator rendered near enough that the same reader sees both?
+ *
+ * WHY THIS EXISTS, AND IT IS A REAL DEFECT IN THE GATE RATHER THAN A CONCESSION. Without it this
+ * check had no notion of proximity at all: every hand-rolled percentage in a render-path file was
+ * a finding, and the only way to pass was to route through `Value.tsx`. Honest sentences that
+ * print a figure beside its own `n` were failing, which is a gate that fires on correct code.
+ *
+ * AND IT WAS WORSE THAN THAT, because the false negatives and the false positives were the same
+ * bug. `RecordDashboard` renders `אצלכם 62%, אצל כולם 58% — ההפרש קטן ממה ש-30 החלטות יכולות
+ * להבחין בו`: the denominator is in the sentence, so the code is honest, and the gate was silent
+ * about it only because prettier happened to split `)}` and `%` onto separate lines. Indent that
+ * block by two spaces, prettier re-fits it, and the gate fires on a line nobody touched. A check
+ * whose verdict depends on where the formatter broke a line is not checking the thing it names.
+ *
+ * THE WINDOW IS THE PARAGRAPH, NOT A CHARACTER COUNT. Blank lines are where this codebase and its
+ * formatter separate one rendered element from the next, so the run between them is the closest
+ * cheap approximation of "the sentence a reader sees". A fixed number of characters would be a
+ * magic number doing the same job worse, and would move whenever a comment above the line grew.
+ *
+ * WHAT COUNTS AS A DENOMINATOR IS WHAT IS RENDERED, not what was divided. `(v / t) * 100` does not
+ * pass: dividing to produce a rate says nothing about whether the reader is shown what it was
+ * divided by, and that distinction is the whole of `R1`. The positive control turns on it.
+ */
+function carriesDenominator(source: string, at: number): boolean {
+  const start = source.lastIndexOf("\n\n", at);
+  const endAt = source.indexOf("\n\n", at);
+  const paragraph = source.slice(start === -1 ? 0 : start, endAt === -1 ? source.length : endAt);
+  return DENOMINATOR_SHOWN.test(paragraph);
+}
+
+/**
+ * The shapes this product renders a denominator in.
+ *
+ * `n={...}` and `.n` are what `Proportion`, `Value` and every reading object use; `מתוך` is the
+ * word the Hebrew sentences use when they carry the count inline; `scored`, `total` and `count`
+ * are the named quantities the dashboards print beside a rate.
+ */
+const DENOMINATOR_SHOWN = /\bn=\{|\.n\b|\bn\}|מתוך|\bscored\b|\btotal\b|\bcount\b|<Proportion|<Value/;
+
 export function findDenominatorlessPercents(files: string[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
@@ -93,6 +133,7 @@ export function findDenominatorlessPercents(files: string[]): Finding[] {
       // A width/height style percentage is layout, not a claim about data.
       const context = before.slice(-120);
       if (/\b(width|height|top|left|right|bottom|transform|translate)\b/i.test(context)) continue;
+      if (carriesDenominator(source, match.index ?? 0)) continue;
       const line = before.split("\n").length;
       findings.push({ file, line, text: match[0].replace(/\s+/g, " ").slice(0, 90) });
     }

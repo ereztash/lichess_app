@@ -71,7 +71,7 @@ export interface StoredPosition {
    * WHO PUT THIS POSITION HERE, so the board can say something true about it on restore.
    *
    * The board restores from this store on mount and phrased every restore as a return:
-   * "חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים". Both front-door routes hand over through this same
+   * "חזרתם למשחק שהייתם בו — 21 מהלכים". Both front-door routes hand over through this same
    * store, so a stranger's very first arrival read as a resumption of a game they had never seen.
    * Measured in Chromium on a fresh profile: entering through `עמדה מהסט המשותף` produced exactly
    * that sentence, under the board, in the first state of the evidence window.

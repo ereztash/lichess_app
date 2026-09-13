@@ -23,7 +23,7 @@ export function EvaluationBar({
     return (
       <div className="evaluation-instrument evaluation-empty" aria-label="אין הערכת מנוע">
         <div className="evaluation-track evaluation-track-empty" />
-        <NotMeasured reason="המנוע טרם ניתח את העמדה הזו" />
+        <NotMeasured reason="המנוע עוד לא ניתח את העמדה הזו" />
       </div>
     );
   }

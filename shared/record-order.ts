@@ -106,7 +106,7 @@ export const UNCLEAR_SENTENCE: Readonly<Record<UnclearCause, string>> = {
    * control, and reading it they can see immediately why the split can never close.
    */
   "split-does-not-divide":
-    "אף החלטה ברשומה שלך לא נפלה בצד השני של החלוקה הזאת, אז אין מול מה להשוות. זה לא ייפתח מעוד משחקים מאותו סוג.",
+    "אף החלטה בהיסטוריה שלך לא נפלה בצד השני של החלוקה הזאת, אז אין מול מה להשוות. זה לא ייפתח מעוד משחקים מאותו סוג.",
   "no-clock-recorded":
     "לא נשמר שעון בהחלטות האלה, ולכן החלוקה הזאת לא תתמלא — לא משנה כמה עוד תשחק.",
   "no-population-baseline":
@@ -117,7 +117,7 @@ export const UNCLEAR_SENTENCE: Readonly<Record<UnclearCause, string>> = {
     "כמעט כל ההחלטות כאן היו מדויקות, ולהשוואה צריך גם וגם. זה אומר עמדות קשות יותר, לא עוד מאותן.",
   "effort-never-varied":
     "זמן החשיבה או הביטחון לא השתנו בין ההחלטות, ובלי שינוי אין מה להשוות מולו.",
-  "halves-too-short": "אין מספיק החלטות כדי לחלק את הרשומה לשתי מחציות ולהשוות ביניהן.",
+  "halves-too-short": "אין מספיק החלטות כדי לחלק את ההיסטוריה לשתי מחציות ולהשוות ביניהן.",
 };
 
 export interface Unclear {
@@ -273,7 +273,7 @@ export function whatIsUnclear(reading: RecordReading): Unclear[] {
   const [firstHalf, secondHalf] = reading.stability.n;
   if (Math.min(firstHalf, secondHalf) < MIN_STABILITY_HALF) {
     items.push({
-      what: "האם הרשומה אומרת את אותו דבר בשתי המחציות שלה",
+      what: "האם ההיסטוריה אומרת את אותו דבר בשתי המחציות שלה",
       because: "halves-too-short",
       /*
        * TWO HALVES, SO THE SHORTFALL IS COUNTED IN WHOLE DECISIONS AND DOUBLED. A record needs

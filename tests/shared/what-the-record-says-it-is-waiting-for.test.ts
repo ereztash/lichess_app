@@ -205,3 +205,55 @@ describe("the sentence the player reads carries the same distinction", () => {
     );
   });
 });
+
+
+/*
+ * A SUGGESTION WHOSE CONTROL THE SCREEN HAS ALREADY WITHDRAWN.
+ *
+ * `ContextRibbon` hides the goto control while a decision is open -- LAW 1: the record's readings
+ * are not on screen while evidence is being produced -- and the headline went on saying "importing
+ * games you have already played can shorten this" beside no control that could import anything.
+ *
+ * That is what the surface ledger's B1 row flags about this exact sentence, and why it is one of
+ * its fourteen TEST rows: "a suggestion they cannot act on during a decision is a suggestion
+ * competing with the decision." It is now absent in that state rather than inert.
+ */
+describe("the sentence does not offer a door the screen has closed", () => {
+  const position = (canAct: boolean) =>
+    loopPosition({
+      drill: null,
+      recorded: 1,
+      scored: 1,
+      awaitingReveal: 0,
+      withoutConfidence: 0,
+      withoutInstrument: 0,
+      readElsewhere: 0,
+      claimGrade: null,
+      scoredStillNeeded: 59,
+      narrowedTo: null,
+      canAct,
+    });
+
+  it("offers the shortcut, and an address, when the reader can act on it", () => {
+    expect(position(true).headline).toContain("ייבוא משחקים");
+    expect(position(true).action?.target).toBe("import");
+  });
+
+  it("says neither while a decision is open", () => {
+    expect(position(false).headline, "the offer outlived the control").not.toContain("ייבוא משחקים");
+    expect(position(false).action, "an address with nothing to reach it").toBeNull();
+  });
+
+  it("still says what the record is waiting for, which LAW 1 permits", () => {
+    /* The carve-out is for where the loop stands. What it is not for is an instruction. */
+    expect(position(false).headline).toContain("59");
+    expect(position(false).basis.length).toBeGreaterThan(0);
+  });
+
+  it("keeps the words and the control on one answer, whichever way it goes", () => {
+    for (const canAct of [true, false]) {
+      const p = position(canAct);
+      expect(p.headline.includes("ייבוא משחקים"), String(canAct)).toBe(p.action !== null);
+    }
+  });
+});

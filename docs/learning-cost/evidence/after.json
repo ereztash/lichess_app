@@ -1,0 +1,91 @@
+{
+  "label": "after",
+  "measuredAt": "2026-09-09T19:58:15.085Z",
+  "counts": "visible words in <main>, the board and the move list excluded; a closed disclosure is not read",
+  "readings": {
+    "1440x900": {
+      "front-door": {
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 137,
+        "openDisclosures": 0
+      },
+      "decide": {
+        "words": 97,
+        "sentences": 27,
+        "wordsBeforePrimary": 58,
+        "longestBlock": 19,
+        "aboveTheFold": 79,
+        "openDisclosures": 0
+      },
+      "commitment": {
+        "words": 107,
+        "sentences": 34,
+        "wordsBeforePrimary": 68,
+        "longestBlock": 19,
+        "aboveTheFold": 88,
+        "openDisclosures": 0
+      },
+      "reveal": {
+        "words": 199,
+        "sentences": 44,
+        "wordsBeforePrimary": 163,
+        "longestBlock": 29,
+        "aboveTheFold": 169,
+        "openDisclosures": 0
+      },
+      "anchor-commitment": {
+        "words": 172,
+        "sentences": 43,
+        "wordsBeforePrimary": 131,
+        "longestBlock": 29,
+        "aboveTheFold": 136,
+        "openDisclosures": 0
+      }
+    },
+    "390x844": {
+      "front-door": {
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 106,
+        "openDisclosures": 0
+      },
+      "decide": {
+        "words": 92,
+        "sentences": 25,
+        "wordsBeforePrimary": 53,
+        "longestBlock": 19,
+        "aboveTheFold": 44,
+        "openDisclosures": 0
+      },
+      "commitment": {
+        "words": 102,
+        "sentences": 32,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 19,
+        "aboveTheFold": 102,
+        "openDisclosures": 0
+      },
+      "reveal": {
+        "words": 192,
+        "sentences": 41,
+        "wordsBeforePrimary": 158,
+        "longestBlock": 29,
+        "aboveTheFold": 151,
+        "openDisclosures": 0
+      },
+      "anchor-commitment": {
+        "words": 167,
+        "sentences": 41,
+        "wordsBeforePrimary": 126,
+        "longestBlock": 29,
+        "aboveTheFold": 167,
+        "openDisclosures": 0
+      }
+    }
+  }
+}

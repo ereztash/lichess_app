@@ -20,7 +20,7 @@
  * WHY A RELOAD IS THE RIGHT ANSWER HERE, and why it is safe. A missing chunk cannot be recovered
  * from in place: the code the screen needs is gone from the server. What fixes it is a fresh
  * `index.html`, which is exactly what a reload fetches. It is safe because of a property this
- * product already has and already tells the player about on this very screen -- "הרשומה נכתבת
+ * product already has and already tells the player about on this very screen -- "ההיסטוריה נכתבת
  * בכל החלטה, לא בסוף המשחק" -- plus `session-position`, which puts the board back where it was.
  *
  * ONCE, AND THE BOUND IS THE WHOLE DESIGN. If the chunk is missing for any other reason -- a

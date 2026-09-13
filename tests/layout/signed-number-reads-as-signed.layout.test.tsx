@@ -51,7 +51,7 @@ async function glyphOrder(markup: string, selector: string) {
   const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
   await page.setContent(
     `<!doctype html><html dir="rtl" lang="he"><head><style>${css}</style></head>
-     <body><p>החלטות באמצע המשחק ${markup} מתוך הרשומה</p></body></html>`,
+     <body><p>החלטות באמצע המשחק ${markup} מתוך ההיסטוריה</p></body></html>`,
   );
   const result = await page.locator(selector).evaluate((node) => {
     node.normalize();

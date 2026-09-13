@@ -4,6 +4,7 @@ import { formatEvaluation, sanPrincipalVariation, type GameSnapshot } from "@/li
 import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
 import { pvBacking, rootChoice, type RootChoice } from "@/lib/pv-support";
 import { NotMeasured, Value } from "./Value";
+import { costInPawns, PAWN_UNIT } from "@shared/pawns";
 
 interface AnalysisPanelProps {
   analysis: EngineLine | null;
@@ -39,14 +40,16 @@ function ChoiceReading({ choice }: { choice: RootChoice }) {
   if (choice.kind === "preference") {
     return (
       <p className="pv-choice pv-choice-tie">
-        המנוע מעדיף את {choice.best.move} על פני {choice.runnerUp.move} ב-{choice.gapCp} ס״פ — בתוך
+        המנוע מעדיף את {choice.best.move} על פני {choice.runnerUp.move} ב-{costInPawns(choice.gapCp)}{" "}
+        {PAWN_UNIT} — בתוך
         רעש ההערכה. זו העדפה, לא סיבה: המנוע הכריע בין שתי אפשרויות שהוא לא באמת מבדיל ביניהן.
       </p>
     );
   }
   return (
     <p className="pv-choice">
-      {choice.best.move} עדיף על {choice.runnerUp.move} ב-{choice.gapCp} ס״פ. זה מחוץ לרעש
+      {choice.best.move} עדיף על {choice.runnerUp.move} ב-{costInPawns(choice.gapCp)} {PAWN_UNIT}. זה
+      מחוץ לרעש
       ההערכה, ולכן זו סיבה — ההפרש הוא מה שהחלופה מפסידה.
     </p>
   );
@@ -126,7 +129,7 @@ export function AnalysisPanel({
                   {formatEvaluation(analysis.scoreCp, analysis.mate)}
                 </Value>
               ) : (
-                <NotMeasured reason="טרם נותחה עמדה זו" />
+                <NotMeasured reason="המנוע עוד לא ניתח את העמדה הזו" />
               )}
             </strong>
           </div>

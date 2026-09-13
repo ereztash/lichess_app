@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-שלושים ושישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+ארבעים ושניים שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -29,6 +29,11 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-KEYBOARD | 4.7 | הלוח כפי שנשלח: `role="grid"` בלי מטפל מקשים, ומודאל בלי מלכודת פוקוס |
 | GATE-NOTICE | L1 | גופן שנמסר בבנייה בלי שאיש כתב עליו הודעת רישוי |
 | GATE-DECISION-FOCUS | LAW 1 | מסך שמראה לשחקן קריאה מהרשומה בזמן שהוא מוסר את ההחלטה |
+| GATE-JOURNEY-REACHABLE | R2 | רכיב או פונקציה במשפחת המסע שאף קובץ מוצר לא קורא לה או מרנדר אותה, ולכן היא ירוקה בבדיקות ומתה במוצר |
+| GATE-GOAL-CONTAINED | R1 | היעד נקרא מחוץ לרכיב שמחזיק אותו, ולכן משטח שני יכול להציג אותו בלי שאף סריקת סמיכות תראה אותו |
+| GATE-CONSTRUCT-CONTAINED | R1 | מספר של שלב במסע נקרא מחוץ ללדג'ר שמרנדר אותו, בכל איות, כולל פירוק שסריקת המחרוזת לא תופסת |
+| GATE-GOAL-NOT-A-DENOMINATOR | R1 | היעד שהשחקן כתב מוצג באותו אלמנט עם מספר, ולכן הקורא מחשב מרחק שהמוצר לא חישב |
+| GATE-CONSTRUCT-NAMED | R1 | מספר של שלב במסע מוצג בלי לומר מה הוא סופר, ושלושה מבנים שונים מתחילים להיראות כמו ציון אחד שעולה |
 | GATE-QUIET-WINDOW-LINEAGE | LAW 12 | מסך שמכריע את הזרוע פעם שנייה מתוך דגל הבנייה, ושורה שמצהירה על זרוע שאיש לא צפה בה |
 | GATE-ONE-BOARD-ONE-STORY | LAW 11 | שני לוחות במסך אחד, כלומר שתי תשובות לשאלה איפה אני |
 | GATE-BOARD-AUTHORITY | LAW 3 | לוח שמקבל מחווה באותו אופן בכל מצב, גם אחרי שההחלטה נרשמה |
@@ -49,5 +54,6 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-FALSIFICATION-INVENTORY | R-01 | מלאי הבדיקות החוסמות מול העבודה שמריצה אותן: שלב חוסם שאיש לא סיווג, ומנגנון הפרכה ששמו נכתב ואינו קיים |
 | GATE-CUE-PLAYER-OBSERVABLE | R-01 | טריגר במרשם מחלקות-הכללים שמחשב ממשהו שאינו הלוח: רמז שהשחקן אינו יכול להעריך בעצמו אינו רמז |
 | GATE-ROLLBACK-EVIDENCE | R-01 | שרשרת הראיות של החזרה לאחור: ה-workflow מקבל SHA, החבילה נקשרת אליו, הקשירה מודגמת נכשלת, והבנייה מתקינה את קובץ הנעילה בדיוק |
+| GATE-FINDING-OUTRANKS-ITS-NUMBERS | R1 | רשימת קריאות שהמסקנה עליה נכתבת מתחתיה, או נכתבת דרך רגיסטר המקור במקום כממצא |
 
 The IDs are the synchronized contract. The prose explains why each gate exists but is not treated as an executable definition; the runner remains the authority for what actually runs.

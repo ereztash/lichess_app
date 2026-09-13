@@ -948,10 +948,29 @@ button:not(:disabled) {
  * Stating an invariant once is not the same as hiding it -- the note is the first thing above
  * the table and it says "in every row" in as many words.
  */
-.import-diagnostic .bucket-list li,
-.import-diagnostic .bucket-list li.unmeasurable {
+.import-diagnostic .bucket-list li {
   grid-template-columns: minmax(0, 1fr) auto;
   row-gap: var(--s1);
+}
+/*
+ * THE FLOOR THE DASHBOARD ALREADY WON, LOST AGAIN BY A MORE SPECIFIC SELECTOR.
+ *
+ * `.bucket-list li.unmeasurable` above gives the scope `minmax(7.5rem, auto)` precisely because
+ * `minmax(0, 1fr) auto` sizes the value track from its content and lets the label shrink to
+ * nothing. This block listed `li.unmeasurable` alongside `li` and handed the shape straight back:
+ * one selector more specific, same two tracks, same collapse, on the panel whose reasons are the
+ * LONGEST on either screen -- "אי אפשר למדוד" plus a count and a floor.
+ *
+ * Measured at 390px before this rule: "החלטות אחרי יותר משתי דקות" laid out 74px wide, under the
+ * 90px floor `tests/layout/bucket-row.layout.test.tsx` holds the dashboard to. Nothing was red,
+ * because that file measures `RecordDashboard` and this is the other consumer of the same CSS.
+ * `tests/layout/import-row.layout.test.tsx` now measures this one.
+ *
+ * The row keeps its two columns; only the order and the floor come back, which is the whole fix
+ * the dashboard's comment describes.
+ */
+.import-diagnostic .bucket-list li.unmeasurable {
+  grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr);
 }
 /*
  * Provenance, shown only on a reading reopened from storage. Quiet by design: it is the source
@@ -1051,6 +1070,34 @@ button:not(:disabled) {
 .bucket-absent-note strong {
   color: var(--ink);
   font-weight: 700;
+}
+/* ── The import panel's finding, and why it is typed like a finding ──────────────────────────
+   It used to render through `NotMeasured`, which is `.value-provenance`: the small grey register
+   this codebase reserves for where a number came from. So the sentence saying the numbers do not
+   separate was smaller and greyer than the numbers, and ~800px below them on a phone. A finding
+   is not provenance. It sits at the panel's heading size, above the working. */
+.import-finding {
+  margin: 0 0 var(--s4);
+  padding-block-end: var(--s3);
+  border-block-end: 1px solid var(--hairline);
+  font-size: var(--panel-title);
+  line-height: 1.4;
+}
+/* The conclusion carries the weight; the reason to act is body text under it, not a footnote.
+   `--panel-body` is the floor for anything that is a sentence, and this is two sentences. */
+.import-finding__next {
+  display: block;
+  margin-block-start: var(--s2);
+  font-size: var(--panel-body);
+  line-height: 1.5;
+  color: var(--muted);
+}
+/* A panel-level conclusion above a list of readings. Body register and not provenance: it is the
+   finding, not a note about where the numbers came from. */
+.bucket-finding {
+  margin: 0 0 var(--s3);
+  font-size: var(--panel-body);
+  line-height: 1.5;
 }
 .import-observation {
   margin-top: 10px;
@@ -2268,12 +2315,30 @@ button:not(:disabled) {
   color: var(--edge-soft);
   font-size: var(--panel-label);
 }
+/*
+ * THE ONLY THING IN `.analysis-hero` WITH A DECLARED BACKGROUND AND NO DECLARED COLOUR.
+ *
+ * `.analysis-hero` sets `background: var(--ink)` and `color: var(--cream)`, and the docblock above
+ * the audit that measures it says why that matters: it is an island of the other theme, so every
+ * token painted inside it is being asked to work against a ground nobody measured it on.
+ * `.analysis-kicker` and `.value-provenance` were each given the other theme's value for their role
+ * after axe measured them at 2.36:1 and 2.46:1. This button was not, because a `<button>` does not
+ * inherit `color` -- it takes the user agent's `buttontext`, which is not a designed value, differs
+ * by platform, and follows `color-scheme` rather than this stylesheet's theme.
+ *
+ * A cold player photographed this control as an empty box. That reading is not reproduced here, so
+ * the photograph is not proof of this cause. What is certain is that the one element with an
+ * explicit background and no explicit colour was resting on a default nobody chose. `--ink` on
+ * `--cream` is the pair `.board-note button` and `.suggestion-button` already use, and it swaps
+ * with the theme by construction.
+ */
 .analysis-action,
 .layer-action {
   width: 100%;
   padding: 9px;
   border: 0;
   background: var(--cream);
+  color: var(--ink);
   font-weight: 700;
 }
 .analysis-section {
@@ -3610,6 +3675,28 @@ button:not(:disabled) {
   opacity: 0.62;
   font-weight: 400;
 }
+/*
+ * The readings that cannot report yet, behind one press.
+ *
+ * NOT A STYLE DECISION SO MUCH AS A LENGTH ONE. With a single decision on the record this section
+ * ran 4,128 CSS px on a phone, nearly five screens, and every one of those screens was a heading
+ * over a sentence saying that heading had nothing to say. The sentences stay, each with its own
+ * cause, because two of the causes are not waits and a shared apology would send the wrong reader
+ * back to play more games. What they no longer do is fill the screen before anyone has asked.
+ *
+ * The summary carries the count, so the press is an informed one rather than a shrug.
+ */
+.dash-waiting > summary {
+  cursor: pointer;
+  padding: var(--s3) 0;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.dash-waiting[open] > summary {
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--s3);
+}
+
 .dash-note {
   max-inline-size: var(--measure);
   font-size: var(--panel-label);
@@ -4053,6 +4140,16 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   line-height: 1.5;
   opacity: 0.8;
+}
+/*
+ * The unit, once, beside the first number that uses it. Quieter than the metric rows it explains,
+ * because it is true of every reveal and is read once rather than each time.
+ */
+.reveal-unit-note {
+  margin: 0.15rem 0 0.55rem;
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  opacity: 0.7;
 }
 /* Section 4.5: an honest nothing is a correct screen, not a failure. */
 /*
@@ -5501,6 +5598,25 @@ button:not(:disabled) {
   line-height: 1.55;
   color: var(--muted);
 }
+/*
+ * The second attempt, drawn in the panel's own --warn rather than in --action.
+ *
+ * IT IS NOT THE PRIMARY CONTROL AND MUST NOT LOOK LIKE ONE. `.reveal-failure-next` is the screen's
+ * one declared act; this is an offer beside it, and an engine that has just failed is not a
+ * promise. Outlined in the colour the panel is already outlined in says "part of this failure"
+ * rather than "the thing to press", while still clearing the tap floor below.
+ */
+.reveal-failure-retry {
+  align-self: flex-start;
+  padding-inline: 14px;
+  border: 1px solid var(--warn);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--panel-body);
+  font-weight: 700;
+  cursor: pointer;
+}
 .reveal-failure-next {
   align-self: flex-start;
   padding-inline: 14px;
@@ -5541,6 +5657,8 @@ button:not(:disabled) {
 .not-found-home,
 .boundary-reload,
 .reveal-failure-next,
+.reveal-failure-retry,
+.self-check-take,
 .boundary-trace summary,
 .context-dismiss,
 .context-why summary,
@@ -5838,6 +5956,30 @@ summary:focus-visible,
   gap: var(--s3);
   align-items: center;
   flex-wrap: wrap;
+}
+/*
+ * The one control here that is a `<label>`, because the thing it opens is a file picker.
+ *
+ * A BUTTON THAT SYNTHETICALLY CLICKS A HIDDEN INPUT IS THE VERSION THAT PASSES A TEST AND IS
+ * REFUSED BY A BROWSER: the picker opens only from a real gesture on the input. So the label wears
+ * the control's chrome and the input sits inside it, out of the layout but still in the tree --
+ * `display: none` would take it out of the accessibility tree and out of the label's reach.
+ *
+ * The centring is here rather than in `.ghost-control` because a label is not blockified by
+ * anything but its flex parent, and its text would otherwise sit at the top of a 44px box.
+ */
+.self-check-take {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.self-check-take input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 .self-check-note {
   font-size: var(--panel-label);
@@ -6588,7 +6730,6 @@ summary:focus-visible,
   cursor: pointer;
   padding: 6px 0;
 }
-.blitz-setup,
 /*
  * THE GAME LIVES INSIDE THE PRODUCT'S SHELL NOW, and the column is the column rather than the
  * page. `main` was `.blitz` itself -- a 34rem centred block with nothing above it -- so the route
@@ -6596,11 +6737,19 @@ summary:focus-visible,
  * the brand 34rem wide and centred, which is not what a header is. Same shell as `/play`, same
  * lockup, same way home.
  */
-.blitz,
-.blitz-setup {
+.blitz {
   max-width: 34rem;
   margin: 0 auto;
   padding: 20px 0 40px;
+  display: grid;
+  gap: var(--s4);
+}
+/*
+ * NO LONGER A COLUMN OF ITS OWN. The setup was a second 34rem page beside `.blitz`; it is now a
+ * block inside it, above the board it used to stand in front of, so it inherits the column and
+ * the gap rather than declaring a duplicate of both.
+ */
+.blitz-setup {
   display: grid;
   gap: var(--s4);
 }
@@ -6669,9 +6818,23 @@ summary:focus-visible,
  * which is the protocol rather than a layout choice -- so the pin points at a column that does not
  * exist, the browser creates an implicit one sized to content, and the board came out 120px wide
  * on a 390px phone with the clocks sitting beside it.
+ *
+ * AND THE ROW PIN IS THE SAME MISTAKE, ONE AXIS OVER, ON A PHONE ONLY. Under `max-width: 680px`
+ * the same element takes `grid-row: 1`, so that `EvaluationBar` -- declared BEFORE `ChessBoard` in
+ * `Home.tsx` -- renders under the board instead of over it. `.blitz` is also a grid, so its board
+ * took row 1 there too and jumped above everything the markup puts before it.
+ *
+ * WHAT THAT COST, PHOTOGRAPHED ON A 390x844 PHONE: in a running game the two clocks are declared
+ * first and were laid out at y=975, a hundred and thirty pixels BELOW the fold. A blitz player
+ * could not see their own clock without scrolling, on the screen whose whole subject is a clock.
+ * The setup's question landed under the board by the same rule.
+ *
+ * Reset rather than re-pinned: with both axes `auto` the markup's order is the order, which is
+ * what this column wanted all along.
  */
 .blitz > .board-stage {
   grid-column: auto;
+  grid-row: auto;
 }
 .blitz-resign {
   justify-self: start;
@@ -6964,4 +7127,115 @@ summary:focus-visible,
   .commitment-step[data-state="open"] {
     border-color: Highlight;
   }
+}
+
+/* ── The journey layer: what this product has learned, and why you are here ──────────────────
+   THE GOAL AND THE COUNTS ARE VISUALLY SEPARATE BECAUSE THEY ARE EPISTEMICALLY SEPARATE.
+   `GATE-GOAL-NOT-A-DENOMINATOR` refuses them in one element; this is the same refusal in pixels,
+   so a reader whose eye is doing the arithmetic has to cross a rule to do it. */
+.journey-layer {
+  /* The same card as every other region, written out rather than borrowed from `.record-layer`:
+     that class means "a measurement" on this page and this is a summary of what the measurements
+     produced. Same pixels, different claim. */
+  display: grid;
+  gap: var(--s4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: var(--s5);
+}
+.goal-note {
+  padding-block-end: var(--s4);
+  border-block-end: 1px solid var(--hairline);
+}
+.goal-note__lead {
+  margin: 0 0 4px;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.goal-note__text {
+  margin: 0 0 var(--s3);
+  padding: 0;
+  border: 0;
+  font-size: var(--panel-data);
+  line-height: 1.35;
+}
+.goal-note__limit {
+  margin: 0 0 var(--s3);
+  color: var(--muted);
+  /* A SENTENCE, SO IT SITS ON THE SENTENCE FLOOR. `--panel-fine` is for kickers and counters and
+     is explicitly never load-bearing; this line is the whole reason the goal is safe to render. */
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}
+.goal-note__input {
+  inline-size: 100%;
+  margin-block-end: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+/* NOT A PRIMARY ACTION, and it does not look like one. LAW 2 permits one primary action per screen
+   and on the record screen that is not "write down why you are here". */
+.goal-note__open,
+.goal-note__save {
+  padding: var(--s2) var(--s4);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  cursor: pointer;
+  min-block-size: 44px;
+}
+.journey__title {
+  margin: 0 0 var(--s3);
+  font-size: var(--panel-title);
+  line-height: 1.25;
+}
+.journey__stage {
+  padding-block: var(--s3);
+  border-block-start: 1px solid var(--hairline);
+}
+.journey__stage:first-of-type {
+  border-block-start: 0;
+}
+/* A HEADING IS NOT SMALLER THAN WHAT IT HEADS, which is a repository law with a layout test behind
+   it and which this rule broke: the question sat at 14px above a 16px figure, so the eye ranked the
+   number first and the question it answers second. That is the wrong way round for a surface whose
+   entire argument is that a number means nothing without the question it answers. */
+.journey__question {
+  margin: 0 0 var(--s2);
+  font-size: var(--panel-title);
+  line-height: 1.35;
+}
+/* THE NUMBER AND WHAT IT COUNTS ARE ONE LINE AND ONE THOUGHT. Splitting them onto separate rows is
+   how a construct label becomes a caption somebody later decides is redundant. */
+.journey__count {
+  margin: 0 0 var(--s2);
+  line-height: 1.4;
+}
+.journey__n {
+  font: var(--panel-data) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+}
+.journey__construct {
+  color: var(--muted);
+  /* A LABEL AND NOT A SENTENCE: it names what the number counts. */
+  font-size: var(--panel-label);
+}
+.journey__next {
+  margin: 0 0 var(--s2);
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}
+.journey__limit {
+  margin: 0;
+  color: var(--muted);
+  /* A SENTENCE. The limit is part of the reading, not a footnote to it. */
+  font-size: var(--panel-body);
+  line-height: 1.5;
 }

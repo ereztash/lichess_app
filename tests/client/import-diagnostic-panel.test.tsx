@@ -136,12 +136,19 @@ describe("every bucket is shown, including the ones it could not read", () => {
   });
 });
 
-describe("the observation, and when there is none", () => {
+describe("the finding, and when there is none", () => {
   it("names the weakest bucket, and the one it beat, both with their n", () => {
-    // Scoped to the sentence: the scope also appears in its own row, and an unscoped query would
-    // pass on the row alone -- that is, on a screen whose sentence named nothing.
+    /*
+     * Scoped to the sentence: the scope also appears in its own row, and an unscoped query would
+     * pass on the row alone -- that is, on a screen whose sentence named nothing.
+     *
+     * `.import-finding__what` AND NOT `.import-finding`. The finding now carries a second span
+     * saying what a live decision adds, and that sentence is the same in all three states. Scoping
+     * to the paragraph would let this assertion read a clause that says nothing about this
+     * diagnostic, which is the failure the original comment was written against.
+     */
     const { container } = render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
-    const sentence = container.querySelector(".import-observation")!;
+    const sentence = container.querySelector(".import-finding__what")!;
     expect(sentence.textContent).toMatch(/הדיוק הנמוך ביותר שנמדד/);
     expect(sentence.querySelector("strong")?.textContent).toBe(BUCKETINGS[0].scope);
     // Both figures, both denominators: the comparison is the claim, so neither half may go bare.

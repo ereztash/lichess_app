@@ -76,7 +76,7 @@ describe("nothing here is a claim, and it says so", () => {
      * invisible anyway; this one is about a reader seeing a warning, so it checks that.
      */
     show(withMirror());
-    const status = screen.getByText(/תיאור של הרשומה, לא טענה שנבדקה/);
+    const status = screen.getByText(/תיאור של ההיסטוריה, לא טענה שנבדקה/);
     expect(status).toBeVisible();
   });
 
@@ -163,7 +163,7 @@ describe("one weakness, one finding", () => {
      */
     show(withMirror());
     const text = document.body.textContent ?? "";
-    expect(text).toMatch(/הביטחון המוצהר (גבוה|נמוך) יותר ביחס לתוצאה מאשר בשאר הרשומה/);
+    expect(text).toMatch(/הביטחון שאמרתם (גבוה|נמוך) יותר ביחס לתוצאה מאשר בשאר ההיסטוריה/);
     // Traits, as before.
     expect(text).not.toMatch(/אתם בטוחים מדי|אתם לא בטוחים מספיק|חלש ב/);
     // ...and the absolute reading of a relative number, which is what this test used to require.

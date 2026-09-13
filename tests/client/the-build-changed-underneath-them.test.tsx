@@ -201,7 +201,7 @@ describe("the boundary says which of the two things happened", () => {
 
   it("keeps the record's promise on both, because it is true on both", () => {
     for (const error of [new TypeError(CHUNK_ERRORS[0]), new Error("boom")]) {
-      expect(boundary(error).textContent).toContain("הרשומה נכתבת בכל החלטה");
+      expect(boundary(error).textContent).toContain("ההיסטוריה נכתבת בכל החלטה");
     }
   });
 

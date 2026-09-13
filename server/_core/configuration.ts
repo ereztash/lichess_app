@@ -70,7 +70,7 @@ export function configurationFaults(env: DeploymentEnv): ConfigurationFault[] {
       code: "database-without-owner",
       variables: ["DATABASE_URL", "OWNER_OPEN_ID"],
       consequence:
-        "יש מסד נתונים, אבל בלי OWNER_OPEN_ID השער מסרב לכל חשבון — הרשומה תישאר בדפדפן והמסד לא ייכתב אליו אף פעם. שום דבר לא נכשל, זה פשוט לא קורה.",
+        "יש מסד נתונים, אבל בלי OWNER_OPEN_ID השער מסרב לכל חשבון — ההיסטוריה תישאר בדפדפן והמסד לא ייכתב אליו אף פעם. שום דבר לא נכשל, זה פשוט לא קורה.",
     });
   }
 

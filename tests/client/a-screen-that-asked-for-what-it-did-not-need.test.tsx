@@ -21,7 +21,7 @@
  */
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CommitmentScreen, instructionFor } from "@/components/CommitmentScreen";
+import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { WhatThisIs } from "@/components/WhatThisIs";
 import { restoreNotice } from "@/lib/adopt-position";
 import { draftProblems, emptyDraft, type PositionUnderDecision } from "@/lib/decision-session";
@@ -132,28 +132,21 @@ describe("the steps on screen are the steps the record will refuse without", () 
   });
 });
 
-describe("the intro names the steps this decision has, and the reason it always has", () => {
-  it("names only the move where the draw passed the position over", () => {
-    const intro = screenAt("play").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("בחרו מהלך על הלוח");
-    expect(intro, "instructed a read that is not on the screen").not.toContain("סמנו את הקריאה");
-    expect(intro, "instructed a confidence that is not on the screen").not.toContain(
-      "אמרו כמה אתם בטוחים",
+describe("the intro carries the reason, and the steps carry themselves", () => {
+  /*
+   * THE INSTRUCTION SENTENCE IS GONE, AND THIS HOLDS THE GAP IT LEFT. It used to read the step
+   * list back as prose above the accordion -- first as a constant that named steps the screen did
+   * not offer (defect 2 in the header), then as a sentence derived from `stepsFor` so it could not
+   * drift. Derived or not, it was the list beneath it said twice, and a player paid for both. The
+   * steps are the instruction: each names itself and opens on a press. What may not come back is a
+   * sentence restating them, in any state, because a restated list is the one thing that can drift
+   * from the list again.
+   */
+  it.each(DECISION_PURPOSES)("does not read the step list back as a sentence on %s", (purpose) => {
+    const intro = screenAt(purpose).querySelector(".commitment-intro")?.textContent ?? "";
+    expect(intro, "the accordion is described in prose above itself").not.toMatch(
+      /בחרו מהלך על הלוח|סמנו את הקריאה|אמרו כמה אתם בטוחים/,
     );
-  });
-
-  it("names the move and the confidence on a first decision, and not the reads", () => {
-    const intro = screenAt("first").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("אמרו כמה אתם בטוחים");
-    expect(intro).not.toContain("סמנו את הקריאה");
-  });
-
-  it("names all three on a fully instrumented decision, the confidence included", () => {
-    const intro = screenAt("anchor").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("בחרו מהלך על הלוח");
-    expect(intro).toContain("סמנו את הקריאה שלכם");
-    /* The old constant named two of four steps and left this one out of every state. */
-    expect(intro).toContain("אמרו כמה אתם בטוחים");
   });
 
   it("keeps the reason in every state, which is what makes the ordering more than ceremony", () => {
@@ -165,38 +158,56 @@ describe("the intro names the steps this decision has, and the reason it always 
     }
   });
 
-  it("joins the phrases the way Hebrew joins a list", () => {
-    expect(instructionFor(["chosenMove"])).toBe("בחרו מהלך על הלוח.");
-    expect(instructionFor(["chosenMove", "confidence"])).toBe(
-      "בחרו מהלך על הלוח ואמרו כמה אתם בטוחים.",
-    );
-    expect(instructionFor(["chosenMove", "known", "unknown", "confidence"])).toBe(
-      "בחרו מהלך על הלוח, סמנו את הקריאה שלכם ואמרו כמה אתם בטוחים.",
-    );
-    /* The two read steps are one phrase: stating a read is one act with two halves. */
-    expect(instructionFor(["chosenMove", "known"])).toBe(
-      instructionFor(["chosenMove", "known", "unknown"]),
-    );
-  });
 });
 
 describe("the board does not claim a return that did not happen", () => {
   it("says a handed-over position is one, rather than a game the player left", () => {
-    expect(restoreNotice("first-decision", 21)).toBe("עמדה ממשחק ששיחקתם — 21 חצאי־מהלכים.");
-    expect(restoreNotice("anchor", 21)).toBe("עמדה מהסט המשותף — 21 חצאי־מהלכים.");
+    expect(restoreNotice("first-decision", 21)).toBe("עמדה ממשחק ששיחקתם — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
+    expect(restoreNotice("anchor", 21)).toBe("עמדה מהסט המשותף — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
     for (const handover of ["first-decision", "anchor"] as const) {
       expect(restoreNotice(handover, 21), handover).not.toContain("חזרתם");
     }
   });
 
   it("keeps the return sentence for a position the player really was on", () => {
-    expect(restoreNotice(null, 21)).toBe("חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים.");
-    expect(restoreNotice(null, 0)).toBe("חזרתם למשחק שהייתם בו.");
+    expect(restoreNotice(null, 21)).toBe("חזרתם למשחק שהייתם בו — אחרי 11 מהלכים. בחרו מהלך על הלוח.");
+    expect(restoreNotice(null, 0)).toBe("חזרתם למשחק שהייתם בו. בחרו מהלך על הלוח.");
   });
+
+  it("ends by naming the act, on every arrival, because two testers could not find it", () => {
+    /*
+     * FIELD EVIDENCE, NOT A PREFERENCE. Two people were handed the app cold and independently
+     * failed to complete a move. This sentence sits directly under the board and described the
+     * position without ever saying what to do; the only text that did was the disabled submit's
+     * own label, which begins at y=810 of an 844px phone, below a copy-FEN control at y=680.
+     */
+    for (const handover of ["first-decision", "anchor", null] as const) {
+      expect(restoreNotice(handover, 21), String(handover)).toContain("בחרו מהלך על הלוח");
+    }
+  });
+
+it("says which side the player is, which is the other half of what the testers missed", () => {
+    /*
+     * `.turn-reading` already carries it, above the board and to the right, in the smallest type
+     * on that row. Repeating it in the sentence under the board costs three words and moves
+     * nothing. Omitted when the caller cannot say, rather than guessed.
+     */
+    expect(restoreNotice("anchor", 21, "b")).toContain("אתם שחור");
+    expect(restoreNotice("anchor", 21, "w")).toContain("אתם לבן");
+    expect(restoreNotice("anchor", 21)).not.toContain("אתם");
+  });
+
+    it("counts moves, not half-moves, in a sentence a person reads as moves", () => {
+    // 21 plies is 11 moves. Printing 21 beside the word for a move says the game is twice as long.
+    expect(restoreNotice("anchor", 21)).toContain("11 מהלכים");
+    expect(restoreNotice("anchor", 21)).not.toContain("חצאי");
+    expect(restoreNotice("anchor", 24)).toContain("12 מהלכים");
+  });
+
 
   it("keeps the half-move count on every branch, because it is true however the position arrived", () => {
     for (const handover of ["first-decision", "anchor", null] as const) {
-      expect(restoreNotice(handover, 21), String(handover)).toContain("21 חצאי־מהלכים");
+      expect(restoreNotice(handover, 21), String(handover)).toContain("אחרי 11 מהלכים");
     }
   });
 });

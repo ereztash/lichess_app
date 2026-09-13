@@ -67,7 +67,7 @@ describe("the client reads the reason the server gave", () => {
   it("calls a refusal a refusal, not a missing database", () => {
     const mode = modeFor({
       isError: true,
-      error: trpcError("FORBIDDEN", 403, "הרשומה הזו שייכת לחשבון שהגדיר את הפריסה."),
+      error: trpcError("FORBIDDEN", 403, "ההיסטוריה הזו שייכת לחשבון שהגדיר את הפריסה."),
     });
     expect(mode.serverStatus).toBe("not-this-account");
     expect(mode.local, "a refused account still gets a working loop").toBe(true);

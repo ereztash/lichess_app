@@ -59,6 +59,10 @@ scratch-*.tsx
 # and is what research/ux-measurement/PRE_EVIDENCE_SURFACE_LEDGER.md quotes.
 research/ux-measurement/probes/out/
 
+# `npm run contact-sheet` writes 21 phone frames and a montage here. They are a way of
+# LOOKING at the build, regenerated from it in a minute, so the repository keeps the script
+# that produces them rather than the megabytes they come to.
+ui-contact-sheet/
 # Replication runs (research/mechanism/replication/run.py) keep the whole chain on disk. The bulky
 # reproducible stages are regenerable from the manifest and the frozen rules and are not committed;
 # the manifest, the pre-registration, the exclusions, the splits, every analysis JSON and the report

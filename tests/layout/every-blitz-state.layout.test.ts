@@ -121,7 +121,7 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
   const serious = (audit: Audit) =>
     audit.violations.filter((v) => v.impact === "critical" || v.impact === "serious");
 
-  it("setup: three time controls and nothing else", async () => {
+  it("setup: three time controls, and the board the game will be played on", async () => {
     const page = await openBlitz(width);
     /*
      * A COUNT AND NOT `toBeTruthy()` ON A LOCATOR, which was this file's first draft and which is
@@ -129,7 +129,33 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
      * assertions here were passing on a page that could have been blank.
      */
     expect(await page.getByRole("button", { name: "3+0" }).count()).toBe(1);
-    expect(await page.locator(".board-square").count(), "a board before a game started").toBe(0);
+    /*
+     * THIS USED TO ASSERT `.board-square` COUNT 0, "a board before a game started", AND THE
+     * ASSERTION WAS DESCRIBING A DEFECT.
+     *
+     * The setup was its own screen: a heading, one sentence and three buttons, standing between
+     * the request and the game with nothing on it a player came for. The owner's reading of it,
+     * cold: "a whole screen with only one question on it feels like wasted friction." The board is
+     * now on that screen and pressing a control starts the clock underneath it, so there is no
+     * transition left to make.
+     *
+     * WHAT REPLACES THE OLD ASSERTION IS THE PART THAT STILL MATTERS: the board is THERE and it is
+     * INERT. A board a player can push pieces around on before a game exists would be a different
+     * defect from the one this removes -- moves with no clock, no record and no opponent -- and
+     * `authority` is what keeps them apart.
+     *
+     * ASSERTED BY PRESSING IT, because there is no attribute to read. `ChessBoard` carries no
+     * `disabled` and no `aria-disabled`: a board with no authority renders the position and
+     * refuses the gesture, deliberately and silently, so the only honest check is the gesture.
+     */
+    expect(await page.locator(".board-square").count(), "no board on the setup").toBe(64);
+    await square(page, "e2").click();
+    expect(
+      await page.locator(".selected-square").count(),
+      "a square took a press before a game started",
+    ).toBe(0);
+    /* And nothing is counting yet: the clocks belong to a game, and there is no game. */
+    expect(await page.locator(".blitz-clocks").count(), "a clock before a game started").toBe(0);
     const audit = await axe(page);
     expect(audit.rulesRun, "axe audited an empty document").toBeGreaterThan(10);
     expect(serious(audit), JSON.stringify(serious(audit))).toEqual([]);
@@ -178,6 +204,42 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
 
     /* Every label is a Latin run and every Latin run declares its direction. */
     expect(await page.locator(".blitz-control > span[dir='ltr']").count()).toBe(boxes.length);
+    await page.close();
+  }, 120_000);
+
+
+  it("puts the question above the board, and the clocks above it once a game is running", async () => {
+    /*
+     * A PIN MEANT FOR ANOTHER SCREEN, PHOTOGRAPHED ON THIS ONE. `.board-stage` takes
+     * `grid-row: 1` under `max-width: 680px` so that `/play`'s evaluation bar, declared before the
+     * board in `Home.tsx`, renders under it. `.blitz` is a grid too, so its board took row 1 there
+     * as well and jumped above everything the markup puts first.
+     *
+     * IT COST THE ONE THING THIS SCREEN IS ABOUT. On a 390x844 phone the two clocks laid out at
+     * y=975 -- a hundred and thirty pixels below the fold -- so a blitz player could not see their
+     * own clock without scrolling. `.blitz > .board-stage` already reset `grid-column` for exactly
+     * this reason; the row was the same mistake one axis over.
+     *
+     * ASSERTED GEOMETRICALLY AND IN BOTH PHASES, because DOM order is what was already correct and
+     * is not what broke. Only the painted position can see a grid placement.
+     */
+    const page = await openBlitz(width);
+    const topOf = (selector: string) =>
+      page.locator(selector).first().evaluate((el) => el.getBoundingClientRect().top);
+
+    const question = await topOf(".blitz-setup");
+    const idleBoard = await topOf(".board-stage");
+    expect(question, `the board sits above the question (${idleBoard} < ${question})`).toBeLessThan(
+      idleBoard,
+    );
+
+    await page.getByRole("button", { name: "3+0" }).click();
+    await page.locator(".blitz-clocks").waitFor({ timeout: 30_000 });
+    const clocks = await topOf(".blitz-clocks");
+    const board = await topOf(".board-stage");
+    expect(clocks, `the board sits above the clocks (${board} < ${clocks})`).toBeLessThan(board);
+    /* And the clock is reachable without scrolling, which is the cost the ordering actually had. */
+    expect(clocks, `the clocks start at ${clocks}px on an 844px screen`).toBeLessThan(844);
     await page.close();
   }, 120_000);
 

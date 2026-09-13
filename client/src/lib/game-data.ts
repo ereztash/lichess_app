@@ -168,3 +168,24 @@ export function countMaterial(board: ReturnType<Chess["board"]>): Material {
     { white: 0, black: 0 },
   );
 }
+
+/**
+ * Where a selected piece may legally go, or nothing.
+ *
+ * HERE FOR THE REASON `countMaterial` IS HERE: it is a fact the rules produce about the position
+ * on screen, with no search, no wasm and no network, and the board paints it as a promise to the
+ * player. Keeping it beside the position is what makes that checkable.
+ *
+ * THE EMPTY LIST IS A REAL ANSWER AND SO IS THE THROW. `moves` rejects a square that is not a
+ * square, and it is handed one straight from the click target, so a selection the board can make
+ * but the rules cannot read must come back as "nowhere to go" rather than as a crash on the one
+ * surface the player is touching.
+ */
+export function legalTargetsFrom(game: Chess, square: string | null | undefined): string[] {
+  if (!square) return [];
+  try {
+    return game.moves({ square: square as never, verbose: true }).map((m) => m.to);
+  } catch {
+    return [];
+  }
+}

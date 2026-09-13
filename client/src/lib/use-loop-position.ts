@@ -15,7 +15,8 @@
  * same position from the same query and drifting the first time either is edited. `LoopStrip`'s
  * own note refuses "a fourth copy of any of those"; two copies is where four starts.
  */
-import { useClaimView } from "@/lib/record-api";
+import { useClaimView, useLearningRules } from "@/lib/record-api";
+import { ruleLoad } from "@/lib/rule-load";
 import {
   loopPosition,
   remainingBeforeClaim,
@@ -31,8 +32,9 @@ export interface LoopView {
   loading: boolean;
 }
 
-export function useLoopPosition(drill: DrillProgress): LoopView {
+export function useLoopPosition(drill: DrillProgress, canAct = true): LoopView {
   const query = useClaimView();
+  const rules = useLearningRules();
   const data = query.data;
 
   // Until the record answers, show nothing rather than a guessed position.
@@ -52,6 +54,7 @@ export function useLoopPosition(drill: DrillProgress): LoopView {
 
   return {
     position: loopPosition({
+      canAct,
       drill,
       recorded: data?.recorded ?? 0,
       scored,
@@ -67,6 +70,7 @@ export function useLoopPosition(drill: DrillProgress): LoopView {
       claimGrade: data?.claim?.grade ?? null,
       scoredStillNeeded: stillNeeded,
       narrowedTo: narrowing?.scope ?? null,
+      rules: ruleLoad(rules.data?.rules, new Date()),
     }),
     loading: false,
   };

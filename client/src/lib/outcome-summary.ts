@@ -114,7 +114,7 @@ export interface OutcomeSummaryInput {
 
 /** ProfilePanel's own sentence about what its findings are. Quoted, not paraphrased. */
 export const DESCRIPTION_CAVEAT =
-  "תיאור של הרשומה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה במבחן.";
+  "תיאור של ההיסטוריה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה במבחן.";
 
 /** R2, as its own statement: the claim layer did not answer, which is not an empty record. */
 function unreadableStatement(): OutcomeStatement {
@@ -122,7 +122,7 @@ function unreadableStatement(): OutcomeStatement {
     kind: "unreadable",
     gradeWord: null,
     grade: null,
-    text: "הרשומה לא נקראה, ולכן אי אפשר לומר מה יש בה.",
+    text: "ההיסטוריה לא נקראה, ולכן אי אפשר לומר מה יש בה.",
     basis: null,
     source: "ClaimView (unreadable) — R2",
   };
@@ -249,7 +249,7 @@ function descriptionStatement(reading: RecordReading): OutcomeStatement | null {
     kind: "record-description",
     gradeWord: null,
     grade: null,
-    text: `${finding.variable.label}: ${finding.strongest.scope} נפרד משאר הרשומה. ${DESCRIPTION_CAVEAT}`,
+    text: `${finding.variable.label}: ${finding.strongest.scope} נפרד משאר ההיסטוריה. ${DESCRIPTION_CAVEAT}`,
     basis:
       others > 0
         ? `${finding.strongest.inside.n} החלטות · עוד ${others} משתנים נפרדו`
@@ -280,7 +280,7 @@ function stabilityStatement(reading: RecordReading): OutcomeStatement | null {
        * whether a verdict word is being asserted or refused is a guard that will eventually let
        * one through. Saying "קבועה" instead costs nothing and keeps the ban absolute.
        */
-      "שתי מחציות הרשומה אמרו את אותו הדבר בהפרש הזה. הפרש קטן אומר שהמספרים לא סותרים " +
+      "שתי מחציות ההיסטוריה אמרו את אותו הדבר בהפרש הזה. הפרש קטן אומר שהמספרים לא סותרים " +
       "את עצמם — הוא לא קובע שיש כאן תכונה קבועה, ואינו מבחן חוזר לאורך זמן.",
     basis: `${spread.toFixed(1)} שגיאות תקן · ${n[0]} מול ${n[1]} החלטות`,
     source: "RecordReading.stability (shared/stability.ts) — no threshold by design",

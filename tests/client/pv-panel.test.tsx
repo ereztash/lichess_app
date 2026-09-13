@@ -92,7 +92,7 @@ describe("why this move and not the other", () => {
       analysis: line({ scoreCp: 40, pv: ["h7h5"] }),
       alternative: line({ scoreCp: -160, pv: ["e5f5"] }),
     });
-    expect(screen.getByText(/זו סיבה/).textContent).toContain("200");
+    expect(screen.getByText(/זו סיבה/).textContent).toContain("2.00");
   });
 
   it("says it has nothing to compare when only one line was computed", () => {

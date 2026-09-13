@@ -98,7 +98,7 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
           <span>סקירת משחק</span>
         </div>
         <p className="layer-muted">
-          המשחק קצר מכדי למדוד עליו משהו. נדרשים לפחות ארבעה חצאי־מהלכים.
+          המשחק קצר מכדי למדוד עליו משהו. נדרשים לפחות ארבעה מהלכים.
         </p>
       </section>
     );

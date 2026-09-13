@@ -456,7 +456,7 @@ describe("a record that holds decisions it does not count", () => {
   it("labels them as read somewhere else rather than as counted here", () => {
     const two = nothingYet(2);
     expect(two, "the decisions must be placed, not just counted").toContain(
-      "בחלק אחר של הרשומה",
+      "בחלק אחר של ההיסטוריה",
     );
     expect(two, "and this reading must still say what it measures").toContain("משחקים ששיחקת");
   });

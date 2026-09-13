@@ -49,7 +49,7 @@ import { RecordError } from "../../shared/record-service.js";
  */
 export const INTERNAL_ERROR_MESSAGE =
   "השרת נכשל באמצע הפעולה. ייתכן שחלק ממנה נרשם וייתכן שלא — השרת לא יודע לומר. " +
-  "נסו שוב, ואפשר לבדוק ברשומה מה נשמר. אם זה חוזר, זו תקלה בשרת ולא משהו שעשיתם.";
+  "נסו שוב, ואפשר לבדוק בהיסטוריה מה נשמר. אם זה חוזר, זו תקלה בשרת ולא משהו שעשיתם.";
 
 /**
  * The message that may leave the server for this error.

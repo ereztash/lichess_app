@@ -40,20 +40,26 @@
 export const PROMISE = {
   /** What an engine is good at, and the thing it structurally cannot reach. */
   problem: "מנוע יכול להגיד איזה מהלך היה טוב יותר. הוא לא יודע מה קרה אצלכם בדרך לבחירה.",
-  /** Why this one is different: an ordering, and the four things the ordering makes recordable. */
-  mechanism:
-    "כאן ההחלטה נרשמת לפני שהמנוע מדבר — מה קראתם בעמדה, מה לא ידעתם להעריך, כמה הייתם בטוחים, ואילו מהלכים הנחתם על הלוח.",
+  /**
+   * Why this one is different: the ordering, and only the ordering.
+   *
+   * IT USED TO LIST THE FOUR THINGS THE ORDERING RECORDS -- the read, the unknown, the confidence,
+   * the moves placed. All four are true and all four are the FORM of the instrument, which the
+   * commitment screen puts in front of the player one step at a time, on the decision itself. A
+   * front door that teaches the form is charging attention for something the next screen hands
+   * over for free, to a person who has not yet been shown there is a problem.
+   */
+  mechanism: "כאן ההחלטה נרשמת לפני שהמנוע מדבר.",
   /** What that buys, hedged exactly as far as the instrument is hedged. */
-  payoff:
-    "לכן לפעמים אפשר להבדיל בין מהלך שעלה יותר לבין משהו שקרה בדרך שבה הוא נבחר. לא בכל החלטה — רק כשזה נרשם.",
+  payoff: "לפעמים זה מבדיל בין מהלך שעלה יותר לבין מה שקרה בדרך שבה נבחר. לא בכל החלטה.",
 } as const;
 
 /**
  * The same promise at the length an unfurl and a 1200x630 card can hold.
  *
  * Not a different promise: the first two lines are `PROMISE.problem` split at its own full stop,
- * and the third is `PROMISE.mechanism` up to its dash. A card is a smaller window onto one
- * sentence, never a second sentence.
+ * and the third is `PROMISE.mechanism`, which is now short enough to be carried whole. A card is a
+ * smaller window onto one sentence, never a second sentence.
  */
 export const PROMISE_SHORT = {
   engineDoes: "מנוע יכול להגיד איזה מהלך היה טוב יותר.",

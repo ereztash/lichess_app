@@ -14,6 +14,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
+import type { ImportedGame } from "@/lib/game-source";
 
 const fetchUserGames = vi.fn();
 vi.mock("@/lib/lichess-public", () => ({
@@ -23,7 +24,7 @@ vi.mock("@/lib/lichess-public", () => ({
 // load: importing stockfish.ts pulls 7MB of wasm into the graph and GATE-COMMIT forbids it here.
 vi.mock("@/lib/import-run", () => ({ runImportDiagnostic: vi.fn() }));
 
-const { ImportGames } = await import("@/components/ImportGames");
+const { ImportGames, ratingSeries } = await import("@/components/ImportGames");
 
 /*
  * Nothing in this file presses scan, so the engine is never called. It throws rather than
@@ -118,5 +119,52 @@ describe("and what it buys, in the units the wait is counted in", () => {
     render(<ImportGames onClose={() => {}} onLoad={() => {}} analyze={neverAnalyses} />);
     expect(document.querySelector(".import-cost")).toBeNull();
     expect(document.querySelector(".import-buys")).toBeNull();
+  });
+});
+
+/*
+ * THE NUMBER THE PRODUCT ASKED FOR, WAS GIVEN, AND THREW AWAY.
+ *
+ * `whiteRating` and `blackRating` were parsed at the boundary by both adapters and read by
+ * nothing: a grep of the whole repository found zero consumers. Every import fetched a player's
+ * rating from Lichess or Chess.com and dropped it on the floor. This holds the series that stops
+ * it, and holds the three judgements inside it, because each one is a way to produce a series that
+ * is quietly wrong rather than absent.
+ */
+describe("the rating the import already fetched is kept", () => {
+  const game = (over: Partial<ImportedGame>): ImportedGame => ({
+    id: "g", white: "erez", black: "someone", whiteRating: 1600, blackRating: 1800,
+    status: "resign", speed: "blitz", timeControl: { initialMs: 180_000, incrementMs: 0 },
+    rated: true, playedAt: Date.parse("2026-01-02T00:00:00Z"), opening: null, pgn: "",
+    source: "lichess", ...over,
+  });
+
+  it("takes the player's own side, whichever colour they had", () => {
+    /*
+     * A player is white in some of their games and black in the others. Reading one side's number
+     * produces a series that is half theirs and half their opponents', which looks like a series.
+     */
+    expect(ratingSeries([game({})], "erez")[0].value).toBe(1600);
+    expect(ratingSeries([game({ white: "someone", black: "erez" })], "erez")[0].value).toBe(1800);
+  });
+
+  it("leaves a gap where the site gave no rating, rather than writing a zero", () => {
+    // A gap in a series is a gap. A zero is a claim that somebody was rated zero.
+    expect(ratingSeries([game({ whiteRating: null })], "erez")).toEqual([]);
+    expect(ratingSeries([game({ rated: false })], "erez")).toEqual([]);
+  });
+
+  it("orders oldest first and carries the site, because two sites are two scales", () => {
+    const series = ratingSeries(
+      [game({ playedAt: Date.parse("2026-03-01T00:00:00Z"), whiteRating: 1650 }),
+       game({ playedAt: Date.parse("2026-01-01T00:00:00Z"), whiteRating: 1600, source: "chesscom" })],
+      "erez",
+    );
+    expect(series.map((r) => r.value)).toEqual([1600, 1650]);
+    expect(series.map((r) => r.source)).toEqual(["chesscom", "lichess"]);
+  });
+
+  it("matches the account case-insensitively, which is how both sites hand names back", () => {
+    expect(ratingSeries([game({ white: "Erez" })], "  erez ")[0].value).toBe(1600);
   });
 });

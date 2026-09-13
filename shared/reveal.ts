@@ -14,8 +14,34 @@
  */
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
+import { Chess } from "chess.js";
 import { normaliseConfidence } from "./confidence.js";
+import { costInPawns, PAWN_UNIT } from "./pawns.js";
 import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
+
+/**
+ * A move as the board names it, or the UCI it came as.
+ *
+ * THE FALLBACK IS NOT A CONVENIENCE, IT IS THE SAFETY PROPERTY. Naming a move wrongly is worse
+ * than naming it in engine notation: a player who reads `Nd4` and finds no knight stops trusting
+ * the panel, while `d2d4` is merely ugly. So every failure path -- no position, a position the
+ * move is not legal in, a malformed FEN, a promotion string chess.js rejects -- returns the input
+ * unchanged rather than a guess.
+ */
+export function moveLabel(uci: string, fen: string | undefined): string {
+  if (!fen) return uci;
+  try {
+    const board = new Chess(fen);
+    const move = board.move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci.slice(4, 5) : undefined,
+    });
+    return move?.san ?? uci;
+  } catch {
+    return uci;
+  }
+}
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -42,6 +68,20 @@ export interface RevealInputs {
   cpLoss: number;
   chosenMove: string;
   bestMove: string;
+  /**
+   * The position the decision was taken in, so a move can be named the way the board names it.
+   *
+   * WHY IT IS HERE AT ALL. `chosenMove` and `bestMove` are UCI, because that is what the engine
+   * speaks and what the record stores. A cold player was shown the sentence
+   * `g5d8 עלה 484 ס״פ מול f2f4` while the move timeline two centimetres below it read `12.Nd4`:
+   * one product, two notations, and the machine one won the sentence that carries the whole point.
+   * A move is only nameable in a position, so the position is what this field supplies.
+   *
+   * OPTIONAL, AND THE FALLBACK IS THE OLD BEHAVIOUR EXACTLY. A caller that has no FEN, or a FEN the
+   * move is not legal in, gets the UCI it always got. Nothing that reads these sentences has to
+   * change, and a wrong FEN degrades to the previous output rather than to a wrong move name.
+   */
+  fen?: string;
   chosenWasBest: boolean;
   /**
    * The stated level as the player pressed it: 1..confidenceScale, NOT a probability.
@@ -102,8 +142,7 @@ export interface RevealInputs {
  * answer. Rejected: it puts a network call carrying the player's position on the reveal path of
  * a product whose whole posture is that the record never leaves the deployment.
  */
-export const BUILD_LIMIT =
-  "הבילד הזה מריץ מנוע מקומי אחד. אין מקור הערכה שני, ולכן אין למנוע במה להיבדק — בשום עמדה.";
+export const BUILD_LIMIT = "מנוע מקומי אחד, בלי מקור הערכה שני לבדוק אותו מולו.";
 
 /**
  * SECTION 4.2 STEP 1: what cannot be inferred here. Rendered before any number, always.
@@ -112,20 +151,33 @@ export const BUILD_LIMIT =
 export function inferenceLimits(inputs: RevealInputs): string[] {
   const limits: string[] = [];
 
+  /*
+   * ONE CLAUSE EACH. These are read on every reveal, before the finding, and a limit that takes a
+   * paragraph to state is a limit the reader skips on the second reveal and never reads again. The
+   * first line is the scope sentence the field protocol names as the compact form
+   * (`docs/VALUE_CLARITY_FIELD_PROTOCOL.md`, "החלטה אחת, לא דפוס"); what changed here is the length
+   * of the block, not its place, which stays first.
+   */
+  /*
+   * `שנרשמה` / `נרשמו N` STAY, and they are not decoration: this line is the one the reveal makes
+   * about the record, and `a-count-the-record-does-not-hold` reads its number against the record in
+   * storage at every reveal (N-7). The count is the sentence's job; what got shorter is everything
+   * around it.
+   */
   limits.push(
     inputs.decisionsOnRecord === 1
-      ? "זו החלטה אחת שנרשמה. שום דבר כאן אינו דפוס, ואי אפשר להסיק ממנה על המשחק שלך."
-      : `נרשמו ${inputs.decisionsOnRecord} החלטות. זה עדיין תיאור של ההחלטות האלה, לא של השחקן.`,
+      ? "זו החלטה אחת שנרשמה. לא דפוס."
+      : `נרשמו ${inputs.decisionsOnRecord} החלטות. תיאור שלהן, לא של השחקן.`,
   );
 
   if (inputs.depth < SHALLOW_DEPTH) {
     limits.push(
-      `המנוע הגיע לעומק ${inputs.depth} בלבד. הפרשים קטנים מ-${ENGINE_NOISE_CP} ס״פ אינם אומרים כאן כלום.`,
+      `עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${costInPawns(ENGINE_NOISE_CP)} ${PAWN_UNIT} לא אומרים כאן כלום.`,
     );
   }
   if (inputs.cpLoss <= ENGINE_NOISE_CP && !inputs.chosenWasBest) {
     limits.push(
-      `המהלך שלך והמהלך של המנוע רחוקים ${inputs.cpLoss} ס״פ — בתוך רעש ההערכה. זו אינה טעות.`,
+      `הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מהמנוע הוא בתוך רעש ההערכה. זו לא טעות.`,
     );
   }
   /*
@@ -150,12 +202,12 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
    */
   if (inputs.clampedMate) {
     limits.push(
-      `המנוע החזיר כאן מט כפוי, ומט אינו כמות בסנטי-פונים. עלות ההחלטה נמדדה מול תקרה קבועה של ${MATE_SCORE} ס״פ, ולכן המרחק למט — אם המהלך קירב אותו או דחה אותו — לא נמדד כאן כלל.`,
+      "המנוע החזיר מט כפוי. העלות נמדדה מול תקרה קבועה, והמרחק למט עצמו לא נמדד.",
     );
   }
   if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
     limits.push(
-      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת כאן אם לא ראית את המהלך של המנוע או שראית ודחית. " +
+      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת אם מהלך המנוע נשקל ונדחה. " +
         "מהלכים שנשקלו בלי להניח אותם על הלוח אינם נרשמים.",
     );
   }
@@ -278,8 +330,8 @@ export const EVIDENCE_LABEL: Record<RevealEvidence, string> = {
    * that they are not the same statement, which is the referent collision this pair was already
    * renamed once to avoid, reappearing as layout instead of as an identifier.
    */
-  process: "המשפט הזה יצא ממה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
-  engine: "המשפט הזה יצא מהשוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
+  process: "יצא ממה שנרשם לפני שהמנוע דיבר. ניתוח משחק רגיל לא מחזיק את זה.",
+  engine: "יצא מהשוואה למנוע בלבד. לזה גם ניתוח משחק רגיל היה מגיע.",
 };
 
 export interface OneThing {
@@ -325,6 +377,13 @@ export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
   const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
+  /*
+   * NAMED ONCE, HERE, so every branch below says the move the same way. The comparison on the line
+   * above stays in UCI on purpose: `candidatesConsidered` is stored in UCI and matching a display
+   * label against a stored one is how a rename becomes a wrong answer.
+   */
+  const chosen = moveLabel(inputs.chosenMove, inputs.fen);
+  const best = moveLabel(inputs.bestMove, inputs.fen);
 
   /*
    * The choice rule, and it comes first.
@@ -356,9 +415,9 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * memory of the position; "you saw it" is a claim about their mind that the record cannot
        * make, and one they may simply know to be false.
        */
-      text: `${inputs.bestMove} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ.`,
+      text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
-      basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים ששקלתם, ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
 
@@ -385,17 +444,17 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   ) {
     return {
       kind: "confident-and-wrong",
-      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${inputs.cpLoss} ס״פ.`,
+      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "היית בטוח כאן יותר ממה שהתוצאה הצדיקה. זה על הביטחון, לא על המהלך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
       kind: "outplayed",
-      text: `${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}.`,
-      note: `מה ${inputs.bestMove} עושה בעמדה הזאת ש-${inputs.chosenMove} לא עושה?`,
-      basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      text: `${chosen} עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מול ${best}.`,
+      note: `מה ${best} עושה בעמדה הזאת ש-${chosen} לא עושה?`,
+      basis: `${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (noisy && stated !== null && stated <= UNSURE_ENOUGH_TO_NAME) {
@@ -407,7 +466,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * that is a claim the detector needs MIN_BUCKET_N decisions before it will make.
        */
       note: "ייתכן שידעת כאן יותר ממה שסמכת על עצמך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   // Nothing measured here supports a sentence. Say nothing rather than fill the space.
@@ -624,7 +683,7 @@ export interface RevealAccumulation {
   next: string;
 }
 
-export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
+export const ACCUMULATION_HEADING = "מה נצבר";
 
 /**
  * THE LEAD IS A CONSTANT AND THAT IS DELIBERATE, carried from `CONTINUATION_PROPOSITION`.
@@ -633,8 +692,7 @@ export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
  * decision can establish is a fact about arithmetic, not about the player, and one that varied by
  * outcome would be the product measuring them and answering them at once.
  */
-export const ACCUMULATION_LEAD =
-  "החלטה אחת אינה דפוס. מה שהיא כן עושה הוא להזיז את מאזן הראיות.";
+export const ACCUMULATION_LEAD = "החלטה אחת אינה דפוס, אבל היא מזיזה את המאזן.";
 
 /**
  * Said once, the same way, whatever the branch. The reason another decision is worth taking.
@@ -648,8 +706,7 @@ export const ACCUMULATION_LEAD =
  * happens to hold the evidence, and a player who took ten decisions and got silence on all ten
  * would have been lied to rather than measured.
  */
-export const ACCUMULATION_NEXT =
-  "ההחלטה הבאה היא עמדה אחרת ורגע אחר, ולכן היא זו שתראה אם זה חוזר.";
+export const ACCUMULATION_NEXT = "ההחלטה הבאה תראה אם זה חוזר.";
 
 /**
  * How the branch the player just read is named when it is counted.
@@ -665,7 +722,7 @@ export const ACCUMULATION_NEXT =
 export const ACCUMULATION_KIND_LABEL: Record<OneThingKind | "silence", string> = {
   "chose-past-it": "מהלך שהיה על הלוח ולא נבחר",
   "confident-and-wrong": "ביטחון גבוה מול מהלך שעלה חומר",
-  outplayed: "מהלך שעלה חומר, בלי שהרשומה מוסיפה עליו",
+  outplayed: "מהלך שעלה חומר, בלי שההיסטוריה מוסיפה עליו",
   "trusted-it-too-little": "בחירה טובה שהוצהר עליה ביטחון נמוך",
   silence: "מדידה שלא תמכה באף משפט",
 };
@@ -696,9 +753,7 @@ export function revealAccumulation(
   }
   return {
     lead: ACCUMULATION_LEAD,
-    balance:
-      `${ACCUMULATION_KIND_LABEL[kind]} — הופיע ב-${same} מתוך ${mix.n} ההחלטות ` +
-      "שהמנוע ענה עליהן עד עכשיו.",
+    balance: `${ACCUMULATION_KIND_LABEL[kind]}: הופיע ב-${same} מתוך ${mix.n} ההחלטות שהמנוע ענה עליהן.`,
     next: ACCUMULATION_NEXT,
   };
 }
@@ -710,7 +765,7 @@ export function revealAccumulation(
 export function nextQuestion(inputs: RevealInputs): string {
   const unknown = inputs.statedUnknown.trim();
   if (unknown.length > 0) {
-    return `כתבת שאתה לא יכול להעריך: "${unknown}". האם הקו של המנוע עונה על זה, או שהוא פשוט לא נכנס לשם?`;
+    return `סימנת "${unknown}". האם הקו של המנוע עונה על זה, או שהוא פשוט לא נכנס לשם?`;
   }
   /*
    * THE TWO MOVES HAVE TO BE TWO. Without this branch the sentence came out as "מה היית צריך
@@ -731,7 +786,7 @@ export function nextQuestion(inputs: RevealInputs): string {
    * flipping it to the flag alone and watching nothing fail.
    */
   if (inputs.chosenMove === inputs.bestMove) {
-    return `בחרת את ${inputs.chosenMove}, וזה גם המהלך של המנוע. מה היה הנימוק שלך — והאם הוא היה מחזיק גם אילו המנוע היה בוחר אחרת?`;
+    return `בחרת את ${moveLabel(inputs.chosenMove, inputs.fen)}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
   }
-  return `מה היית צריך לדעת כדי לבחור בין ${inputs.chosenMove} ל-${inputs.bestMove}?`;
+  return `מה היית צריך לדעת כדי לבחור בין ${moveLabel(inputs.chosenMove, inputs.fen)} ל-${moveLabel(inputs.bestMove, inputs.fen)}?`;
 }

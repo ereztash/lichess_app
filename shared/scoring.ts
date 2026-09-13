@@ -150,7 +150,7 @@ export function silenceReason(summary: ScoringSummary, minimumRequired: number):
    */
   const perSide = minimumRequired / 2;
   return (
-    `דפוס הוא הפרש בין סוג אחד לשאר הרשומה, ולכן צריך ${perSide} החלטות מדודות בתוך הסוג ` +
+    `דפוס הוא הפרש בין סוג אחד לשאר ההיסטוריה, ולכן צריך ${perSide} החלטות מדודות בתוך הסוג ` +
     `ו-${perSide} מחוצה לו — ${minimumRequired} בסך הכול. ואפילו אז זו תהיה השערה, לא ממצא.`
   );
 }

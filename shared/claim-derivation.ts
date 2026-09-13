@@ -84,7 +84,7 @@ export function statementFor(pattern: CandidatePattern): string {
   const { scope, inside, outside } = pattern;
   const direction = pattern.predicts_overconfidence ? "גבוה יותר" : "נמוך יותר";
   /*
-   * PLAYER WORDS, IDENTICAL ARITHMETIC. `הביטחון המוצהר` and `דיוק בפועל` are the internal names
+   * PLAYER WORDS, IDENTICAL ARITHMETIC. `הביטחון שאמרתם` and `דיוק בפועל` are the internal names
    * for the two quantities; a player says "how sure I said I was" and "what actually came out".
    * Every number, both denominators, the direction and the closing caveat are unchanged -- and the
    * caveat is the load-bearing part: this is a CONTRAST between two groups, never a statement

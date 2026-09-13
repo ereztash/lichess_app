@@ -18,6 +18,7 @@ import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 import { scanFailureText } from "@/lib/commit-error";
 import { reportEngineFailure, reportFailure } from "@/lib/error-sink";
+import type { RatingReading } from "@shared/import-diagnostic";
 
 type Props = {
   onLoad: (game: ImportedGame) => void;
@@ -44,6 +45,7 @@ type Props = {
     username: string;
     games: number;
     diagnostic: ImportDiagnostic;
+    rating: RatingReading[];
   }) => Promise<unknown>;
   /**
    * The account the last kept reading was scanned from, or undefined.
@@ -58,6 +60,28 @@ type Props = {
    */
   lastUsername?: string;
 };
+
+/**
+ * The player's own rating in each scanned game, oldest first.
+ *
+ * WHOSE RATING, decided by the username the scan was run for rather than by colour. A player is
+ * white in some of their games and black in the others, and taking one side's number would produce
+ * a series that is half theirs and half their opponents'.
+ *
+ * Unrated games and games the site gave no rating for are absent rather than zero: a gap in a
+ * series is a gap, and a zero is a claim that somebody was rated zero.
+ */
+export function ratingSeries(games: readonly ImportedGame[], username: string): RatingReading[] {
+  const who = username.trim().toLowerCase();
+  const series: RatingReading[] = [];
+  for (const g of games) {
+    const mine =
+      g.white.toLowerCase() === who ? g.whiteRating : g.black.toLowerCase() === who ? g.blackRating : null;
+    if (mine === null || !g.rated) continue;
+    series.push({ at: new Date(g.playedAt).toISOString(), value: mine, source: g.source });
+  }
+  return series.sort((a, b) => a.at.localeCompare(b.at));
+}
 
 const RESULT_LABEL: Record<string, string> = {
   mate: "מט",
@@ -183,8 +207,12 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
        */
       const keeping = !result.aborted && keepReading !== undefined;
       if (keeping) {
-        void keepReading({ username, games: games.length, diagnostic: result.diagnostic })
-          .catch(() => {});
+        void keepReading({
+          username,
+          games: games.length,
+          diagnostic: result.diagnostic,
+          rating: ratingSeries(games, username),
+        }).catch(() => {});
       }
       setKept(keeping);
     } catch (error) {

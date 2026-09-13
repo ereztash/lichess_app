@@ -1,0 +1,62 @@
+{
+  "calibration_version": "0.1",
+  "task_id": "CAL-LICHESS-LEARNING-JOURNEY-001",
+  "telos": {
+    "statement": "Decide which product-learning architecture converts Lichess App's existing personal-decision evidence into a journey a player can understand, act on and be motivated by, without any surface claiming more than the evidence supports; then build the smallest complete slice that expresses it.",
+    "success_condition": "A named architecture survives explicit falsification, its unit of learning and unit of progress are distinct and each names its own construct and denominator, no UI claim exceeds its evidence rung, and the highest remaining uncertainty is a FIELD uncertainty rather than a research or repository one."
+  },
+  "current_state": {
+    "summary": "Lichess App (`ereztash/lichess_app`, head 2d7eebd) records a chess decision BEFORE the engine answers: the player states a candidate move and a confidence, commits, and only then sees the engine. Verified by reading the code at that head, the learning machinery mostly EXISTS and is mostly INVISIBLE AS A JOURNEY. Built and reachable: a six-bucket detector (shared/detector.ts BUCKETINGS over think-time, phase and clock; MIN_BUCKET_N=30 inside and outside, so 60 revealed decisions before any claim is possible; SEPARABILITY_K=3.75); a claim carrying its scope and its refutation condition (currentClaim/ClaimView); a pre-registered narrowed search after an import (registerHypothesis, floor 20 instead of 30); drills on claim-matched positions (beginDrill/finishDrill, filtered by Bucketing.drillPhase); player-authored learning rules (createLearningRule); a spaced retrieval queue with grades derived from the record rather than read off stored columns (learningRules/gradeLearningRule); transfer tests against a rule (beginLearningTransfer, recordLearningTransferObservation, finishLearningTransfer); refutation and retirement (retireLearningRule). One surface, client/src/lib/loop-position.ts, states where the player is, over four steps: record -> detect -> drill -> grade. MISSING, verified by grep over shared/ and client/src: there is NO goal concept anywhere in the codebase; loopPosition STOPS AT `grade` and knows nothing about learning rules, transfers or outcomes, so transfer is invisible to the one surface that says where the player is; and ratingSeries (client/src/components/ImportGames.tsx) is written into the stored import diagnostic and READ BY NOTHING. On a 390x844 phone the record screen currently measures 2019 CSS px and repeats a separate `needs 30 more decisions` sentence roughly seven times, each with a DIFFERENT and individually correct reason (too-few, too-few-accurate, too-few-inaccurate, too-few-both, bucket under floor, confidence level under floor, engine mix under floor). A prior attempt to merge those into one sentence was refused by five tests whose doctrine is that the advice differs by reason and two of the reasons are not waits.",
+    "known_constraints": [
+      "EVIDENCE CEILING, from the mechanism research at origin/claude/generalize-research-pipeline-75k53u fd3f8ca: the frozen discovery pipeline states that OBSERVATION and PREDICTION are reachable at REPO and SPECIFICITY at RESEARCH, but that CAUSALITY (FIELD), INTERVENTION (OWNER) and OUTCOME (FIELD) are NOT reachable by it under any result. `The claim ladder is unchanged by sample size.` No product surface may therefore assert that using the app improves play or rating.",
+      "THE SHIPPED DETECTOR IS NOT THE VALIDATED ONE. The product ships six fixed buckets. The research pipeline is a frozen pysubgroup beam search over an observable vocabulary with a same-rating population residual correction. The shipped six-bucket detector CANNOT register a separable bucket on the owner's own whole 2,209-game record (`not-separable`). The research pipeline CAN find a personal residual on that same record, and it survives its own within-game permutation null (erez281 OBS cls_tactical z 8.56 against nulls topping out at 2.35-2.69).",
+      "PERSONALISATION IS EXPENSIVE. In the 100-player cohort only 25 of 100 members were RESIDUAL_POWERED, requiring >= 5749 blitz VALIDATE decisions and >= 1786 admissible blitz games. Nothing in the product's own 60-decision floor produces a personal residual in the research sense.",
+      "AN OPEN CONFOUND. 28.3% of frozen candidate regions across 100 players are the owner's own regions verbatim, and the most common region across the cohort is `own_overloaded_piece_count>=1`. Whether that concentration is a property of the instrument or of the population is explicitly UNANSWERED (Q2). So `the pattern we found in you` may be a population regularity wearing a personal label.",
+      "THE COHORT VERDICT IS `UNDETERMINED` because a pre-declared red flag fired at 68% PERSONAL_RESIDUAL_CANDIDATE among RESIDUAL_POWERED members. Amendment 1 of the null-calibration pre-registration establishes the flag's SPECIFICATION was defective rather than the instrument: the permutation false-positive rate is 3/4800 = 0.06% and does not move with corpus size.",
+      "OWNERSHIP IS THE PRODUCT'S LOAD-BEARING SEMANTIC: the player's decision is committed before the engine reveals anything. No layer may turn the app into an engine-answer feed.",
+      "REPOSITORY LAWS that a new layer must not break: LAW 1 (GATE-DECISION-FOCUS) forbids showing record readings while a decision is open; LAW 2 (GATE-ONE-PRIMARY-ACTION, GATE-NO-DUPLICATE-ACTION) permits exactly one primary action per screen; R1 (GATE-DENOM) forbids a percentage rendered without its denominator; R3 (GATE-COMMIT) keeps the engine silent before commit. 36 gates, each with a positive control that must fail red.",
+      "FIELD STATE: two cold testers independently could not complete the core move; that was repaired at the current head and NOT revalidated in FIELD. n = 3 cold users total, none of them after the repair.",
+      "RUNTIME GAP, recorded rather than patched: schemas/calibration-task.schema.json's resource enum is RND/NETA/SCAFFOLD/OWNER/REPO/ENVIRONMENT/FIELD and omits RESEARCH, which docs/SHARED_EPISTEMIC_KERNEL.md lists as a resolution authority. This task therefore cannot name RESEARCH as an available resource even though the evidence ceiling above is a RESEARCH-owned fact. The schema was NOT widened to make this task fit."
+    ],
+    "available_resources": [
+      "RND",
+      "NETA",
+      "SCAFFOLD",
+      "OWNER",
+      "REPO",
+      "ENVIRONMENT",
+      "FIELD"
+    ]
+  },
+  "decision_blocked": {
+    "statement": "Which product-learning architecture should the next layer express, and what is the smallest complete slice that makes it perceptible end to end? Five candidates are live: (1) FEEDBACK-FIRST, the incumbent: observe, diagnose, show, no goal and no prescription. (2) GOAL-FIRST: the player states a rating target and everything is framed as distance to it. (3) MANAGED-EFFORT / PROGRAM-FIRST, proposed by the owner's mentor: goal -> required work -> feedback -> progress, with a prescribed programme and a KPI. (4) PATTERN-CENTERED LEARNING LOOP: the claim is the unit, evidence/practice/transfer are states OF A CLAIM, and the goal is context rather than a denominator. (5) Any architecture that dominates these.",
+    "current_default": "Candidate 1 plus its two missing ends, built as information architecture: add a GOAL state at the front and TRANSFER/OUTCOME states at the back of the EXISTING loop-position state machine, render the loop once as one journey, and add no global percentage-toward-rating, no prescribed programme, no new training subsystem and no causal claim. The goal is aspiration and framing; it is never a denominator.",
+    "reversal_condition": "Evidence that another architecture has materially higher decision value. Concretely: (a) that a prescription the product can legitimately make exists without an INTERVENTION claim the research says is unreachable; or (b) that legibility is not the binding constraint, because cold users already reconstruct the journey and still do not continue; or (c) that a construct the default keeps separate (effort, mastery, transfer, outcome) can be honestly collapsed, with the denominator that earns the collapse named."
+  },
+  "signals": [
+    "OWNER/FIELD, mentor conversation with Nicolas Bandurek: the product behaves like a feedback system rather than a managed improvement system; the player's question is closer to `I am 1500 and want 1800, what should I do?`; diagnosis alone is not the desired outcome; he proposed managed effort as goal -> required work -> feedback -> progress with a progress/KPI layer; time-to-value is a real problem because meaningful personalisation may need many decisions. This is a signal about a MISSING USER CONTRACT. It is NOT research authority for the correct KPI.",
+    "REPO: the product's own `loopPosition` already refuses to estimate an unknown distance and already distinguishes `enough decisions and no pattern cleared the threshold` from `not enough decisions`, calling the former `an answer and not a silence`. The architecture question is whether that discipline extends to a goal, or breaks on it.",
+    "REPO: a prior attempt to shorten the record screen by merging the waiting messages was refused by tests whose stated doctrine is that a record below the floor can be short AND flat at once, so one shared apology is a wrong sentence rather than a shorter one.",
+    "RESEARCH: the product already implements retrieval practice with a committed answer, spaced scheduling with derived grades, and a transfer test separate from practice, apparently without having been designed from that literature."
+  ],
+  "allowed_resources": [
+    "RND",
+    "NETA",
+    "SCAFFOLD",
+    "OWNER",
+    "REPO",
+    "ENVIRONMENT",
+    "FIELD"
+  ],
+  "context_refs": [
+    "docs/SHARED_EPISTEMIC_KERNEL.md",
+    "docs/REALITY_AUTHORITY_PERMISSION.md",
+    "docs/AGENT_AUTHORITY_BOUNDARIES.md",
+    "docs/AUTHORITY_MAP.md",
+    "docs/TELOS.md"
+  ],
+  "budget": {
+    "max_resource_calls": 4,
+    "max_parallel_calls": 1
+  }
+}

@@ -19,7 +19,7 @@
  * `ContextRibbon.tsx`, and the measured heights in `index.css`.
  *
  * `/` was the licence footer added three commits earlier. It is the last element on the page, and
- * when the record layers replaced "קורא את הרשומה…" it was pushed 289 pixels down. A shift of the
+ * when the record layers replaced "קורא את ההיסטוריה…" it was pushed 289 pixels down. A shift of the
  * last element is still a shift. It now renders after the record has answered, so it is inserted
  * at its final position instead of being moved to it.
  *

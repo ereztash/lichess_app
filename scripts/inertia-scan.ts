@@ -52,6 +52,14 @@ export const RECORD_READINGS: Readonly<Record<string, readonly string[]>> = {
   GameReviewProgress: ["client/src/components/RecordExplorer.tsx"],
   /* The front door is `REFLECT`: reading the record is the whole of what a player is there for. */
   RecordDashboard: ["client/src/components/RecordExplorer.tsx", "client/src/pages/Record.tsx"],
+  /*
+   * THE LEDGER IS A READING AND IS REGISTERED AS ONE, which is the point of this map being a
+   * closed allowlist rather than a heuristic: a new surface that reads the record is invisible to
+   * LAW 1 until its name is written here, so adding one without registering it is how the law gets
+   * quietly hollowed out. It renders from the same two surfaces as the dashboard because it answers
+   * the same screen's question -- what the record holds -- one layer up.
+   */
+  JourneyLedger: ["client/src/components/RecordExplorer.tsx", "client/src/pages/Record.tsx"],
 };
 
 /**

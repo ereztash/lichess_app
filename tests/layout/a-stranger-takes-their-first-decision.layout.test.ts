@@ -437,7 +437,7 @@ describe("a stranger takes their first decision", () => {
     expect(await wayOut.count(), "a failed reveal offered no single declared way out").toBe(1);
     const act = await wayOut.getAttribute("data-primary-action");
     const said = (await wayOut.innerText()).trim();
-    const allowed = act === "return-record" ? ["חזרה לרשומה"] : ["להחלטה הבאה", "לעמדה הבאה"];
+    const allowed = act === "return-record" ? ["חזרה להיסטוריה"] : ["להחלטה הבאה", "לעמדה הבאה"];
     expect(allowed.includes(said), `the way out declares ${act} and says "${said}"`).toBe(true);
     await wayOut.click();
     /*

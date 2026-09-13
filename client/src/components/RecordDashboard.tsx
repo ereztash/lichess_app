@@ -55,7 +55,7 @@ function band(reference: SensitivityBand, p: number): string {
  */
 const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
   ok: "",
-  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות העוגן כדי למדוד את הקשר הזה.`,
+  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות מהסט המשותף כדי למדוד את הקשר הזה.`,
   "flat-time":
     "לקחתם בערך אותו זמן על כל ההחלטות, ולכן אין מה לקשור לביטחון. עוד החלטות באותו קצב לא ישנו את זה.",
   "flat-confidence":
@@ -66,7 +66,7 @@ const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
    * coefficient appeared 100% of the time and reached 0.30 or more on one record in nine.
    */
   "inside-noise":
-    "נמדד, והקשר יצא קטן ממה שהרשומה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
+    "נמדד, והקשר יצא קטן ממה שההיסטוריה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
 };
 
 /**
@@ -77,7 +77,7 @@ const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
  */
 const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = {
   ok: "",
-  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. ברשומה הזו יש פחות.`,
+  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. בהיסטוריה הזו יש פחות.`,
   /*
    * Named separately from its mirror because the advice is different and specific: this player
    * needs harder positions, not simply more of them. "Record more decisions" is what they would
@@ -91,7 +91,7 @@ const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = 
    * landed a tenth of the scale from chance on 18% of them.
    */
   "inside-noise":
-    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה ברשומה בגודל הזה. עוד החלטות יחדדו את זה.",
+    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה בהיסטוריה בגודל הזה. עוד החלטות יחדדו את זה.",
 };
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
@@ -133,7 +133,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
            * to them which the product had deliberately not shown. The count is unchanged; the verb
            * is now the one the record can witness.
            */
-          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
+          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון שנאמר מראש — ` +
           "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
           "פער כיול נקרא רק מהחלטות שנשאלו."
         : /*
@@ -141,7 +141,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
            *
            * Walked in Chromium at 1440x900 and 390x844 from a clean profile: three complete bank
            * decisions, then the explorer opened from the third reveal. One page then carried
-           * `3 נמדדו ונקראות בחלק אחר של הרשומה` at y=108, `נרשמו 4 החלטות` at y=233, and this
+           * `3 נמדדו ונקראות בחלק אחר של ההיסטוריה` at y=108, `נרשמו 4 החלטות` at y=233, and this
            * panel at y=2089 saying no decision had been revealed. Four numbers for one player,
            * the last contradicting the first, on a screen that was itself a reveal.
            *
@@ -162,11 +162,11 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           reading.readElsewhere > 0
           ? `${decisionsHeldElsewhere(reading.readElsewhere)} — הסט המשותף, תרגול או משחקים שיובאו. ` +
             "כאן נקרא פער כיול ממשחקים ששיחקתם, ועוד אין החלטה כזאת."
-          : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם.";
+          : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. ההיסטוריה נבנית מהחלטה אחת בכל פעם.";
     return (
       <section className="analysis-section record-dashboard">
         <div className="section-heading">
-          <span>הרשומה שלך</span>
+          <span>ההיסטוריה שלך</span>
           <Gauge size={14} />
         </div>
         <NotMeasured reason={reason} />
@@ -187,77 +187,77 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
   return (
     <section className="analysis-section record-dashboard">
       <div className="section-heading">
-        <span>הרשומה שלך</span>
+        <span>ההיסטוריה שלך</span>
         <span className="data-chip">n={scored}</span>
       </div>
 
       {/*
-        * WHY `n` IS SMALLER THAN THE PLAYER'S OWN COUNT, when it is.
-        *
-        * `shared/evidence-policy.ts` groups the described record by the conditions that make two
-        * decisions comparable, and this page reads one of them. Without this line the number in the
-        * chip would simply be smaller than the record the player remembers building, for a reason
-        * no surface stated -- the failure R1 exists to prevent, arriving as an absence.
-        *
-        * IT IS NOT `readElsewhere`. These decisions are not counted under another heading; they are
-        * the same free play, measured under conditions this reading may not average with the rest.
-        */}
+       * WHY `n` IS SMALLER THAN THE PLAYER'S OWN COUNT, when it is.
+       *
+       * `shared/evidence-policy.ts` groups the described record by the conditions that make two
+       * decisions comparable, and this page reads one of them. Without this line the number in the
+       * chip would simply be smaller than the record the player remembers building, for a reason
+       * no surface stated -- the failure R1 exists to prevent, arriving as an absence.
+       *
+       * IT IS NOT `readElsewhere`. These decisions are not counted under another heading; they are
+       * the same free play, measured under conditions this reading may not average with the rest.
+       */}
       {/*
-        * THE READING IS OF A REGIME THAT IS NO LONGER THE ONE BEING WRITTEN.
-        *
-        * WHY THIS NOTE STILL EXISTS AFTER THE RULE CHANGED. It was written when the population rule
-        * was "the largest" -- answer-blind and stable, and silent about recency -- which meant that
-        * after a bump to `CURRENT_PROTOCOL_VERSION` the RETIRED regime stayed largest until the new
-        * one overtook it: measured at 120 decisions under version 4 against 40 under version 5,
-        * this panel reported n=120 at 100% accuracy from a protocol no longer running, and would
-        * have gone on for 81 more decisions.
-        *
-        * `regimeInForceFirst` bounded that at `MIN_BUCKET_N` rather than removing it. The reading
-        * switches to the regime in force as soon as it can be read, and until then it is still the
-        * largest one -- so the stale state is thirty decisions long instead of a whole record, and
-        * `regime.current` is false for exactly that window. This is the sentence for that window.
-        *
-        * The figure is not wrong about its own population. Without this line the reader has no way
-        * to know which population that is, and every number on this screen reads as current.
-        */}
+       * THE READING IS OF A REGIME THAT IS NO LONGER THE ONE BEING WRITTEN.
+       *
+       * WHY THIS NOTE STILL EXISTS AFTER THE RULE CHANGED. It was written when the population rule
+       * was "the largest" -- answer-blind and stable, and silent about recency -- which meant that
+       * after a bump to `CURRENT_PROTOCOL_VERSION` the RETIRED regime stayed largest until the new
+       * one overtook it: measured at 120 decisions under version 4 against 40 under version 5,
+       * this panel reported n=120 at 100% accuracy from a protocol no longer running, and would
+       * have gone on for 81 more decisions.
+       *
+       * `regimeInForceFirst` bounded that at `MIN_BUCKET_N` rather than removing it. The reading
+       * switches to the regime in force as soon as it can be read, and until then it is still the
+       * largest one -- so the stale state is thirty decisions long instead of a whole record, and
+       * `regime.current` is false for exactly that window. This is the sentence for that window.
+       *
+       * The figure is not wrong about its own population. Without this line the reader has no way
+       * to know which population that is, and every number on this screen reads as current.
+       */}
       {regime !== null && !regime.current && (
         <p className="dash-note" dir="rtl">
-          המספרים כאן נמדדו בתנאי מדידה שכבר אינם התנאים שאתם משחקים בהם עכשיו. ההחלטות החדשות
-          שלכם נרשמות בנפרד ועדיין לא הצטברו מספיק כדי להיקרא, ולכן זו תמונה של איך החלטתם קודם,
-          לא של איך אתם מחליטים היום.
+          המספרים כאן נמדדו בתנאי מדידה שכבר אינם התנאים שאתם משחקים בהם עכשיו. ההחלטות החדשות שלכם
+          נרשמות בנפרד ועדיין לא הצטברו מספיק כדי להיקרא, ולכן זו תמונה של איך החלטתם קודם, לא של
+          איך אתם מחליטים היום.
         </p>
       )}
 
       {/*
-        * WHAT THIS SENTENCE MAY CLAIM, AND WHAT IT CLAIMED.
-        *
-        * It said those decisions are not averaged into `המספרים כאן`. Measured on the built app,
-        * two seeded records, one section: the note at y=1363 above three denominators reading n=30,
-        * and five denominators reading n=65 at y=2741. 65 = 30 + 35. The thirty-five it says are
-        * not averaged in are in five numbers thirteen hundred pixels below it, inside the same
-        * section. The other record showed the same at n=120 against n=140.
-        *
-        * THE ARITHMETIC IS RIGHT AND IS NOT TOUCHED. `record-service.ts` flattens the described
-        * strata for the branch tally and argues it where it does it: a tally carries its own
-        * denominator and is *"not a comparison between decisions, which is the only operation a
-        * stratum boundary forbids"*. So the fix is to the scope of the claim, not to the number.
-        *
-        * PROXIMITY COULD NOT HAVE DISAMBIGUATED IT. The identical phrase is eight lines above, in
-        * the stale-regime note, where it can only mean the whole panel -- that note exists because
-        * otherwise *"every number on this screen reads as current"*. One phrase, two referents.
-        *
-        * AND IT NAMES WHERE THEY DO COUNT, because bounding the claim alone would leave a reader
-        * told a number excludes their decisions, meeting a bigger denominator in the same section,
-        * with nothing connecting the two. `MixBlock`'s own title, so the sentence points at
-        * something the reader can find rather than at a description of it.
-        */}
+       * WHAT THIS SENTENCE MAY CLAIM, AND WHAT IT CLAIMED.
+       *
+       * It said those decisions are not averaged into `המספרים כאן`. Measured on the built app,
+       * two seeded records, one section: the note at y=1363 above three denominators reading n=30,
+       * and five denominators reading n=65 at y=2741. 65 = 30 + 35. The thirty-five it says are
+       * not averaged in are in five numbers thirteen hundred pixels below it, inside the same
+       * section. The other record showed the same at n=120 against n=140.
+       *
+       * THE ARITHMETIC IS RIGHT AND IS NOT TOUCHED. `record-service.ts` flattens the described
+       * strata for the branch tally and argues it where it does it: a tally carries its own
+       * denominator and is *"not a comparison between decisions, which is the only operation a
+       * stratum boundary forbids"*. So the fix is to the scope of the claim, not to the number.
+       *
+       * PROXIMITY COULD NOT HAVE DISAMBIGUATED IT. The identical phrase is eight lines above, in
+       * the stale-regime note, where it can only mean the whole panel -- that note exists because
+       * otherwise *"every number on this screen reads as current"*. One phrase, two referents.
+       *
+       * AND IT NAMES WHERE THEY DO COUNT, because bounding the claim alone would leave a reader
+       * told a number excludes their decisions, meeting a bigger denominator in the same section,
+       * with nothing connecting the two. `MixBlock`'s own title, so the sentence points at
+       * something the reader can find rather than at a description of it.
+       */}
       {setAside.length > 0 && (
         <p className="dash-note" dir="rtl">
           עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
-          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך הקריאה של משטר המדידה שמוצג
-          כאן. הן אינן ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. שני
-          הבלוקים שבהמשך העמוד, ״{MIX_TITLE}״ ו״{COUNTERFACTUAL_TITLE}״, סופרים את כל משטרי
-          המדידה יחד — ולכן ה-n שלהם גדול מזה שכאן, ולא בטעות.
+          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך הקריאה של משטר המדידה שמוצג כאן.
+          הן אינן ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. שני הבלוקים
+          שבהמשך העמוד, ״{MIX_TITLE}״ ו״{COUNTERFACTUAL_TITLE}״, סופרים את כל משטרי המדידה יחד —
+          ולכן ה-n שלהם גדול מזה שכאן, ולא בטעות.
         </p>
       )}
 
@@ -278,485 +278,569 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       </div>
 
       {/*
-        * THE SPLIT, and three things it had to get right that the first version did not.
-        *
-        * THE UNIT. These are squared-error quantities, not rates. Rendering them through
-        * `Proportion` printed a reliability of 0.016 as "2%" -- a percentage of nothing, in a
-        * product whose whole discipline is that a number carries what produced it. They are
-        * printed as the literature prints them, to three places.
-        *
-        * THE WEIGHT. Three more bordered cells directly under the headline row read as three more
-        * headline figures, and these are a BREAKDOWN of the row above rather than a rival to it.
-        * One quiet panel of rows, no borders per cell.
-        *
-        * THE SEPARATION. `uncertainty` is a property of the positions and says nothing about the
-        * player; a rule above it and a dimmed treatment do that structurally, so the reader sees
-        * it before reading the sentence underneath.
-        */}
-      <h4 className="dash-title">ממה מורכב הפער</h4>
-      {calibration.reliable ? (
-        <>
-          <dl className="calibration-split">
-            <div className="split-row split-mine">
-              <dt>שגיאת הכיול</dt>
-              <dd>{calibration.reliability.toFixed(3)}</dd>
-            </div>
-            <div className="split-row">
-              <dt>כוח ההבחנה</dt>
-              <dd>{calibration.resolution.toFixed(3)}</dd>
-            </div>
-            <div className="split-row split-theirs">
-              <dt>קושי העמדות</dt>
-              <dd>{calibration.uncertainty.toFixed(3)}</dd>
-            </div>
-          </dl>
-          <p className="dash-note" dir="rtl">
-            רק שגיאת הכיול מדברת עליכם. קושי העמדות הוא תכונה של מה שפגשתם — עמדות קשות מגדילות
-            את הפער בלי שנעשיתם שופטים גרועים יותר של עצמכם.
-          </p>
-          {/*
-            * THE QUALIFICATION, AND IT IS WHY THE PANEL IS ALLOWED TO SHOW THE NUMBER AT ALL.
-            *
-            * `reliable` says some level is big enough to read. It does NOT say the figure above is
-            * made of those levels: `reliability` is a weighted mean, and a level's weight is its
-            * share of the record rather than its eligibility. Measured on the record this exists
-            * for, 30 decisions at 65% beside 29 at 95%, the eligible level carries under a
-            * thousandth and the short one carries over 99%.
-            *
-            * A SHARE OF THE RECORD AND NOT OF THE ERROR. It used to divide the thin levels' term by
-            * `reliability`, the number it was qualifying, so three decisions out of 403 were
-            * described as anywhere from 2% to 100% depending only on how the OTHER levels landed --
-            * loudest for the best-calibrated reader -- and as nothing at all when a thin level
-            * happened to be right. This counts decisions, depends on nothing else, and arrives
-            * through `Proportion` with the denominator R1 requires. Absent when every used level
-            * clears the floor, because a qualification on a reading that needs none teaches the
-            * reader to discount every reading.
-            */}
-          {calibration.unreadableN > 0 && (
+       * THE SPLIT, and three things it had to get right that the first version did not.
+       *
+       * THE UNIT. These are squared-error quantities, not rates. Rendering them through
+       * `Proportion` printed a reliability of 0.016 as "2%" -- a percentage of nothing, in a
+       * product whose whole discipline is that a number carries what produced it. They are
+       * printed as the literature prints them, to three places.
+       *
+       * THE WEIGHT. Three more bordered cells directly under the headline row read as three more
+       * headline figures, and these are a BREAKDOWN of the row above rather than a rival to it.
+       * One quiet panel of rows, no borders per cell.
+       *
+       * THE SEPARATION. `uncertainty` is a property of the positions and says nothing about the
+       * player; a rule above it and a dimmed treatment do that structurally, so the reader sees
+       * it before reading the sentence underneath.
+       */}
+      {/*
+       * BEHIND A DISCLOSURE WHILE NOTHING INSIDE IT CAN REPORT, AND NOT MERGED INTO ONE SENTENCE.
+       *
+       * Measured on a 390x844 phone with one decision on the record: this screen is 4,128 CSS px
+       * tall, nearly five phone screens, and almost all of it is sections announcing that they
+       * cannot report yet.
+       *
+       * THE FIRST ATTEMPT REPLACED THEM ALL WITH ONE SENTENCE AND FIVE TESTS CAUGHT IT, correctly.
+       * `a-correlation-cell-that-says-why-it-is-empty` states the rule this product runs on: "the
+       * advice differs by reason, and two of them are not waits. A player who took the same time
+       * over every decision cannot fix that cell by playing more; a player with twelve decisions
+       * can. Telling both of them nothing tells the first one to keep going, silently and
+       * wrongly." A record below `MIN_BUCKET_N` can be short AND flat at once, so one shared
+       * apology is a wrong sentence rather than a shorter one.
+       *
+       * SO NOTHING IS MERGED AND NOTHING IS REMOVED. Every section keeps its heading, its own
+       * cause and its own words, one press away. `.context-why` is the same pattern on the busiest
+       * screen in the product, and `the-words-a-stranger-must-read` sanctions it by holding every
+       * stage to opening no disclosure by default.
+       *
+       * OPEN AS SOON AS ANYTHING INSIDE CAN BE READ, which is what `open` is bound to rather than
+       * left to a preference. A reader with a record does not press to reach their own numbers.
+       *
+       * THE HEADLINE IS OUTSIDE IT. The stated confidence, what happened, and the gap between them
+       * are computed from `scored`, are reportable from the first decision, and carry their
+       * denominator. They are what a player with one decision came for.
+       */}
+      <details className="dash-waiting" open={scored >= MIN_BUCKET_N}>
+        <summary>
+          {scored >= MIN_BUCKET_N
+            ? "הקריאות המלאות"
+            : `מה שעוד אין מספיק החלטות בשבילו — עוד ${MIN_BUCKET_N - scored} מדודות`}
+        </summary>
+        <h4 className="dash-title">ממה מורכב הפער</h4>
+        {calibration.reliable ? (
+          <>
+            <dl className="calibration-split">
+              <div className="split-row split-mine">
+                <dt>שגיאת הכיול</dt>
+                <dd>{calibration.reliability.toFixed(3)}</dd>
+              </div>
+              <div className="split-row">
+                <dt>כוח ההבחנה</dt>
+                <dd>{calibration.resolution.toFixed(3)}</dd>
+              </div>
+              <div className="split-row split-theirs">
+                <dt>קושי העמדות</dt>
+                <dd>{calibration.uncertainty.toFixed(3)}</dd>
+              </div>
+            </dl>
             <p className="dash-note" dir="rtl">
-              <Proportion
-                value={calibration.unreadableN / calibration.n}
-                n={calibration.n}
-                label="מהרשומה הזו נמדד ברמות ביטחון שנאמרו מעט מדי"
-              />{" "}
-              רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
-              ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
+              רק שגיאת הכיול מדברת עליכם. קושי העמדות הוא תכונה של מה שפגשתם — עמדות קשות מגדילות את
+              הפער בלי שנעשיתם שופטים גרועים יותר של עצמכם.
             </p>
-          )}
-        </>
-      ) : (
-        /*
-         * REACHED WHEN NO LEVEL HAS BEEN STATED ENOUGH TIMES, which under `some` is again exactly
-         * what this sentence says. It names the levels and the decisions they hold rather than only
-         * the floor, because that is what tells a reader how far off they are.
-         */
-        <NotMeasured
-          reason={(() => {
-            const held = calibration.levels.reduce((n, level) => n + level.n, 0);
-            return (
-              `אף רמת ביטחון עוד לא נאמרה ${MIN_BUCKET_N} פעמים, ולכן אין כאן מה לפרק. ` +
-              `${calibration.levels.length} רמות נאמרו עד כה, ${held} החלטות בסך הכול. ` +
-              `בגודל כזה הפירוק הוא רעש הדגימה, לא ממצא עליכם.`
-            );
-          })()}
-        />
-      )}
-
-      {/*
-        * THE TWO FACETS THE GAP CANNOT SEE, and the first one is arguably the most useful number
-        * on this screen.
-        *
-        * SENSITIVITY answers a question a chess player recognises -- can you tell your good moves
-        * from your bad ones -- and calibration structurally cannot answer it. Someone
-        * systematically far too confident can still rank their own decisions perfectly; someone
-        * perfectly calibrated on average can be ranking them at chance. Shifting every stated
-        * confidence by the same amount changes the gap completely and leaves this untouched.
-        *
-        * CONTROL is the half that monitoring alone cannot stand in for: knowing you are unsure
-        * matters because of what you do next. Negative is healthy, and the sign is shown rather
-        * than an absolute value, because the other direction is a finding about how someone
-        * spends their attention.
-        */}
-      <h4 className="dash-title">מה שהפער לא רואה</h4>
-      <dl className="calibration-split">
-        <div className="split-row split-mine">
-          <dt>ההבחנה שלכם</dt>
-          <dd>
-            {sensitivity.readable && sensitivity.auroc2 !== null
-              ? sensitivity.auroc2.toFixed(2)
-              : "—"}
-          </dd>
-          {/*
-            * THE RANGE THE NUMBER IS WORTH READING AGAINST. 0.71 on its own is uninterpretable:
-            * nobody knows whether that is good. This is the middle 80% of people who scored about
-            * as accurately as this reader, measured on the Confidence Database with this product's
-            * own estimator.
-            *
-            * A SECOND `dd`, NOT A SPAN INSIDE THE FIRST. It began as a span and broke an existing
-            * assertion that the discrimination cell holds a bare two-place area and never a
-            * percentage -- the cell's text became "0.81במחקר 0.47–0.62". That assertion is right
-            * and the markup was wrong: the figure is one value, the range is another, and a
-            * definition list is allowed to carry two.
-            *
-            * Absent rather than defaulted where the corpus has no stratum for their accuracy --
-            * the unconditioned range would hand back exactly the confound the conditioning
-            * removes, and would do it silently.
-            */}
-          {sensitivityReference && (
-            <dd className="split-band">
-              {/*
-                * Isolated for the same reason as `.bucket-versus`: a range read left-to-right
-                * inside a Hebrew line. Without it "במחקר 0.52–0.69" renders as
-                * "0.69–0.52 רקחמב" -- the numbers reversed, so the range reads high-to-low and
-                * a reader takes the lower bound for the upper one.
-                */}
-              במחקר{" "}
-              <bdi>
-                {band(sensitivityReference, 10)}–{band(sensitivityReference, 90)}
-              </bdi>
-            </dd>
-          )}
-        </div>
-        <div className="split-row">
-          <dt>מאמץ שהולך אחרי הספק</dt>
-          <dd>
-            {control.readable && control.rho !== null ? control.rho.toFixed(2) : "—"}
-          </dd>
-          {/*
-            * WHY THE CELL IS EMPTY, WHICH THE CELL NEVER SAID. `Control` computes four distinct
-            * reasons and this rendered a bare "—" for all of them, so a player who took the same
-            * time over every decision and a player with twelve decisions saw the same dash. The
-            * distinction was built in the shared code and thrown away at the last step.
-            *
-            * The advice differs per reason and that is the point: `too-few` and `inside-noise`
-            * are waits, `flat-time` and `flat-confidence` are not -- more decisions at the same
-            * speed will never make that cell readable.
-            */}
-          {!control.readable && control.reason !== null && (
-            <dd className="split-why">{CONTROL_SILENCE[control.reason]}</dd>
-          )}
-        </div>
-      </dl>
-      {/*
-        * FIVE CAUSES, FIVE SENTENCES. This was a two-way ternary: the explanation, or one line
-        * saying the record needs enough of both kinds. That line is true of three of the four
-        * silent cases and false of the fourth -- a record with plenty of both, whose area was
-        * computed and came out indistinguishable from chance. Telling that player to record more
-        * of both kinds describes a problem they do not have.
-        */}
-      <p className="dash-note" dir="rtl">
-        {sensitivity.readable && sensitivity.auroc2 !== null
-          ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
-          : sensitivity.reason !== null
-            ? SENSITIVITY_SILENCE[sensitivity.reason]
-            : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
-      </p>
-      {/*
-        * The caveat is longer than the number, deliberately. Two things here are easy to misread
-        * and expensive to misread: that the range is drawn from people of similar accuracy rather
-        * than from everyone, and that the task behind it is not chess. A range without them reads
-        * as a grade.
-        */}
-      {sensitivityReference && (
-        <p className="dash-note" dir="rtl">
-          הטווח נמדד על {sensitivityReference.n.toLocaleString("he-IL")} אנשים ממאגר הביטחון (Rahnev
-          ואחרים, 2020) — ורק על מי שדייקו בערך כמוכם. זה לא פרט טכני: ההבחנה עולה עם הדיוק עצמו
-          (ρ={ACCURACY_COUPLING.toFixed(2)}), ובלי התנאי הזה שחקן חזק היה מקבל ציון גבוה על עצם
-          היותו חזק. והמשימה שם אינה שחמט — ברובה הכרעה בינארית בתפיסה או בזיכרון, ולכן זה טווח
-          להשוואה ולא הדירוג שלכם בתוכו.
-        </p>
-      )}
-      <p className="dash-note" dir="rtl">
-        המאמץ שלילי כשהשקעתם יותר זמן בהחלטות שהייתם בטוחים בהן פחות. על המשחקים שלכם המספר הזה
-        מעורבב עם קושי העמדה — עמדה קשה גם לוקחת יותר זמן וגם מרגישה פחות בטוחה. רק על הסט המשותף
-        אפשר להשוות אותו למישהו אחר.
-      </p>
-
-      {/*
-        * THE QUESTION THAT COMES BEFORE ALL OF THEM, and the one this screen never asked.
-        *
-        * `splitHalfStability` has been computed on every reading for as long as the dashboard has
-        * existed and no component read it. Everything above is a number ABOUT THE PLAYER, and
-        * every one of them is worthless if the record does not say the same thing twice -- so the
-        * screen was showing five answers and withholding the one that says whether to believe
-        * them.
-        *
-        * NO VERDICT, AND THAT IS DELIBERATE -- `Stability` deliberately ships no threshold, and a
-        * "stable" here would manufacture exactly the reading the module was written to prevent:
-        * that a passing record has a settled number about the person. The spread is printed and
-        * the reader is told which direction is good. Nothing is graded.
-        *
-        * THE CAVEAT IS LOAD-BEARING, NOT DECORATION. Both halves come from the same record, so
-        * this cannot separate a trait from a mood, a warm-up, or a run of kind positions. Read as
-        * test-retest reliability it would be a much stronger claim than anything here supports,
-        * and the sentence saying so is the reason this block is allowed on screen at all.
-        */}
-      <h4 className="dash-title">האם הרשומה אמרה את אותו הדבר פעמיים</h4>
-      {stability.readable && stability.spread !== null ? (
-        <>
-          <dl className="calibration-split">
             {/*
-              * `SignedProportion` rather than a local formatter, and GATE-DENOM is why.
-              *
-              * The first version printed the percentage by hand and put each half's n in its own
-              * `dd` beside it, matching how the calibration split above lays out its cells. The
-              * gate failed the build: those cells are squared-error quantities and carry no
-              * denominator to lose, while a gap IS a rate, and a rate whose n sits in a sibling
-              * element is a rate the scanner cannot see paired with anything. It was right to.
-              * The n belongs to the number, and `Value.tsx` is the one place allowed to say so.
-              */}
-            <div className="split-row">
-              <dt>הפער במחצית האחת</dt>
-              <dd>
-                <SignedProportion value={stability.gap[0]} n={stability.n[0]} />
-              </dd>
-            </div>
-            <div className="split-row">
-              <dt>הפער במחצית השנייה</dt>
-              <dd>
-                <SignedProportion value={stability.gap[1]} n={stability.n[1]} />
-              </dd>
-            </div>
-            <div className="split-row split-mine">
-              <dt>המרחק ביניהן</dt>
-              <dd>{stability.spread.toFixed(2)}</dd>
-              <dd className="split-band">שגיאות תקן</dd>
-            </div>
-          </dl>
-          <p className="dash-note" dir="rtl">
-            הרשומה נחתכה לשתי מחציות לסירוגין — החלטה לכאן, החלטה לשם — ולא לחצי ראשון וחצי שני,
-            כדי שעייפות או התחממות לא ייקראו כחוסר יציבות. קטן זה טוב: המספר יצא דומה בשתיהן. אין
-            כאן סף ואין מעבר או נכשל, כי הפיכת זה לציון הייתה בדיוק הקריאה שהמדידה הזו נועדה למנוע.
-          </p>
-          <p className="dash-note" dir="rtl">
-            <strong>זו אינה מדידת יציבות לאורך זמן.</strong> שתי המחציות מגיעות מאותה רשומה, ולכן
-            הבדיקה הזו לא יכולה להבחין בין תכונה שלכם לבין מצב רוח, התחממות או רצף עמדות נוחות —
-            להבחנה הזו צריך מדידה שמופרדת בזמן, ואין כזו כאן. מרחק גדול אומר שהמספרים למעלה הם רעש;
-            מרחק קטן אומר שהם לא רעש גלוי, ולא יותר מזה.
-          </p>
-        </>
-      ) : (
-        <NotMeasured
-          reason={
-            stability.n[0] < MIN_STABILITY_HALF || stability.n[1] < MIN_STABILITY_HALF
-              ? `לכל מחצית צריך ${MIN_STABILITY_HALF} החלטות מהסט המשותף — ${MIN_STABILITY_HALF * 2} בסך הכול, ויש ${stability.n[0] + stability.n[1]}. מתחת לזה הבדיקה לא יכולה להיכשל, ולכן מעבר שלה לא היה אומר כלום.`
-              : "שתי המחציות שטוחות מכדי לחשב מהן שגיאת תקן, ובלי שגיאת תקן למרחק ביניהן אין קנה מידה."
-          }
-        />
-      )}
-
-      {curve.length > 0 && (
-        <>
-          <h4 className="dash-title">מה שאמרת מול מה שקרה</h4>
-          <p className="chart-legend" dir="rtl">
-            <i style={{ background: "var(--c-axis)" }} /> הצהרת
-            <i style={{ background: "var(--c-white-edge)" }} /> קרה בפועל
-          </p>
-          <div className="chart-frame" dir="ltr">
-            <ResponsiveContainer width="100%" height={150}>
-              {/*
-                * `left: 0`, AND IT IS NOT A GUTTER PREFERENCE. It was -24 against a `width={40}`
-                * axis, which leaves 16 usable pixels for a label recharts right-anchors against
-                * the axis line -- so `18%` (22px) and `100%` (~28px) were drawn starting outside
-                * the SVG and clipped by it. What reached the reader was `%`, five times down the
-                * side of the chart, each one claiming a number had been shown.
-                *
-                * A NEGATIVE LEFT MARGIN IS A SUBTRACTION FROM THE PICTURE, not a tuning value:
-                * there is no width the axis can be given that survives it, because the margin
-                * moves the axis and the width only sizes it. The two charts in `GameReview` had
-                * the same pair (-22 against 38) and the same 16 pixels.
-                */}
-              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke="var(--c-grid)" vertical={false} />
-                <XAxis dataKey="stated" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
-                <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={40} unit="%" />
-                <Tooltip
-                  cursor={{ fill: "var(--c-grid)" }}
-                  contentStyle={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--hairline-strong)",
-                    borderRadius: 0,
-                    fontSize: "var(--panel-label)",
-                  }}
-                  labelFormatter={(s) => `ביטחון ${s}`}
-                  formatter={(v, name, item) => [
-                    `${Number(v)}%  (n=${item?.payload?.n ?? 0})`,
-                    name === "claimed" ? "הצהרת" : "קרה בפועל",
-                  ]}
-                />
-                <Bar
-                  dataKey="claimed"
-                  fill="var(--c-axis)"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive={false}
-                />
-                <Bar dataKey="observed" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                  {curve.map((c) => (
-                    // Below the line you claimed is overconfidence; above it is the other way.
-                    <Cell
-                      key={c.stated}
-                      fill={c.observed < c.claimed ? "var(--c-black-edge)" : "var(--c-white-edge)"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
-
-      <h4 className="dash-title">לפי סוג ההחלטה</h4>
-      <ul className="bucket-list">
-        {buckets.map((b) => (
-          <li key={b.key} className={b.measurable ? "" : "unmeasurable"}>
-            <span className="bucket-scope">{b.scope}</span>
-            {b.measurable ? (
-              <>
-                {/* Scaled, not sized in percent -- the figure beside it is the claim. */}
-                <span className="bucket-bar" aria-hidden="true">
-                  <i
-                    style={{
-                      transform: `scaleX(${Math.min(1, Math.abs(b.inside.gap) * 2)})`,
-                      background: b.inside.gap > 0 ? "var(--c-black-edge)" : "var(--c-white-edge)",
-                    }}
-                  />
-                </span>
-                <SignedProportion value={b.inside.gap} n={b.inside.n} />
-                {/*
-                  * WHAT THE BUCKET IS WORTH KNOWING AGAINST. Measured on 693,130 real Lichess
-                  * moves: the middlegame is 12.6 points less accurate than everything else FOR
-                  * EVERYONE, and decisions over two minutes are 14.2 points worse -- people think
-                  * longer because the position is hard. Reporting a player's rate in a bucket
-                  * without that is telling them a fact about chess in the second person.
-                  *
-                  * Absent rather than zero where the corpus has no baseline: a bucket the
-                  * population data cannot support renders nothing, not a comparison against a
-                  * number nobody measured.
-                  */}
-                {b.versusPopulation !== null &&
-                  (b.versusPopulation.separated ? (
-                    <span className="bucket-versus">
-                      {/*
-                        * `<bdi>` around the number, not a CSS rule on the span.
-                        *
-                        * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
-                        * plaintext` -- which fixed the bare numbers elsewhere -- takes its
-                        * direction from the first strong character, resolves the whole run
-                        * right-to-left, and leaves the sign 62px from its digits. Measured:
-                        * "−4 נק׳ מול כולם" rendered as "םלוכ לומ ׳קנ 4−".
-                        *
-                        * An isolate is the tool for a mixed run: it fixes the direction of what
-                        * is inside it and stops it interacting with what is outside.
-                        */}
-                      <bdi>
-                        {b.versusPopulation.points >= 0 ? "+" : "−"}
-                        {Math.abs(Math.round(b.versusPopulation.points * 100))}
-                      </bdi>{" "}
-                      נק׳ מול כולם
-                    </span>
-                  ) : (
-                    /*
-                      * MEASURED, AND THE SAME. Both rates stay on screen -- the population figure
-                      * is computed on hundreds of thousands of moves and is the context the whole
-                      * baseline exists to supply. What is dropped is the ASSERTION that the
-                      * player differs from it, which is the only part that needed this record to
-                      * carry it and could not.
-                      *
-                      * Simulated against the real baselines, a player whose true accuracy EQUALS
-                      * the population's was shown a signed figure on 100% of draws at
-                      * MIN_BUCKET_N, ten points or more on a quarter of them.
-                      */
-                    <span className="bucket-versus bucket-versus-flat">
-                      אצלכם{" "}
-                      <bdi>{Math.round(b.inside.accuracyRate * 100)}%</bdi>, אצל כולם{" "}
-                      <bdi>
-                        {Math.round(
-                          (b.inside.accuracyRate - b.versusPopulation.points) * 100,
-                        )}
-                        %
-                      </bdi>{" "}
-                      — ההפרש קטן ממה ש-{b.inside.n} החלטות יכולות להבחין בו, ולכן הוא לא מדווח
-                      כהפרש.
-                    </span>
-                  ))}
-              </>
-            ) : b.unmeasurableReason === "no-clock-data" ? (
-              /*
-               * Not a wait. This record carries no clock at all, so the bucket can never fill,
-               * and "record more decisions" is advice that cannot work. A local game against
-               * Stockfish has no clock, and a Lichess export carries none unless the user
-               * ticked the option -- so the message names the fix that actually exists.
-               */
-              <span className="bucket-short">
-                לא ניתן למדוד במצב הזה — אין נתוני שעון ברשומה. משחק מקומי מול Stockfish הוא בלי
-                שעון, וייצוא מליצ׳ס נושא שעונים רק אם ביקשתם אותם בייצוא.
-              </span>
-            ) : (
-              <span className="bucket-short">
-                לא ניתן למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
-              </span>
+             * THE QUALIFICATION, AND IT IS WHY THE PANEL IS ALLOWED TO SHOW THE NUMBER AT ALL.
+             *
+             * `reliable` says some level is big enough to read. It does NOT say the figure above is
+             * made of those levels: `reliability` is a weighted mean, and a level's weight is its
+             * share of the record rather than its eligibility. Measured on the record this exists
+             * for, 30 decisions at 65% beside 29 at 95%, the eligible level carries under a
+             * thousandth and the short one carries over 99%.
+             *
+             * A SHARE OF THE RECORD AND NOT OF THE ERROR. It used to divide the thin levels' term by
+             * `reliability`, the number it was qualifying, so three decisions out of 403 were
+             * described as anywhere from 2% to 100% depending only on how the OTHER levels landed --
+             * loudest for the best-calibrated reader -- and as nothing at all when a thin level
+             * happened to be right. This counts decisions, depends on nothing else, and arrives
+             * through `Proportion` with the denominator R1 requires. Absent when every used level
+             * clears the floor, because a qualification on a reading that needs none teaches the
+             * reader to discount every reading.
+             */}
+            {calibration.unreadableN > 0 && (
+              <p className="dash-note" dir="rtl">
+                <Proportion
+                  value={calibration.unreadableN / calibration.n}
+                  n={calibration.n}
+                  label="מההיסטוריה הזו נמדד ברמות ביטחון שנאמרו מעט מדי"
+                />{" "}
+                רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
+                ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
+              </p>
             )}
-          </li>
-        ))}
-      </ul>
+          </>
+        ) : (
+          /*
+           * REACHED WHEN NO LEVEL HAS BEEN STATED ENOUGH TIMES, which under `some` is again exactly
+           * what this sentence says. It names the levels and the decisions they hold rather than only
+           * the floor, because that is what tells a reader how far off they are.
+           */
+          <NotMeasured
+            reason={(() => {
+              const held = calibration.levels.reduce((n, level) => n + level.n, 0);
+              return (
+                `אף רמת ביטחון עוד לא נאמרה ${MIN_BUCKET_N} פעמים, ולכן אין כאן מה לפרק. ` +
+                `${calibration.levels.length} רמות נאמרו עד כה, ${held} החלטות בסך הכול. ` +
+                `בגודל כזה הפירוק הוא רעש הדגימה, לא ממצא עליכם.`
+              );
+            })()}
+          />
+        )}
 
-      <MixBlock mix={reading.mix} />
-
-      {/*
-        * WHAT THE PHASE SPLIT IS AND IS NOT, checked against a corpus outside this repository.
-        *
-        * The baseline these buckets are read against says the middlegame is 12.6 points harder for
-        * everyone and the ENDGAME IS THE EASIEST PHASE by a wide margin. That is a statement about
-        * the accuracy rule. The Lichess puzzle database carries a Glicko rating per position from
-        * real human solve attempts, and on 4.4 million of them the phase label explains 0.35% of
-        * the variance in difficulty -- checked at three filter levels, with the best-measured
-        * items giving the smallest value, so it is not an effect hidden by noise.
-        *
-        * The magnitudes are NOT compared on screen and must not be: a puzzle rating is finding a
-        * unique winning move in a selected tactical position, and the product's rate is not losing
-        * 30 centipawns on an ordinary move. What is said here is made entirely inside the puzzle
-        * corpus -- how little the phase label explains -- which needs no bridge between the two.
-        */}
-      <p className="review-caveat">
         {/*
-          * THROUGH `Value`, NOT A HAND-BUILT PERCENT, and GATE-DENOM is what decided that.
-          *
-          * The first version interpolated `(PHASE_VARIANCE_EXPLAINED * 100).toFixed(2)}%` directly
-          * and the gate went red on it: R1 forbids a percentage without its denominator, and the
-          * scanner exempts exactly one component -- the one that cannot render a number without
-          * its provenance. Widening the exemption for this line would have been answering a gate
-          * by moving it. The exemption is per FILE, so wrapping the same hand-built percent in
-          * `<Value>` did not satisfy it either -- the formatting itself has to live there.
-          * `SmallProportion` does, and it does not round 0.0035 to "0%", which would read as
-          * "not measured" rather than "measured, and nearly nothing".
-          */}
-        החלוקה לשלבים היא תכונה של הכלל שמודד דיוק, לא מדד לקושי. על עמדות שדורגו לפי כמה בני אדם
-        באמת פתרו אותן, השלב מסביר{" "}
-        <SmallProportion value={PHASE_VARIANCE_EXPLAINED} n={PHASE_DIFFICULTY_N} />{" "}
-        מהשונות בקושי — כמעט כלום. ההשוואה לאוכלוסייה כאן מתקנת את הכלל; היא לא אומרת שהעמדות שלכם
-        היו קשות יותר.
-      </p>
-      <p className="review-caveat">
-        פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
-        לא אומר דבר על הדירוג שלך ולא על שיפור.
-      </p>
-      {/*
-        * The probe's own readings, below the calibration ones because they answer a different
-        * question about a different facet: calibration is monitoring -- do you know when you are
-        * right -- and this is selection, which move you produce. Placing it inside the
-        * calibration block would invite reading one as a refinement of the other.
-        */}
-      {/*
-        * Above the probe panel because it reads the SAME decisions the bucket rows above it read,
-        * and it exists to correct how those rows are counted. The probe is a separate facet on a
-        * different question and belongs after both.
-        */}
-      <ProfilePanel
-        variables={reading.profile.variables}
-        crossing={reading.profile.crossing}
-      />
-      <CounterfactualPanel reading={reading.counterfactual} />
+         * THE TWO FACETS THE GAP CANNOT SEE, and the first one is arguably the most useful number
+         * on this screen.
+         *
+         * SENSITIVITY answers a question a chess player recognises -- can you tell your good moves
+         * from your bad ones -- and calibration structurally cannot answer it. Someone
+         * systematically far too confident can still rank their own decisions perfectly; someone
+         * perfectly calibrated on average can be ranking them at chance. Shifting every stated
+         * confidence by the same amount changes the gap completely and leaves this untouched.
+         *
+         * CONTROL is the half that monitoring alone cannot stand in for: knowing you are unsure
+         * matters because of what you do next. Negative is healthy, and the sign is shown rather
+         * than an absolute value, because the other direction is a finding about how someone
+         * spends their attention.
+         */}
+        <h4 className="dash-title">מה שהפער לא רואה</h4>
+        <dl className="calibration-split">
+          <div className="split-row split-mine">
+            <dt>ההבחנה שלכם</dt>
+            <dd>
+              {sensitivity.readable && sensitivity.auroc2 !== null
+                ? sensitivity.auroc2.toFixed(2)
+                : "—"}
+            </dd>
+            {/*
+             * THE RANGE THE NUMBER IS WORTH READING AGAINST. 0.71 on its own is uninterpretable:
+             * nobody knows whether that is good. This is the middle 80% of people who scored about
+             * as accurately as this reader, measured on the Confidence Database with this product's
+             * own estimator.
+             *
+             * A SECOND `dd`, NOT A SPAN INSIDE THE FIRST. It began as a span and broke an existing
+             * assertion that the discrimination cell holds a bare two-place area and never a
+             * percentage -- the cell's text became "0.81במחקר 0.47–0.62". That assertion is right
+             * and the markup was wrong: the figure is one value, the range is another, and a
+             * definition list is allowed to carry two.
+             *
+             * Absent rather than defaulted where the corpus has no stratum for their accuracy --
+             * the unconditioned range would hand back exactly the confound the conditioning
+             * removes, and would do it silently.
+             */}
+            {sensitivityReference && (
+              <dd className="split-band">
+                {/*
+                 * Isolated for the same reason as `.bucket-versus`: a range read left-to-right
+                 * inside a Hebrew line. Without it "במחקר 0.52–0.69" renders as
+                 * "0.69–0.52 רקחמב" -- the numbers reversed, so the range reads high-to-low and
+                 * a reader takes the lower bound for the upper one.
+                 */}
+                במחקר{" "}
+                <bdi>
+                  {band(sensitivityReference, 10)}–{band(sensitivityReference, 90)}
+                </bdi>
+              </dd>
+            )}
+          </div>
+          <div className="split-row">
+            <dt>מאמץ שהולך אחרי הספק</dt>
+            <dd>{control.readable && control.rho !== null ? control.rho.toFixed(2) : "—"}</dd>
+            {/*
+             * WHY THE CELL IS EMPTY, WHICH THE CELL NEVER SAID. `Control` computes four distinct
+             * reasons and this rendered a bare "—" for all of them, so a player who took the same
+             * time over every decision and a player with twelve decisions saw the same dash. The
+             * distinction was built in the shared code and thrown away at the last step.
+             *
+             * The advice differs per reason and that is the point: `too-few` and `inside-noise`
+             * are waits, `flat-time` and `flat-confidence` are not -- more decisions at the same
+             * speed will never make that cell readable.
+             */}
+            {!control.readable && control.reason !== null && (
+              <dd className="split-why">{CONTROL_SILENCE[control.reason]}</dd>
+            )}
+          </div>
+        </dl>
+        {/*
+         * FIVE CAUSES, FIVE SENTENCES. This was a two-way ternary: the explanation, or one line
+         * saying the record needs enough of both kinds. That line is true of three of the four
+         * silent cases and false of the fourth -- a record with plenty of both, whose area was
+         * computed and came out indistinguishable from chance. Telling that player to record more
+         * of both kinds describes a problem they do not have.
+         */}
+        <p className="dash-note" dir="rtl">
+          {sensitivity.readable && sensitivity.auroc2 !== null
+            ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
+            : sensitivity.reason !== null
+              ? SENSITIVITY_SILENCE[sensitivity.reason]
+              : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
+        </p>
+        {/*
+         * The caveat is longer than the number, deliberately. Two things here are easy to misread
+         * and expensive to misread: that the range is drawn from people of similar accuracy rather
+         * than from everyone, and that the task behind it is not chess. A range without them reads
+         * as a grade.
+         */}
+        {sensitivityReference && (
+          <p className="dash-note" dir="rtl">
+            הטווח נמדד על {sensitivityReference.n.toLocaleString("he-IL")} אנשים ממאגר הביטחון
+            (Rahnev ואחרים, 2020) — ורק על מי שדייקו בערך כמוכם. זה לא פרט טכני: ההבחנה עולה עם
+            הדיוק עצמו (ρ={ACCURACY_COUPLING.toFixed(2)}), ובלי התנאי הזה שחקן חזק היה מקבל ציון
+            גבוה על עצם היותו חזק. והמשימה שם אינה שחמט — ברובה הכרעה בינארית בתפיסה או בזיכרון,
+            ולכן זה טווח להשוואה ולא הדירוג שלכם בתוכו.
+          </p>
+        )}
+        <p className="dash-note" dir="rtl">
+          המאמץ שלילי כשהשקעתם יותר זמן בהחלטות שהייתם בטוחים בהן פחות. על המשחקים שלכם המספר הזה
+          מעורבב עם קושי העמדה — עמדה קשה גם לוקחת יותר זמן וגם מרגישה פחות בטוחה. רק על הסט המשותף
+          אפשר להשוות אותו למישהו אחר.
+        </p>
+
+        {/*
+         * THE QUESTION THAT COMES BEFORE ALL OF THEM, and the one this screen never asked.
+         *
+         * `splitHalfStability` has been computed on every reading for as long as the dashboard has
+         * existed and no component read it. Everything above is a number ABOUT THE PLAYER, and
+         * every one of them is worthless if the record does not say the same thing twice -- so the
+         * screen was showing five answers and withholding the one that says whether to believe
+         * them.
+         *
+         * NO VERDICT, AND THAT IS DELIBERATE -- `Stability` deliberately ships no threshold, and a
+         * "stable" here would manufacture exactly the reading the module was written to prevent:
+         * that a passing record has a settled number about the person. The spread is printed and
+         * the reader is told which direction is good. Nothing is graded.
+         *
+         * THE CAVEAT IS LOAD-BEARING, NOT DECORATION. Both halves come from the same record, so
+         * this cannot separate a trait from a mood, a warm-up, or a run of kind positions. Read as
+         * test-retest reliability it would be a much stronger claim than anything here supports,
+         * and the sentence saying so is the reason this block is allowed on screen at all.
+         */}
+        <h4 className="dash-title">האם ההיסטוריה אמרה את אותו הדבר פעמיים</h4>
+        {stability.readable && stability.spread !== null ? (
+          <>
+            <dl className="calibration-split">
+              {/*
+               * `SignedProportion` rather than a local formatter, and GATE-DENOM is why.
+               *
+               * The first version printed the percentage by hand and put each half's n in its own
+               * `dd` beside it, matching how the calibration split above lays out its cells. The
+               * gate failed the build: those cells are squared-error quantities and carry no
+               * denominator to lose, while a gap IS a rate, and a rate whose n sits in a sibling
+               * element is a rate the scanner cannot see paired with anything. It was right to.
+               * The n belongs to the number, and `Value.tsx` is the one place allowed to say so.
+               */}
+              <div className="split-row">
+                <dt>הפער במחצית האחת</dt>
+                <dd>
+                  <SignedProportion value={stability.gap[0]} n={stability.n[0]} />
+                </dd>
+              </div>
+              <div className="split-row">
+                <dt>הפער במחצית השנייה</dt>
+                <dd>
+                  <SignedProportion value={stability.gap[1]} n={stability.n[1]} />
+                </dd>
+              </div>
+              <div className="split-row split-mine">
+                <dt>המרחק ביניהן</dt>
+                <dd>{stability.spread.toFixed(2)}</dd>
+                <dd className="split-band">שגיאות תקן</dd>
+              </div>
+            </dl>
+            <p className="dash-note" dir="rtl">
+              ההיסטוריה נחתכה לשתי מחציות לסירוגין — החלטה לכאן, החלטה לשם — ולא לחצי ראשון וחצי
+              שני, כדי שעייפות או התחממות לא ייקראו כחוסר יציבות. קטן זה טוב: המספר יצא דומה בשתיהן.
+              אין כאן סף ואין מעבר או נכשל, כי הפיכת זה לציון הייתה בדיוק הקריאה שהמדידה הזו נועדה
+              למנוע.
+            </p>
+            <p className="dash-note" dir="rtl">
+              <strong>זו אינה מדידת יציבות לאורך זמן.</strong> שתי המחציות מגיעות מאותה רשומה, ולכן
+              הבדיקה הזו לא יכולה להבחין בין תכונה שלכם לבין מצב רוח, התחממות או רצף עמדות נוחות —
+              להבחנה הזו צריך מדידה שמופרדת בזמן, ואין כזו כאן. מרחק גדול אומר שהמספרים למעלה הם
+              רעש; מרחק קטן אומר שהם לא רעש גלוי, ולא יותר מזה.
+            </p>
+          </>
+        ) : (
+          <NotMeasured
+            reason={
+              stability.n[0] < MIN_STABILITY_HALF || stability.n[1] < MIN_STABILITY_HALF
+                ? `לכל מחצית צריך ${MIN_STABILITY_HALF} החלטות מהסט המשותף — ${MIN_STABILITY_HALF * 2} בסך הכול, ויש ${stability.n[0] + stability.n[1]}. מתחת לזה הבדיקה לא יכולה להיכשל, ולכן מעבר שלה לא היה אומר כלום.`
+                : "שתי המחציות שטוחות מכדי לחשב מהן שגיאת תקן, ובלי שגיאת תקן למרחק ביניהן אין קנה מידה."
+            }
+          />
+        )}
+
+        {curve.length > 0 && (
+          <>
+            <h4 className="dash-title">מה שאמרת מול מה שקרה</h4>
+            <p className="chart-legend" dir="rtl">
+              <i style={{ background: "var(--c-axis)" }} /> הצהרת
+              <i style={{ background: "var(--c-white-edge)" }} /> קרה בפועל
+            </p>
+            <div className="chart-frame" dir="ltr">
+              <ResponsiveContainer width="100%" height={150}>
+                {/*
+                 * `left: 0`, AND IT IS NOT A GUTTER PREFERENCE. It was -24 against a `width={40}`
+                 * axis, which leaves 16 usable pixels for a label recharts right-anchors against
+                 * the axis line -- so `18%` (22px) and `100%` (~28px) were drawn starting outside
+                 * the SVG and clipped by it. What reached the reader was `%`, five times down the
+                 * side of the chart, each one claiming a number had been shown.
+                 *
+                 * A NEGATIVE LEFT MARGIN IS A SUBTRACTION FROM THE PICTURE, not a tuning value:
+                 * there is no width the axis can be given that survives it, because the margin
+                 * moves the axis and the width only sizes it. The two charts in `GameReview` had
+                 * the same pair (-22 against 38) and the same 16 pixels.
+                 */}
+                <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
+                  <CartesianGrid stroke="var(--c-grid)" vertical={false} />
+                  <XAxis
+                    dataKey="stated"
+                    tick={{ fontSize: "var(--panel-fine)" }}
+                    stroke="var(--c-axis)"
+                  />
+                  <YAxis
+                    tick={{ fontSize: "var(--panel-fine)" }}
+                    stroke="var(--c-axis)"
+                    width={40}
+                    unit="%"
+                  />
+                  <Tooltip
+                    cursor={{ fill: "var(--c-grid)" }}
+                    contentStyle={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--hairline-strong)",
+                      borderRadius: 0,
+                      fontSize: "var(--panel-label)",
+                    }}
+                    labelFormatter={(s) => `ביטחון ${s}`}
+                    formatter={(v, name, item) => [
+                      `${Number(v)}%  (n=${item?.payload?.n ?? 0})`,
+                      name === "claimed" ? "הצהרת" : "קרה בפועל",
+                    ]}
+                  />
+                  <Bar
+                    dataKey="claimed"
+                    fill="var(--c-axis)"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  />
+                  <Bar dataKey="observed" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    {curve.map((c) => (
+                      // Below the line you claimed is overconfidence; above it is the other way.
+                      <Cell
+                        key={c.stated}
+                        fill={
+                          c.observed < c.claimed ? "var(--c-black-edge)" : "var(--c-white-edge)"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
+
+        <h4 className="dash-title">לפי סוג ההחלטה</h4>
+
+        {/* The finding before the rows. See `BucketFinding` for which separation it is about. */}
+        <BucketFinding buckets={buckets} />
+
+        <ul className="bucket-list">
+          {buckets.map((b) => (
+            <li key={b.key} className={b.measurable ? "" : "unmeasurable"}>
+              <span className="bucket-scope">{b.scope}</span>
+              {b.measurable ? (
+                <>
+                  {/* Scaled, not sized in percent -- the figure beside it is the claim. */}
+                  <span className="bucket-bar" aria-hidden="true">
+                    <i
+                      style={{
+                        transform: `scaleX(${Math.min(1, Math.abs(b.inside.gap) * 2)})`,
+                        background:
+                          b.inside.gap > 0 ? "var(--c-black-edge)" : "var(--c-white-edge)",
+                      }}
+                    />
+                  </span>
+                  <SignedProportion value={b.inside.gap} n={b.inside.n} />
+                  {/*
+                   * WHAT THE BUCKET IS WORTH KNOWING AGAINST. Measured on 693,130 real Lichess
+                   * moves: the middlegame is 12.6 points less accurate than everything else FOR
+                   * EVERYONE, and decisions over two minutes are 14.2 points worse -- people think
+                   * longer because the position is hard. Reporting a player's rate in a bucket
+                   * without that is telling them a fact about chess in the second person.
+                   *
+                   * Absent rather than zero where the corpus has no baseline: a bucket the
+                   * population data cannot support renders nothing, not a comparison against a
+                   * number nobody measured.
+                   */}
+                  {b.versusPopulation !== null &&
+                    (b.versusPopulation.separated ? (
+                      <span className="bucket-versus">
+                        {/*
+                         * `<bdi>` around the number, not a CSS rule on the span.
+                         *
+                         * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
+                         * plaintext` -- which fixed the bare numbers elsewhere -- takes its
+                         * direction from the first strong character, resolves the whole run
+                         * right-to-left, and leaves the sign 62px from its digits. Measured:
+                         * "−4 נק׳ מול כולם" rendered as "םלוכ לומ ׳קנ 4−".
+                         *
+                         * An isolate is the tool for a mixed run: it fixes the direction of what
+                         * is inside it and stops it interacting with what is outside.
+                         */}
+                        <bdi>
+                          {b.versusPopulation.points >= 0 ? "+" : "−"}
+                          {Math.abs(Math.round(b.versusPopulation.points * 100))}
+                        </bdi>{" "}
+                        נק׳ מול כולם
+                      </span>
+                    ) : (
+                      /*
+                       * MEASURED, AND THE SAME. Both rates stay on screen -- the population figure
+                       * is computed on hundreds of thousands of moves and is the context the whole
+                       * baseline exists to supply. What is dropped is the ASSERTION that the
+                       * player differs from it, which is the only part that needed this record to
+                       * carry it and could not.
+                       *
+                       * Simulated against the real baselines, a player whose true accuracy EQUALS
+                       * the population's was shown a signed figure on 100% of draws at
+                       * MIN_BUCKET_N, ten points or more on a quarter of them.
+                       */
+                      <span className="bucket-versus bucket-versus-flat">
+                        אצלכם <bdi>{Math.round(b.inside.accuracyRate * 100)}%</bdi>, אצל כולם{" "}
+                        <bdi>
+                          {Math.round((b.inside.accuracyRate - b.versusPopulation.points) * 100)}%
+                        </bdi>{" "}
+                        — ההפרש קטן ממה ש-{b.inside.n} החלטות יכולות להבחין בו, ולכן הוא לא מדווח
+                        כהפרש.
+                      </span>
+                    ))}
+                </>
+              ) : b.unmeasurableReason === "no-clock-data" ? (
+                /*
+                 * Not a wait. This record carries no clock at all, so the bucket can never fill,
+                 * and "record more decisions" is advice that cannot work. A local game against
+                 * Stockfish has no clock, and a Lichess export carries none unless the user
+                 * ticked the option -- so the message names the fix that actually exists.
+                 */
+                <span className="bucket-short">
+                  אי אפשר למדוד במצב הזה — אין נתוני שעון בהיסטוריה. משחק מקומי מול Stockfish הוא
+                  בלי שעון, וייצוא מליצ׳ס נושא שעונים רק אם ביקשתם אותם בייצוא.
+                </span>
+              ) : (
+                <span className="bucket-short">
+                  אי אפשר למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <MixBlock mix={reading.mix} />
+
+        {/*
+         * WHAT THE PHASE SPLIT IS AND IS NOT, checked against a corpus outside this repository.
+         *
+         * The baseline these buckets are read against says the middlegame is 12.6 points harder for
+         * everyone and the ENDGAME IS THE EASIEST PHASE by a wide margin. That is a statement about
+         * the accuracy rule. The Lichess puzzle database carries a Glicko rating per position from
+         * real human solve attempts, and on 4.4 million of them the phase label explains 0.35% of
+         * the variance in difficulty -- checked at three filter levels, with the best-measured
+         * items giving the smallest value, so it is not an effect hidden by noise.
+         *
+         * The magnitudes are NOT compared on screen and must not be: a puzzle rating is finding a
+         * unique winning move in a selected tactical position, and the product's rate is not losing
+         * 30 centipawns on an ordinary move. What is said here is made entirely inside the puzzle
+         * corpus -- how little the phase label explains -- which needs no bridge between the two.
+         */}
+        <p className="review-caveat">
+          {/*
+           * THROUGH `Value`, NOT A HAND-BUILT PERCENT, and GATE-DENOM is what decided that.
+           *
+           * The first version interpolated `(PHASE_VARIANCE_EXPLAINED * 100).toFixed(2)}%` directly
+           * and the gate went red on it: R1 forbids a percentage without its denominator, and the
+           * scanner exempts exactly one component -- the one that cannot render a number without
+           * its provenance. Widening the exemption for this line would have been answering a gate
+           * by moving it. The exemption is per FILE, so wrapping the same hand-built percent in
+           * `<Value>` did not satisfy it either -- the formatting itself has to live there.
+           * `SmallProportion` does, and it does not round 0.0035 to "0%", which would read as
+           * "not measured" rather than "measured, and nearly nothing".
+           */}
+          החלוקה לשלבים היא תכונה של הכלל שמודד דיוק, לא מדד לקושי. על עמדות שדורגו לפי כמה בני אדם
+          באמת פתרו אותן, השלב מסביר{" "}
+          <SmallProportion value={PHASE_VARIANCE_EXPLAINED} n={PHASE_DIFFICULTY_N} /> מהשונות בקושי
+          — כמעט כלום. ההשוואה לאוכלוסייה כאן מתקנת את הכלל; היא לא אומרת שהעמדות שלכם היו קשות
+          יותר.
+        </p>
+        <p className="review-caveat">
+          פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
+          לא אומר דבר על הדירוג שלך ולא על שיפור.
+        </p>
+        {/*
+         * The probe's own readings, below the calibration ones because they answer a different
+         * question about a different facet: calibration is monitoring -- do you know when you are
+         * right -- and this is selection, which move you produce. Placing it inside the
+         * calibration block would invite reading one as a refinement of the other.
+         */}
+        {/*
+         * Above the probe panel because it reads the SAME decisions the bucket rows above it read,
+         * and it exists to correct how those rows are counted. The probe is a separate facet on a
+         * different question and belongs after both.
+         */}
+        <ProfilePanel variables={reading.profile.variables} crossing={reading.profile.crossing} />
+        <CounterfactualPanel reading={reading.counterfactual} />
+      </details>
     </section>
+  );
+}
+
+/**
+ * How many of the readable types stand apart from everyone else's, said before the rows.
+ *
+ * ADDED BECAUSE A GATE WRITTEN FOR ANOTHER PANEL FOUND THE SAME SHAPE HERE. Six signed gaps in a
+ * column pull a reader toward "so that one is my weakness" whatever each row says about itself,
+ * and this list had a heading and no conclusion at all.
+ *
+ * IT IS A DIFFERENT SEPARATION FROM THE IMPORT PANEL'S, and the wording says which. There the
+ * question is whether one of the player's own types stands apart from their others; here each row
+ * carries `versusPopulation`, which is whether this player's rate in a type stands apart from
+ * everyone else's in the same type. Summarising the second in the first's words would be a
+ * construct collision of exactly the kind the rows themselves are careful about.
+ *
+ * ONLY THE COMPARABLE ROWS ARE IN THE DENOMINATOR. A type under the floor has no rate to compare,
+ * and counting it would make the fraction a statement about how much the player has played rather
+ * than about what was found.
+ */
+function BucketFinding({ buckets }: { buckets: RecordReading["buckets"] }) {
+  const comparable = buckets.filter((b) => b.measurable && b.versusPopulation !== null);
+  if (comparable.length === 0) {
+    return (
+      <p className="bucket-finding">
+        אף סוג עוד לא נקרא מול האוכלוסייה: לכך צריך {MIN_BUCKET_N} החלטות בסוג.
+      </p>
+    );
+  }
+  const separated = comparable.filter((b) => b.versusPopulation !== null && b.versusPopulation.separated);
+  if (separated.length === 0) {
+    return (
+      <p className="bucket-finding">
+        אף אחד מ־{comparable.length} הסוגים שנקראו לא נבדל מהאוכלוסייה. ההפרשים למטה קטנים מטעות
+        הדגימה שלהם, ולכן הנמוך שבהם אינו ממצא.
+      </p>
+    );
+  }
+  return (
+    <p className="bucket-finding">
+      {separated.length} מתוך {comparable.length} הסוגים שנקראו נבדלו מהאוכלוסייה. השאר לא.
+    </p>
   );
 }
 
@@ -764,7 +848,7 @@ export function RecordDashboardLoading() {
   return (
     <section className="analysis-section record-dashboard">
       <p className="claim-loading">
-        <Loader2 size={14} /> קורא את הרשומה…
+        <Loader2 size={14} /> קורא את ההיסטוריה…
       </p>
     </section>
   );
@@ -799,7 +883,6 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  * against a hard-coded string and stayed green when the heading was changed underneath it.
  */
 const MIX_TITLE = "מה הכלי מוצא בהחלטות שלכם";
-
 
 function MixBlock({ mix }: { mix: OneThingMix }) {
   /*
@@ -847,7 +930,7 @@ function MixBlock({ mix }: { mix: OneThingMix }) {
       </p>
       {mix.withheld > 0 && (
         <p className="dash-note" dir="rtl">
-          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. הרשומה
+          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. ההיסטוריה
           יודעת מתי המנוע ענה. היא לא מתעדת מתי, ואם, קראתם את התשובה.
         </p>
       )}
@@ -864,14 +947,14 @@ function MixBlock({ mix }: { mix: OneThingMix }) {
         </li>
       </ul>
       {/*
-        * The ceiling, and the reason the first row can never reach it. Without this the reader
-        * takes the first row for "how often I see it and choose past it", and it is not that.
-        */}
+       * The ceiling, and the reason the first row can never reach it. Without this the reader
+       * takes the first row for "how often I see it and choose past it", and it is not that.
+       */}
       <p className="mix-note">
-        מתוך {mix.n} ההחלטות, ב-{mix.eligible} ההפסד עבר את רעש המנוע והגיע לכדי חומר — רק בהן
-        השאלה "ראיתם את המהלך?" בכלל חלה. <strong>השורה הראשונה היא רצפה, לא הערכה:</strong> היא
-        סופרת רק מהלכים שהנחתם פיזית על הלוח. מהלך ששקלתם בראש ולא נגעתם בו אינו נרשם, ולכן מספר
-        האמיתי של "ראיתי ובחרתי אחרת" גבוה ממנו ולא ידוע כמה.
+        מתוך {mix.n} ההחלטות, ב-{mix.eligible} ההפסד עבר את רעש המנוע והגיע לכדי חומר — רק בהן השאלה
+        "ראיתם את המהלך?" בכלל חלה. <strong>השורה הראשונה היא רצפה, לא הערכה:</strong> היא סופרת רק
+        מהלכים שהנחתם פיזית על הלוח. מהלך ששקלתם בראש ולא נגעתם בו אינו נרשם, ולכן מספר האמיתי של
+        "ראיתי ובחרתי אחרת" גבוה ממנו ולא ידוע כמה.
       </p>
     </div>
   );

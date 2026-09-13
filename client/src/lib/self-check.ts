@@ -374,7 +374,7 @@ async function checkEngine(env: CheckEnv, timeoutMs: number): Promise<CheckResul
 }
 
 function checkStorage(env: CheckEnv): CheckResult {
-  const label = "שמירת הרשומה";
+  const label = "שמירת ההיסטוריה";
   const { available, durability } = env.storage();
   if (!available) return bad("storage", label, "אי אפשר לשמור החלטות בדפדפן הזה כלל.");
   return durability === "persistent"
@@ -384,7 +384,7 @@ function checkStorage(env: CheckEnv): CheckResult {
       skip(
         "storage",
         label,
-        "אחסון קבוע חסום (חלון פרטי, חסימת נתוני אתר, תוסף פרטיות או מכסה מלאה). הלולאה עובדת, אבל הרשומה נמחקת עם סגירת הכרטיסייה.",
+        "אחסון קבוע חסום (חלון פרטי, חסימת נתוני אתר, תוסף פרטיות או מכסה מלאה). הלולאה עובדת, אבל ההיסטוריה נמחקת עם סגירת הכרטיסייה.",
       );
 }
 
@@ -404,7 +404,7 @@ async function checkApi(env: CheckEnv): Promise<CheckResult> {
     // route is alive -- so it is a pass, and says why.
     return ok("api", label, `סטטוס ${res.status} — הנתיב חי (401 תקין ללא התחברות).`);
   } catch (error) {
-    return bad("api", label, `לא ניתן להגיע לשרת — ${reason(error)}.`);
+    return bad("api", label, `אי אפשר להגיע לשרת — ${reason(error)}.`);
   }
 }
 
@@ -449,7 +449,7 @@ export async function checkBuild(env: CheckEnv): Promise<CheckResult> {
     if (!isBuildIdentity(parsed)) return bad("build", label, "התשובה היא JSON אבל לא זהות בילד.");
     return ok("build", label, `build=${shortSha(parsed)} target=${parsed.target} protocol=${parsed.protocolVersion}`);
   } catch (error) {
-    return bad("build", label, `לא ניתן היה לקרוא את זהות הבילד — ${reason(error)}.`);
+    return bad("build", label, `אי אפשר היה לקרוא את זהות הבילד — ${reason(error)}.`);
   }
 }
 

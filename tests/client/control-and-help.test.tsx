@@ -78,7 +78,7 @@ describe("heuristic 3: a drill can be left", () => {
      * sit through a drill they wanted to leave.
      */
     runner("running", 7);
-    expect(document.querySelector(".drill-abandon-note")!.textContent).toMatch(/נשארות ברשומה/);
+    expect(document.querySelector(".drill-abandon-note")!.textContent).toMatch(/נשארות בהיסטוריה/);
   });
 
   it("says so accurately when nothing has been recorded yet", async () => {
@@ -87,7 +87,7 @@ describe("heuristic 3: a drill can be left", () => {
     runner("running", 0);
     const note = document.querySelector(".drill-abandon-note")!.textContent ?? "";
     expect(note).toMatch(/שום החלטה עוד לא נרשמה/);
-    expect(note).not.toMatch(/נשארות ברשומה/);
+    expect(note).not.toMatch(/נשארות בהיסטוריה/);
   });
 
   it("calls the exit while running by a different name than the one at the end", async () => {

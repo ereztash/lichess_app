@@ -9,6 +9,54 @@ and what was measured is kept verbatim, because a ledger rewritten to match the 
 checked against anything. [`WORK_PLAN.md`](WORK_PLAN.md) §1 carries the repairs, their tests and
 the control that showed each test red.
 
+## Re-measured on `d677e78`, and what survived
+
+Both probes were re-run against a build carrying everything between `2390b35` and `d677e78`: the
+copy pass, the UCI-to-SAN notation fix, the notice reorder, the engine-failure retry, the record
+import, the self-check moved behind a lazy chunk, and the blitz layout repair. **No row below is
+rewritten.** This section records what the re-run found, for the reason the header gives: a ledger
+edited to match the build cannot be checked against it, and neither can one that goes stale in
+silence.
+
+**The structure held.** Every class painted inside this ledger's window is covered by a row or by
+one of the families the Counted section names (`.commitment-*`, `.step-*`, `.read-*`,
+`.counterfactual-probe__*`). Fifteen painted classes are outside the window and correctly absent:
+eight at the front door, seven at the reveal (`.value-number`, `.value-provenance`, `.eval-marker`,
+`.one-thing-none`, `.accumulation-lead`, `.accumulation-next`, `.rail-label`).
+
+**The Counted table reproduced exactly**: 151, 151 and 139 painted-or-pressable elements at
+`02 DECIDE`, `06 DECIDE ready` and `08 committed`. Same three numbers, five months of product
+changes later.
+
+**The copy drifted in three rows this ledger does not record as reworded.** C3 and D8 drifted as
+already recorded, and their repairs are visible; these three are new:
+
+| row | surface | ledger, on `2390b35` | build, on `d677e78` |
+| --- | --- | --- | --- |
+| C4 | `.commitment-intro` | `המנוע לא ידבר לפני שההחלטה נרשמה, כי אחרי שהוא דיבר כבר אי אפשר להפריד` | `המנוע עונה רק אחרי שההחלטה נרשמה, כי אחר כך אי אפשר להפריד בין מה שרשמתם לבין מה שהוא הוסיף` |
+| C20 | `.commitment-summary` | `חסרים N פרטים. החלטה חלקית לא נרשמת — זה הכלל, לא תקלה.` | `חסרים N פרטים. החלטה חלקית לא נרשמת: זה הכלל, לא תקלה.` |
+| B1 | `.context-loop` | `עוד 60 החלטות מדודות עד שאפשר לומר משהו... ייבוא משחקים שכבר שיחקת יכול לקצר את זה` | `עוד 60 החלטות מדודות עד שיהיה מה לומר. 1 נמדדו ונקראות בחלק אחר של הרשומה. ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל.` |
+
+C4 and C20 are the same claim said differently and their classification is unaffected. **B1 is
+not.** It is one of the fourteen `TEST` rows, and its justification turns on precisely what the
+sentence carries beyond the permitted counts. It now carries a second count -- decisions measured
+and read in another part of the record -- and a condition on the instruction. The row's verdict
+stands; its subject grew under it, which is the thing a `TEST` row cannot afford to have happen
+unrecorded.
+
+**`tension-and-disclosure.mjs` answers both of its questions the same way.** `.context-why` is
+closed on arrival (`openAttribute: false`, `domOpenProperty: false`, body 390px when forced open),
+and a declared tension still renders above the submit, non-blocking, with the submit enabled. Its
+`Q1b` board note reads `עמדה מהסט המשותף — 21 חצאי־מהלכים`, which is D8's REWORD landed.
+
+**Two false findings, from this instrument, in one run**, recorded because they are the same
+failure the sheet's own blind spot was. A class-name scan written as `[.]([a-z][a-z0-9-]+)` stops
+at `__` and reported the whole counterfactual panel as unclassified while E1 to E7 classify it row
+by row. A text scan reported thirty-one ledger strings missing, of which most were `aria-label`
+text the inventory does not collect, disclosure bodies that are closed, and states one walk does
+not reach. **An inventory diff is only as good as the selector that produced it**, which is the
+warning this file already carries about `checkVisibility`, arriving from a second direction.
+
 ## How this was measured, and what that buys
 
 The inventory is a paint fact, not a props fact. `research/ux-measurement/probes/pre-evidence-surfaces.mjs`

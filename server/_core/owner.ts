@@ -33,7 +33,7 @@ export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message:
-        "הרשומה הזו שייכת לחשבון שהגדיר את הפריסה. אתם מחוברים בחשבון אחר מזה " +
+        "ההיסטוריה הזו שייכת לחשבון שהגדיר את הפריסה. אתם מחוברים בחשבון אחר מזה " +
         "ש-OWNER_OPEN_ID מצביע עליו.",
     });
   return next({ ctx });

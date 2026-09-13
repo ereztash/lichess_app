@@ -142,7 +142,20 @@ describe.each([
     await page.locator('[data-square="e2"]').click();
     await page.locator('[data-square="e4"]').click();
     await page.waitForTimeout(700);
-    await page.evaluate(() => window.scrollTo(0, 400));
+    /*
+     * SCROLL TO THE STATE, NOT TO A NUMBER. This was `scrollTo(0, 400)`, and 400 was the page
+     * height of one build: the offset at which THAT panel straddled the fold. The copy pass that
+     * shortened the ribbon above the board and the instruction above the accordion moved the panel
+     * up by more than the slack, and at 400 the control's natural position was already above the
+     * pin line -- unpinned, with the assertion reading that as a defect in the ground. The state
+     * under test is "the panel's top is on screen and its bottom is not"; putting the panel's top
+     * at six tenths of the viewport produces it on every build whose panel is taller than the
+     * remaining four tenths, which is every build that has a sticky control to test.
+     */
+    await page.evaluate(() => {
+      const panel = document.querySelector(".commitment-screen")!.getBoundingClientRect();
+      window.scrollTo(0, panel.top + window.scrollY - Math.round(window.innerHeight * 0.6));
+    });
     await page.waitForTimeout(350);
     const seen = await page.evaluate(() => {
       const el = document.querySelector(".commitment-submit");

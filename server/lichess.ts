@@ -36,7 +36,7 @@ async function boundedFetch(url: string, init: RequestInit, subsystem: string): 
     });
     throw new TRPCError({
       code: "BAD_GATEWAY",
-      message: timedOut ? UPSTREAM_TIMEOUT_MESSAGE : "לא ניתן היה לקבל נתונים מ־Lichess כרגע.",
+      message: timedOut ? UPSTREAM_TIMEOUT_MESSAGE : "אי אפשר היה לקבל נתונים מ־Lichess כרגע.",
     });
   }
 }
@@ -133,7 +133,7 @@ async function lichessFetch(path: string, accept: string) {
   if (!response.ok)
     throw new TRPCError({
       code: "BAD_GATEWAY",
-      message: "לא ניתן היה לקבל נתונים מ־Lichess כרגע.",
+      message: "אי אפשר היה לקבל נתונים מ־Lichess כרגע.",
     });
   return response;
 }
@@ -170,7 +170,7 @@ async function explorerFetch(path: string) {
   if (!response.ok)
     throw new TRPCError({
       code: "BAD_GATEWAY",
-      message: "לא ניתן היה לקבל נתוני פתיחות מ־Lichess כרגע.",
+      message: "אי אפשר היה לקבל נתוני פתיחות מ־Lichess כרגע.",
     });
   return response;
 }
@@ -225,7 +225,7 @@ async function getCloudEvaluation(fen: string): Promise<CloudEvaluation | null> 
   if (!response.ok)
     throw new TRPCError({
       code: "BAD_GATEWAY",
-      message: "לא ניתן היה לקבל הערכת ענן מ־Lichess כרגע.",
+      message: "אי אפשר היה לקבל הערכת ענן מ־Lichess כרגע.",
     });
   return response.json() as Promise<CloudEvaluation>;
 }

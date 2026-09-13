@@ -5,7 +5,7 @@
  * WHY THIS FILE IS ADVERSARIAL RATHER THAN DESCRIPTIVE. A summary is the single most dangerous
  * component in this product: its whole job is compression, and every failure mode of compression
  * here is an epistemic upgrade. A hypothesis that loses the word "השערה" becomes a finding. A
- * relative contrast that loses "ביחס ל...מאשר בשאר הרשומה" becomes "you are overconfident here". A
+ * relative contrast that loses "ביחס ל...מאשר בשאר ההיסטוריה" becomes "you are overconfident here". A
  * refuted claim that gets dropped for looking bad becomes a record with no failures in it. None of
  * those needs a wrong number -- each is a layout or a verb away.
  *
@@ -48,7 +48,7 @@ const forwardTest = (decisions: number) =>
 const claimOf = (grade: ClaimGrade, tests: Claim["prospective_tests"] = []): Claim =>
   ({
     claim_id: "claim-phase-endgame",
-    statement: "בהחלטות בסיום הביטחון המוצהר גבוה יותר ביחס לתוצאה מאשר בשאר הרשומה.",
+    statement: "בהחלטות בסיום הביטחון שאמרתם גבוה יותר ביחס לתוצאה מאשר בשאר ההיסטוריה.",
     scope: "החלטות בסיום",
     supporting_decision_ids: [],
     n: 34,
@@ -251,7 +251,7 @@ describe("a descriptive finding stays a description", () => {
     const description = described().find((s) => s.kind === "record-description");
     expect(description, "the profile finding never reached the summary").toBeTruthy();
     expect(description!.gradeWord).toBeNull();
-    expect(description!.text).toContain("תיאור של הרשומה, לא טענה שנבדקה");
+    expect(description!.text).toContain("תיאור של ההיסטוריה, לא טענה שנבדקה");
   });
 
   it("never outranks the claim state", () => {

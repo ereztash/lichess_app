@@ -209,7 +209,7 @@ export const IMPORT_PIPELINE = [
   { key: "measured", label: "המשחקים נמדדו" },
   { key: "candidate", label: "נמצא מועמד לבדיקה" },
   { key: "registered", label: "נרשם מראש" },
-  { key: "collecting", label: "נאספות החלטות חדשות עם ביטחון מוצהר" },
+  { key: "collecting", label: "נאספות החלטות חדשות עם ביטחון שנאמר מראש" },
   { key: "tested", label: "ההשערה שוחזרה, הופרכה או לא הוכרעה" },
 ] as const;
 
