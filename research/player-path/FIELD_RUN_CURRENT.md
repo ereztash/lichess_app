@@ -96,9 +96,23 @@ any participant was recruited, and is not to be edited after the first session.
   that the request succeeded. `field/README.md` carries the step and the trap.
   The `stimulus_sha256` this protocol will name is therefore **`PENDING`**, and
   writing a number here before a deployment serves it would be the exact defect -- a declaration
-  that drifts from its subject -- the mechanism exists against. It gets filled in by reading the
-  endpoint after the deploy, never by computing it locally: a production build inlines `VITE_`
-  variables this checkout does not have, so a local digest would be a different build's.
+  that drifts from its subject -- the mechanism exists against. **It gets filled in by reading the
+  endpoint, never by computing it locally**, because a build inlines `VITE_` variables and this
+  checkout has none of them set; a local digest is the right answer only if the deployment's flags
+  match, and the manifest records those flags so a reader can tell rather than assume.
+
+* **THE MECHANISM IS VERIFIED ON A DEPLOYMENT, not only in a test.** The `PR #111` preview at
+  `fce720a` was fetched at 2026-09-13 20:53Z and answered
+  `content-type: application/json; charset=utf-8` with a well-formed manifest over **40 files** --
+  so `vercel.json`'s `{"handle": "filesystem"}` step does serve a real file and the SPA fallback
+  only catches paths that do not exist. Two things fell out of it that are worth the sentence:
+
+  * its `stimulus_sha256` is **`20c3c60d…`, byte-for-byte the digest the same source produced on a
+    different machine**, with all five recorded flags unset on both. The generator is
+    deterministic across machines when the flags agree, which is what makes a mismatch mean
+    something rather than mean "a different builder".
+  * its entry chunk is `assets/index-ZgOyRttd.js` at **695,047 bytes, identical to production's**,
+    which is independent confirmation that nothing in this pass touched product code.
 
   **THAT MEANS ONE MORE RE-FREEZE, AND IT IS THE LAST ONE BECAUSE IT IS THE ONE THAT INSTALLS THE
   MECHANISM.** It is still bookkeeping rather than a protocol violation for the reason the first two

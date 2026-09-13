@@ -65,7 +65,10 @@ others: reachability is not the build, and the build is not the server configura
    **So the check is the content and never the status code.**
 
    **The value in the protocol is currently `PENDING`** because the frozen build predates the
-   generator, so seeing the app there today is expected. Until the deploy that carries it, the
+   generator, so seeing the app there today is expected. What a build that DOES carry it looks like
+   was checked rather than imagined: the `PR #111` preview at `fce720a` answered
+   `content-type: application/json` with a manifest over 40 files on 2026-09-13 at 20:53Z. **JSON is
+   the pass; the app is the stop.** Until the deploy that carries it, the
    interim check is the two content-hashed filenames in the page source,
    `assets/index-ZgOyRttd.js` **and** `assets/index-_bGdMEE1.css`. Two filenames is better than the
    one this file used to name, and it is **still not sufficient**: nine `.woff2` faces, the favicon,
