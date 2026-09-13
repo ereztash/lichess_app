@@ -242,6 +242,45 @@ describe("on the screen, it changes nothing", () => {
     expect(screen.queryByText(/wait-analysis|next-action|shadow/i)).toBeNull();
   });
 
+  it("writes no row while the claim reading is still in flight", async () => {
+    /*
+     * THE RACE A REVIEWER FOUND ON THE COMMIT THAT ADDED THE FIFTH READING, and it is the third
+     * time this file has had one. The gate was `!blitz.data` and nothing waited on the claim, so
+     * the two queries could settle in either order: `blitzRecordReading` reads `listBlitzGames`
+     * and `listBlitzDecisions`, `currentClaim` begins at `listAtoms`, and neither touches the
+     * other's rows. Holding `listAtoms` open is therefore not a contrivance -- it is the ordering
+     * the product can actually produce, driven from the one method that separates them.
+     *
+     * WHY ONE FRAME MATTERS HERE AND WOULD NOT ELSEWHERE. The shadow writes ONCE: `written` is set
+     * on the first non-null proposal and `trialEventSeenOn` dedupes for the whole surface. So a row
+     * taken during that window is the only row the visit ever has, and a record holding a candidate
+     * would be recorded as `return-record` or `play-blitz` permanently -- a disagreement about the
+     * assembly wearing the shape of a disagreement about the screen, which is precisely what `D22`
+     * fixed twice before and named.
+     *
+     * THE SCREEN RENDERS IN THAT WINDOW, which is what makes it observable: `ResumeScreen` returns
+     * null on the BLITZ reading alone, so `.resume` is on the page while the claim is still coming.
+     */
+    let release: () => void = () => undefined;
+    const held = new Promise((resolve) => {
+      release = () => resolve([]);
+    });
+    const atoms = vi
+      .spyOn(LocalRecordStore.prototype, "listAtoms")
+      .mockReturnValue(held as never);
+
+    const { container } = renderResume();
+    await waitFor(() => expect(container.querySelector(".resume")).toBeTruthy());
+    expect(
+      shadowRows().length,
+      "a proposal was recorded from a claim state that had not arrived",
+    ).toBe(0);
+
+    release();
+    await waitFor(() => expect(shadowRows().length).toBe(1));
+    atoms.mockRestore();
+  });
+
   it("writes exactly one row per visit, whatever the screen re-renders", async () => {
     /*
      * THE LEDGER IS A RING IN `localStorage` AND THIS SCREEN RE-RENDERS ON EVERY QUERY SETTLE. A

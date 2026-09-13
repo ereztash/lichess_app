@@ -152,6 +152,25 @@ export function productStateFor(input: {
  * has its own `null` for "not read yet" and `deriveNextAction` answers `none` to it. Returning a
  * state with a fabricated standing would be the assembly deciding, which is what this hook exists
  * not to do.
+ *
+ * AND UNTIL THE CLAIM READING SETTLES, WHICH IS THE SAME SENTENCE AND WAS MISSED WHEN THE FIFTH
+ * READING ARRIVED. The two queries are independent -- `currentClaim` begins at `listAtoms` and the
+ * blitz reading never touches it -- so the blitz data can be present while the claim is still in
+ * flight. Passing `claim.data` then is passing `undefined`, which `claimStateOf` reads as `unread`,
+ * and the derivation skips the branch that would have proposed a forward test.
+ *
+ * WHAT MADE THAT WORSE THAN A WRONG FRAME. `useNextActionShadow` writes once and sets `written` --
+ * and `trialEventSeenOn` dedupes for the whole surface -- so the first proposal is the only one
+ * ever recorded. A record holding a candidate could therefore be logged as `return-record` or
+ * `play-blitz`, permanently, and the row would be a disagreement about the ASSEMBLY rather than
+ * about the screen. `D22` found that exact shape twice in this file already, in `analysisRunning`
+ * and in `offered`, and named it: a shadow that reports a made-up input is not a weaker shadow, it
+ * is one whose disagreements are about itself.
+ *
+ * SETTLED RATHER THAN PRESENT, and the difference is the error path. `isLoading` is false once the
+ * query has succeeded OR failed; gating on `claim.data` instead would hold the shadow silent
+ * forever on a record that cannot be read. A failed read genuinely has not come back, `unread` is
+ * the truthful state for it, and that is a different thing from one still arriving.
  */
 export function useProductState(): ProductState | null {
   const blitz = useBlitzReading();
@@ -167,7 +186,7 @@ export function useProductState(): ProductState | null {
    * already import.
    */
   const claim = useClaimView();
-  if (!blitz.data) return null;
+  if (!blitz.data || claim.isLoading) return null;
   return productStateFor({
     reading: blitz.data.reading,
     games: blitz.data.games,
