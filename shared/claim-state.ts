@@ -79,7 +79,21 @@ export type ClaimState =
    * and asking it again the same way establishes nothing. What a player is TOLD about the two
    * differs, and that belongs to the surface that says it, not to this state.
    */
-  | { readonly kind: "decided"; readonly claimId: string; readonly grade: "replicated" | "refuted" };
+  | { readonly kind: "decided"; readonly claimId: string; readonly grade: "replicated" | "refuted" }
+  /**
+   * THE PLAYER WAS ASKED AND SAID NO, and it is a separate kind from `decided` for one reason.
+   *
+   * `decided` means a forward test asked the question and an answer came back. This means nobody
+   * asked it, and nobody is going to, because the person whose effort it would cost decided it was
+   * not worth theirs. Collapsing the two would make the layer that decides what to do next correct
+   * -- both stop the proposal -- and would make every layer above it wrong, because a screen
+   * reading `decided` prints a verdict and there is no verdict here.
+   *
+   * IT CARRIES NO GRADE, and that absence is the type saying what the state means: there is nothing
+   * for a grade to hold. `claim.ts` makes the same move with `ExternalPointer.promotes_grade`
+   * being the literal `false`. See `docs/decisions/D29-question-ownership.md`.
+   */
+  | { readonly kind: "retired"; readonly claimId: string };
 
 export type ClaimStateKind = ClaimState["kind"];
 
@@ -90,6 +104,7 @@ export const CLAIM_STATE_KINDS = [
   "nothing-separated",
   "candidate",
   "decided",
+  "retired",
 ] as const satisfies readonly ClaimStateKind[];
 
 /**
@@ -115,9 +130,14 @@ export function claimStateOf(
   if (!view) return { kind: "unread" };
   const { claim } = view;
   if (claim) {
-    return claim.grade === "hypothesis"
-      ? { kind: "candidate", claimId: claim.claim_id }
-      : { kind: "decided", claimId: claim.claim_id, grade: claim.grade };
+    if (claim.grade === "hypothesis") return { kind: "candidate", claimId: claim.claim_id };
+    /*
+     * READ BEFORE `decided`, because a retired claim is a retired HYPOTHESIS -- `retireClaim`
+     * returns a replicated or refuted one unchanged -- and the remaining branch would otherwise
+     * have to invent a grade for a state in which no forward test ran.
+     */
+    if (claim.grade === "retired") return { kind: "retired", claimId: claim.claim_id };
+    return { kind: "decided", claimId: claim.claim_id, grade: claim.grade };
   }
   return view.scored >= DISCOVERY_FLOOR
     ? { kind: "nothing-separated", scored: view.scored }
@@ -135,4 +155,19 @@ export function claimStateOf(
  */
 export function awaitsForwardTest(state: ClaimState): state is Extract<ClaimState, { kind: "candidate" }> {
   return state.kind === "candidate";
+}
+
+/**
+ * Whether a question stopped being proposed because a person said so rather than because evidence
+ * answered it.
+ *
+ * IT EXISTS SO THAT "THE DERIVATION IS SILENT" AND "THE QUESTION WAS SETTLED" CANNOT BE READ AS ONE
+ * FACT. `awaitsForwardTest` is false for `decided` and for `retired` alike, which is correct for
+ * the layer that ranks actions and is wrong for anything that explains itself: a surface that says
+ * "this has been answered" about a question nobody asked has made a claim on the instrument's
+ * behalf that the instrument never made. Nothing renders it yet; it is the predicate a renderer
+ * will need, beside the one the derivation already uses, so the two cannot be confused later.
+ */
+export function withdrawnByPlayer(state: ClaimState): state is Extract<ClaimState, { kind: "retired" }> {
+  return state.kind === "retired";
 }

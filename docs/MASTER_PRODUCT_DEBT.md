@@ -1393,6 +1393,45 @@ themselves rather than about the record, or who acts on a count that had not loa
 this a comprehension defect rather than a representation one, and it goes up a severity.
 
 
+### R-31 · One claim can carry two live drills at once
+
+| | |
+| --- | --- |
+| type | correctness |
+| state | **open** — found while walking S11 of `D29`'s scenario list; deliberately not repaired |
+| severity | P2 |
+| basis | **verified** — read in the tree at `server/recordRouter.ts:323`, `shared/record-service.ts:1288` and the three `saveDrill` implementations |
+
+`startDrill` mints `drill-${crypto.randomUUID()}` on every call and `beginDrill` never asks whether
+the claim already has an unreported drill. The append-only guard the stores DO carry is on the drill
+id -- *"append-only: drill already started"* -- which a fresh uuid can never collide with. So two
+presses of the same control, or two tabs, produce two live forward tests of one claim, each with its
+own positions.
+
+**What it costs, and it is not only tidiness.** `evaluateClaim` folds results in reported order and
+`refuted` is terminal within the fold, so two drills of one claim are two chances at a terminal
+verdict on the same question, decided by whichever finishes first. The claim's own pre-registration
+promised one test with one refutation condition; running two and keeping the earlier answer is a
+stopping rule chosen after the fact, which is the failure `validation-protocol.ts` refuses by name
+for the holdout path: *"a holdout whose target N is decided once the numbers are in is not a
+holdout, it is a search with a stopping rule chosen to suit the answer."*
+
+**Why it is not repaired here.** The guard needs the store to answer "has this claim an unreported
+drill", and no `RecordStore` method does. Adding one means three implementations and a migration's
+worth of care, in a mission whose subject is who owns the question rather than how many tests it may
+have. `D29` widened `CLAIM_GRADES`, which is already the whole of what that node may spend.
+
+**What was done instead.** Nothing, and it is written here rather than left in the diff. `D29` §M
+names it, and it is deliberately NOT covered by a test asserting the current behaviour: a test that
+passes because the defect is present is a defect with a guard on it.
+
+**Gate.** `beginDrill` refuses a claim that already has an unreported drill, with a positive control
+that starts two and expects the second to throw. It does not exist.
+
+**Reversal condition.** None needed to escalate: a single observed case of one claim graded by the
+earlier of two concurrent drills makes this P1, because the grade it produced is terminal.
+
+
 ## Refuted — measured, found wrong, and recorded so it is not reopened
 
 ### R-14 · "The detector's uncertainty is too small, and a clustered judge is the fix"

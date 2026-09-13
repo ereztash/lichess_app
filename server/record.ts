@@ -448,6 +448,30 @@ export class DrizzleRecordStore implements RecordStore {
 
   async saveClaim(claim: Claim): Promise<void> {
     const db = await this.db();
+    /*
+     * RETIRED IS TERMINAL, AND IT IS TERMINAL HERE RATHER THAN IN THE SERVICE, for the reason
+     * `saveLearningRule` already gives about the other authorship: the grade is stored only as this
+     * enum -- no `retired_at`, no retirement row -- so a write that moves a claim off it destroys a
+     * fact the player authored, silently. `evaluateClaim` refuses to REBUILD it; the fold's WRITE
+     * could still overwrite it if a drill completes between the read and the write. A service-level
+     * check would be another read-then-write and would lose the same race.
+     *
+     * Writing a retired claim back AS retired is allowed: `evaluateClaim` returns it unchanged, and
+     * refusing that would fail a completion on a claim retired mid-drill after the result was
+     * already on the record -- trading a silent loss for a partial one.
+     */
+    if (claim.grade !== "retired") {
+      const [existingClaim] = await db
+        .select({ grade: claims.grade })
+        .from(claims)
+        .where(eq(claims.claimId, claim.claim_id))
+        .limit(1);
+      if (existingClaim?.grade === "retired") {
+        throw new Error(
+          "retired: a claim the player took out of the queue cannot be graded back in",
+        );
+      }
+    }
     const row = {
       claimId: claim.claim_id,
       statement: claim.statement,
@@ -1151,6 +1175,12 @@ export class MemoryRecordStore implements RecordStore {
   private readonly learningObservationRows = new Map<string, LearningTransferObservation>();
 
   async saveClaim(claim: Claim): Promise<void> {
+    // Same guard, same words, same reason as DrizzleRecordStore above: three stores that disagree
+    // about whether retirement is terminal are three contracts.
+    const existing = this.claimRows.get(claim.claim_id);
+    if (existing?.grade === "retired" && claim.grade !== "retired") {
+      throw new Error("retired: a claim the player took out of the queue cannot be graded back in");
+    }
     this.claimRows.set(claim.claim_id, { ...claim });
   }
 

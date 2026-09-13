@@ -25,10 +25,12 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  CLAIM_STATE_KINDS,
   awaitsForwardTest,
+  CLAIM_STATE_KINDS,
   claimStateOf,
+  withdrawnByPlayer,
   type ClaimState,
+  type ClaimStateKind,
 } from "@shared/claim-state";
 import { journeyStageOf, recordJourney } from "@shared/learning-journey";
 import { DISCOVERY_FLOOR, MIN_BUCKET_N } from "@shared/detector";
@@ -170,19 +172,46 @@ describe("what a test of a claim is, once it has been proposed", () => {
     expect(reentryOf("test-claim")).toBe("CAPTURE");
   });
 
+  /*
+   * ONE STATE PER KIND, BUILT BY A SWITCH RATHER THAN BY A FALLBACK.
+   *
+   * The first version ended in `{ kind, scored: 0 }` for everything it had not named, which is a
+   * shape only two kinds actually have. A kind added later would have been constructed wrong and
+   * the assertion would still have passed, which is the opposite of what enumerating
+   * `CLAIM_STATE_KINDS` is for. This refuses to compile instead.
+   */
+  const stateOfKind = (kind: ClaimStateKind): ClaimState => {
+    switch (kind) {
+      case "unread":
+        return { kind: "unread" };
+      case "accumulating":
+      case "nothing-separated":
+        return { kind, scored: 0 };
+      case "candidate":
+        return CANDIDATE;
+      case "decided":
+        return { kind: "decided", claimId: "c-1", grade: "replicated" };
+      case "retired":
+        return { kind: "retired", claimId: "c-1" };
+    }
+  };
+
   it("is the only claim state that asks for one", () => {
-    const asking = CLAIM_STATE_KINDS.filter((kind) =>
-      awaitsForwardTest(
-        kind === "candidate"
-          ? CANDIDATE
-          : kind === "decided"
-            ? { kind: "decided", claimId: "c-1", grade: "replicated" }
-            : kind === "unread"
-              ? { kind: "unread" }
-              : { kind, scored: 0 },
-      ),
-    );
-    expect(asking).toEqual(["candidate"]);
+    expect(CLAIM_STATE_KINDS.filter((kind) => awaitsForwardTest(stateOfKind(kind)))).toEqual([
+      "candidate",
+    ]);
+  });
+
+  it("stops asking once the player has withdrawn it, and that is not the same as an answer", () => {
+    const retired = stateOfKind("retired");
+    expect(awaitsForwardTest(retired)).toBe(false);
+    expect(withdrawnByPlayer(retired)).toBe(true);
+    // The two predicates must not be readable as one fact: a decided claim is also not asking,
+    // and nobody withdrew it.
+    expect(withdrawnByPlayer(stateOfKind("decided"))).toBe(false);
+    expect(CLAIM_STATE_KINDS.filter((kind) => withdrawnByPlayer(stateOfKind(kind)))).toEqual([
+      "retired",
+    ]);
   });
 });
 

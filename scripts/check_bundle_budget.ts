@@ -957,9 +957,41 @@ const INDEX = `${ROOT}/index.html`;
  * change with a real argument and is not this one. `D27`'s own growth WAS taken back rather than
  * raised, by moving `DISCOVERY_FLOOR` to a module both readers already imported -- so this branch
  * spent nothing on the ratchet until this commit.
+ *
+ * ---
+ *
+ * 679 -> 680, AND THE FORTY-SIX BYTES ABOVE WERE SPENT THE VERY NEXT COMMIT, which is what the
+ * paragraph above predicted and is recorded here rather than quietly absorbed.
+ *
+ *     from e663ebc                                  695,047      212.4       790,482
+ *     + the ownership boundary (D29)                695,862      212.6       791,297
+ *
+ * 815 bytes on the entry, 769 over the 679 kB ceiling of 695,296 and 769 over the 772 kB initial
+ * ceiling of 790,528. Both raised by 1 kB. The gzip ceiling is untouched at 213: 212.6 kB, which is
+ * 0.4 kB of headroom and is now the tightest of the three.
+ *
+ * WHAT THE 815 BYTES BUY. `docs/decisions/D29-question-ownership.md`: a question the player declines
+ * had no representation anywhere in the tree, so `deriveNextAction` proposed `test-claim` on every
+ * derivation until a DRILL graded the claim -- a question the player did not want could only be got
+ * rid of by answering it. The bytes are a fourth `CLAIM_GRADES` member and what the compiler then
+ * required of every exhaustive map over it: two render rows, a branch in the loop pointer that does
+ * not send the player back to the drill panel, a guard in each of the three stores, and
+ * `retireClaim` / `closedToProposal` / `withdrawnByPlayer`.
+ *
+ * WHY IT IS NOT TAKEN BACK, checked rather than assumed. Two of the three vocabulary copies this
+ * pass removed -- `loop-position.ts:54` and `Value.tsx:15`, each a hand-written
+ * `"hypothesis" | "replicated" | "refuted"` -- were already type-only, so deleting them returned
+ * nothing. The rest is a Hebrew sentence per render site and one string per store, and a sentence
+ * that says less is the drift this repository keeps repairing. `D27`'s fold worked because a
+ * constant had two importers; there is no equivalent here.
+ *
+ * IT IS ALSO THE MEASUREMENT `D29` §M RESTS ON. The FIELD stimulus is pinned to a built bundle, and
+ * this is the proof that `shared/` alone moves it: no control was added, no route changed, nothing a
+ * cold participant can reach is different, and the entry chunk is 815 bytes further along. That is
+ * why the node cannot merge before the run ends.
  */
 
-const ENTRY_RAW_KB = 679;
+const ENTRY_RAW_KB = 680;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 213;
@@ -1153,7 +1185,7 @@ const ENTRY_GZIP_KB = 213;
  * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 772;
+const INITIAL_RAW_KB = 773;
 
 interface Asset {
   name: string;

@@ -668,6 +668,14 @@ export class LocalRecordStore implements RecordStore {
 
   async saveClaim(claim: Claim): Promise<void> {
     return update((state) => {
+      // Same guard as both server stores: nothing re-derives `retired`, so no write may take a
+      // claim off it.
+      const existing = state.claims[claim.claim_id];
+      if (existing && existing.grade === "retired" && claim.grade !== "retired") {
+        throw new Error(
+          "retired: a claim the player took out of the queue cannot be graded back in",
+        );
+      }
       state.claims[claim.claim_id] = { ...claim };
     });
   }

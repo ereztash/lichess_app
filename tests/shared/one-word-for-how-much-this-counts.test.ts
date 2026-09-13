@@ -21,6 +21,7 @@ import {
   authorityOfClaim,
   authorityOfRecordReading,
   mayBeSpokenAs,
+  EVIDENTIAL_GRADES,
   type EvidenceAuthority,
 } from "@shared/evidence-authority";
 import { CLAIM_GRADES, GRADE_WORD, type Claim, type ClaimGrade } from "@shared/claim";
@@ -56,18 +57,51 @@ describe("one word for how much this counts", () => {
      * "השערה לבדיקה" / "חזר גם בבדיקה" / "לא חזר בבדיקה" beside the three that already shipped.
      * Better sentences, and a second vocabulary for three states that had one -- exactly the drift
      * the module was written to stop, arriving inside the module written to stop it.
+     *
+     * IT IS OVER `EVIDENTIAL_GRADES` AND NOT OVER THE UNION, and the difference is a claim rather
+     * than an exemption. This ladder answers "should I believe this?"; `retired` answers "are we
+     * still asking?", which is not a level of belief and must not borrow a word that is one. The
+     * two assertions below are what holds it, and they are stronger than including it here would
+     * have been.
      */
-    for (const grade of CLAIM_GRADES) {
+    for (const grade of EVIDENTIAL_GRADES) {
       expect(AUTHORITY[GRADE_AUTHORITY[grade]].word).toBe(GRADE_WORD[grade].he);
     }
   });
 
-  it("maps every claim grade onto exactly one authority, and never collides", () => {
-    const mapped = CLAIM_GRADES.map((g) => GRADE_AUTHORITY[g]);
-    expect(new Set(mapped).size).toBe(CLAIM_GRADES.length);
-    for (const grade of CLAIM_GRADES) {
+  it("maps every evidential grade onto exactly one authority, and never collides", () => {
+    const mapped = EVIDENTIAL_GRADES.map((g) => GRADE_AUTHORITY[g]);
+    expect(new Set(mapped).size).toBe(EVIDENTIAL_GRADES.length);
+    for (const grade of EVIDENTIAL_GRADES) {
       expect(authorityOfClaim(claimWith(grade))).toBe(GRADE_AUTHORITY[grade]);
     }
+  });
+
+  it("does not move a claim on the ladder when the player withdraws the question", () => {
+    /*
+     * THE REPLACEMENT FOR THE OLD BIJECTION, AND IT SAYS MORE. `retireClaim` refuses a replicated
+     * or refuted claim, so a retired claim is always a retired HYPOTHESIS and the decisions behind
+     * it are the ones that were behind it a moment earlier. Its authority is therefore not merely
+     * "some level" -- it is exactly the level it had. Map it to `refuted` and this goes red, which
+     * is the mistake worth catching: a screen printing a closed negative for a question nothing
+     * answered.
+     */
+    expect(GRADE_AUTHORITY.retired).toBe(GRADE_AUTHORITY.hypothesis);
+    expect(authorityOfClaim(claimWith("retired"))).toBe(authorityOfClaim(claimWith("hypothesis")));
+    expect(AUTHORITY[GRADE_AUTHORITY.retired].settled).toBe(false);
+    expect(AUTHORITY[GRADE_AUTHORITY.retired].mayPrescribe).toBe(false);
+  });
+
+  it("gives a withdrawal a word no level of belief owns", () => {
+    /*
+     * The other half. Sharing an authority is safe only while the two cannot be read as one thing,
+     * and the ladder is not what separates them -- `GRADE_WORD` is. A withdrawal that wore an
+     * authority's word would be a queue state rendered as a level of belief, in the slot where the
+     * player looks for exactly that.
+     */
+    expect(AUTHORITY_WORDS).not.toContain(GRADE_WORD.retired.he);
+    // ...and it is still distinct from every other grade's word, so no two grades read alike.
+    expect(new Set(CLAIM_GRADES.map((g) => GRADE_WORD[g].he)).size).toBe(CLAIM_GRADES.length);
   });
 
   it("leaves two levels that no claim can reach, which is why they exist", () => {

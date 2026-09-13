@@ -114,6 +114,15 @@ export function phaseOfClaimState(kind: ClaimStateKind): LoopPhase {
     case "nothing-separated":
     case "candidate":
     case "decided":
+    /*
+     * `retired` IS PRODUCED IN `UPDATE` LIKE THE REST, and placing it here by hand is the point of
+     * the switch being total. It is the one state a PERSON writes rather than the record, and the
+     * phase is still where the record is read: the act of retiring is available only where a claim
+     * is on screen, which is after the reveal and never during play. A claim state offered in
+     * `PLAY` or `CAPTURE` would be a reading rendered while the player is producing evidence, which
+     * is LAW 1, and that is as true of an offer to withdraw a question as of the question itself.
+     */
+    case "retired":
       return "UPDATE";
   }
 }

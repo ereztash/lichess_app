@@ -95,6 +95,20 @@ export function journeyStageOf(state: ClaimState): JourneyStage {
       return "NOTHING_SEPARATED";
     case "candidate":
     case "decided":
+    /*
+     * `retired` MAPS TO `CANDIDATE` TOO, AND IT IS THE WEAKEST ROW IN THIS TABLE.
+     *
+     * `recordJourney` branches on whether a claim EXISTS, so every claim-bearing state renders one
+     * stage, and a retired claim exists. The mapping is therefore accurate about what the ledger
+     * does today and says nothing a reader could act on about what it should do: a question the
+     * player withdrew and a question waiting for a test are one sentence on that surface.
+     *
+     * IT IS NOT REPAIRED HERE FOR THE REASON THE ROW ABOVE GIVES. Splitting the stage is a change
+     * to a surface a cold participant reaches, and `research/player-path/FIELD_RUN_CURRENT.md`
+     * freezes that surface until the run happens. Recorded where a reader will find it rather than
+     * quietly fixed, which is what `D27` did with the `unread` aliasing on the row above.
+     */
+    case "retired":
       return "CANDIDATE";
   }
 }

@@ -163,10 +163,42 @@ export function authorityOfClaim(claim: Claim): EvidenceAuthority {
  * is the correct one internally; on screen it reads as a promise about the world. What actually
  * happened is narrower and is what the player needs: the thing was checked forward, and it held.
  */
+/**
+ * The grades that are an answer to *"should I believe this?"*.
+ *
+ * NAMED BECAUSE THE SET USED TO BE THE WHOLE UNION AND IS NOT ANY MORE. Three grades and three
+ * claim-reachable authorities matched one to one, and a test held that bijection as a law. It was
+ * an accident of the count: `retired` answers a different question -- *"are we still asking?"* --
+ * and putting it on this ladder as a sixth level would be the very thing this module's header
+ * warns against, *"six would ask a player to learn a distinction the record cannot yet support"*,
+ * with the added fault that the distinction is not about evidence at all.
+ *
+ * So the bijection is asserted over THIS set, which is named rather than inferred from a length,
+ * and `retired` is held to something stronger instead: retiring a question does not move the claim
+ * on the ladder. `tests/shared/one-word-for-how-much-this-counts.test.ts` holds both.
+ */
+export const EVIDENTIAL_GRADES = ["hypothesis", "replicated", "refuted"] as const satisfies readonly ClaimGrade[];
+
 export const GRADE_AUTHORITY: Readonly<Record<ClaimGrade, EvidenceAuthority>> = {
   hypothesis: "hypothesis",
   replicated: "tested",
   refuted: "refuted",
+  /*
+   * `retired` CARRIES THE AUTHORITY IT HAD, WHICH IS A HYPOTHESIS'S, and this row is the reason the
+   * grade is safe to add to a union everything reads.
+   *
+   * Retiring is a decision about effort, not a reading of evidence: `retireClaim` returns a
+   * replicated or refuted claim unchanged, so a retired claim is always a retired HYPOTHESIS, and
+   * the decisions behind it are exactly the ones that were behind it a moment earlier. Mapping it
+   * to `refuted` would let a screen print a closed negative for a question nothing answered;
+   * mapping it to `tested` would be worse. It licenses what it always licensed, and no more.
+   *
+   * THIS IS THE ONE ROW THAT SHARES ITS AUTHORITY WITH ANOTHER GRADE, deliberately, and the sharing
+   * IS the claim being made: a withdrawn question stands exactly where it stood. What tells the two
+   * apart on screen is not the ladder -- it is `GRADE_WORD`, which gives `retired` a word no
+   * authority level owns, so a queue state can never be read as a level of belief.
+   */
+  retired: "hypothesis",
 };
 
 /**

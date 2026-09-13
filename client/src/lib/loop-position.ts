@@ -51,7 +51,17 @@ export const STEP_LABELS: Record<LoopStep, string> = {
   grade: "תשובה",
 };
 
-export type ClaimGrade = "hypothesis" | "replicated" | "refuted";
+/*
+ * RE-EXPORTED FROM THE MODULE THAT OWNS IT, NOT RESTATED BESIDE IT. This was a hand-written copy of
+ * `CLAIM_GRADES`, and a second copy of a vocabulary is how a schema and its type drift apart --
+ * `claim-grade-protocol.ts` makes the same argument for `VALIDATION_KEYS`, which it composes rather
+ * than retypes. The copy would have gone on describing three grades after the union grew to four,
+ * and this file's branches would have gone on being exhaustive over a set that was not.
+ *
+ * Type-only, so it adds nothing to the bundle.
+ */
+export type { ClaimGrade } from "@shared/claim";
+import type { ClaimGrade } from "@shared/claim";
 
 export interface LoopInputs {
   /**
@@ -250,6 +260,25 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
           : `דריל בעיצומו — ${drill.completed} מתוך ${drill.total} עמדות.`,
       basis: `${drill.completed}/${drill.total} עמדות דריל`,
       // No address: the drill runner is the surface, and it is what you are looking at.
+      action: null,
+    };
+  }
+
+  /*
+   * A QUESTION THE PLAYER REMOVED FROM THE QUEUE IS NOT POINTED AT AGAIN.
+   *
+   * This branch has to come before the `hypothesis` one, because a retired claim is a retired
+   * hypothesis: without it the pointer would go on saying *"a drill is the only thing that can
+   * grade it"* and go on offering the panel that starts one, which is the nag `retireClaim` exists
+   * to end. It also must not fall through to the no-claim branches below, which would report a
+   * detector floor that was met and a threshold that was cleared.
+   */
+  if (claimGrade === "retired") {
+    return {
+      step: "grade",
+      headline: "הטענה הוסרה מהתור לפי בחירתך. היא נשמרת, ולא תוצע שוב לבדיקה.",
+      basis: `${scored} החלטות שנמדדו · טענה שהוסרה`,
+      // Nothing to press. What may produce the next claim is ordinary play.
       action: null,
     };
   }

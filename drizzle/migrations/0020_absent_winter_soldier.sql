@@ -1,0 +1,1 @@
+ALTER TABLE `claims` MODIFY COLUMN `grade` enum('hypothesis','replicated','refuted','retired') NOT NULL;
