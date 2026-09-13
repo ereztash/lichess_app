@@ -106,6 +106,21 @@ export function accurateDecision(engineEvalCp: number, cpLoss: number): boolean 
 export const MIN_BUCKET_N = 30;
 
 /**
+ * The smallest record the six-bucket search may be run over at all.
+ *
+ * `MIN_BUCKET_N * 2` BECAUSE A SPLIT HAS TWO SIDES, and a record that cannot supply the floor on
+ * both of them has no separation to find rather than a weak one.
+ *
+ * IT LIVES HERE AND NOT BESIDE EITHER OF ITS READERS. The expression was written out inside
+ * `recordJourney`, which renders the record page's sentence about how far off the floor a player
+ * is; `shared/claim-state.ts` needs the same number to tell "below the floor" from "above it and
+ * nothing separated". Two copies of one threshold is two chances for the sentence a player reads
+ * and the state a derivation branches on to part company over a number, and the home for a floor
+ * derived from `MIN_BUCKET_N` is the file that decides `MIN_BUCKET_N`.
+ */
+export const DISCOVERY_FLOOR = MIN_BUCKET_N * 2;
+
+/**
  * HOW MANY STANDARD ERRORS A BUCKET MUST SIT FROM THE REST BEFORE IT IS REPORTED.
  *
  * SET BY THE SHUFFLED-LABEL CONTROL, NOT BY TASTE -- the same control that set the number it

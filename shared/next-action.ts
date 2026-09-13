@@ -1,5 +1,6 @@
 /**
- * WHAT TO DO NEXT, DERIVED FROM WHAT THE RECORD IS MISSING -- and from nothing else.
+ * WHAT TO DO NEXT, DERIVED FROM WHAT THE RECORD IS MISSING AND WHAT IS OPEN ON IT -- and from
+ * nothing else.
  *
  * THE LINE THIS MODULE HAS TO STAY ON THE NEAR SIDE OF, and `ContextRibbon` already wrote it:
  *
@@ -7,11 +8,20 @@
  *   changes what is being measured.
  *
  * So every action below is justified by a fact about the RECORD -- a game nothing has scored, a
- * bucketing with too few decisions on one side, a run left half-finished -- and never by a
- * prediction about the player. Nothing here ranks options by expected value, nothing reads the
- * detector's verdict about a weakness, and nothing says what to work on. `readResume`'s existing
- * sentences walk the same line and say so: *"every `because` says what the next game MEASURES, not
- * what the player should do differently while playing it."*
+ * bucketing with too few decisions on one side, a run left half-finished, a hypothesis nothing has
+ * tested -- and never by a prediction about the player. Nothing here ranks options by expected
+ * value and nothing says what to work on. `readResume`'s existing sentences walk the same line and
+ * say so: *"every `because` says what the next game MEASURES, not what the player should do
+ * differently while playing it."*
+ *
+ * THE HEADING GAINED "AND WHAT IS OPEN ON IT", AND THAT IS A REAL WIDENING RATHER THAN A REWORDING.
+ * It used to end *"nothing reads the detector's verdict about a weakness"*, and `claimState` reads
+ * whether the detector produced a claim at all -- see `docs/decisions/D27-recursive-spine.md`. What
+ * it does NOT read is what the claim SAYS: `ClaimState` carries a kind, a count, an id and a grade,
+ * and never a statement, a scope, a bucket, a gap or a direction. That closed vocabulary is the
+ * line, and `tests/shared/what-the-record-is-missing.test.ts` holds it rather than this paragraph.
+ * The precedent is `untestedRule`, which has been in this state from the beginning and is the same
+ * shape one authorship over: a hypothesis exists and nothing has tested it.
  *
  * AND `docs/decisions/D21-feedback-exposure.md` IS WHY THAT LINE MATTERS MORE THAN IT LOOKS. The
  * audit found that decisions taken after a player has seen feedback are pooled with decisions taken
@@ -31,6 +41,7 @@
  * screens for a while before believing it.
  */
 import type { BlitzBlocker, BlitzShortfall, BlitzStanding } from "./blitz-reading.js";
+import { awaitsForwardTest, type ClaimState } from "./claim-state.js";
 import type { PrimaryAction } from "./primary-action.js";
 
 /**
@@ -63,6 +74,23 @@ export type NextAction =
   | { kind: "collect-more-evidence"; anchorAnswered: number; anchorTotal: number }
   /** A pattern was found retrospectively and needs a forward test that could come back negative. */
   | { kind: "test-hypothesis"; ruleId: string }
+  /**
+   * The SEARCH found a separation and no forward test has decided it.
+   *
+   * A SEPARATE KIND FROM `test-hypothesis`, AND THE FILE ALREADY ARGUES WHY ONE ACT MAY CARRY TWO.
+   * `continue-drill` and `continue-transfer` share `continue-run` because *"from the player's side
+   * finishing a pre-registered set is one act whichever kind of set it is. The kinds stay apart
+   * because the SENTENCE differs."* The same holds here and more sharply: a rule is a sentence the
+   * PLAYER wrote about themselves, and a claim is a separation the INSTRUMENT found in the record.
+   * They are authored by different parties, refuted by different conditions and graded by different
+   * code -- `learning-record.ts` against `evaluateClaim` -- and a reader told "test your rule" when
+   * no rule exists would be reading about a thing they never wrote.
+   *
+   * IT IS RANKED BELOW `test-hypothesis` DELIBERATELY. When both are open, the player's own
+   * question goes first. A derivation that put the instrument's question first would be the
+   * Instrument-Telos failure in one line.
+   */
+  | { kind: "test-claim"; claimId: string }
   /** A drill is half-finished. Finishing it is the only thing that makes its positions mean anything. */
   | { kind: "continue-drill"; drillId: string; done: number; total: number }
   /** A transfer run is half-finished. Same argument. */
@@ -106,6 +134,20 @@ export interface ProductState {
   unseenEvent: { gameId: string; ply: number } | null;
   /** A rule saved as a hypothesis and never tested forward, or null. */
   untestedRule: string | null;
+  /**
+   * WHAT THE DECISION LANE'S ACCUMULATED EVIDENCE CURRENTLY SUPPORTS.
+   *
+   * THE INPUT THAT MAKES THIS DERIVATION RECURSIVE RATHER THAN PERIODIC. Every other field here is
+   * a count of what is missing or a run left half-finished, so two passes over a record that had
+   * LEARNED something in between produced the same proposal: the thing that differed between them
+   * was not an input. `shared/claim-state.ts` carries the argument in full; the short version is
+   * that the blitz lane already had this as `blitzStanding` and the lane `D26` named as the
+   * product's long-term evidence path did not.
+   *
+   * `{ kind: "unread" }` IS NOT AN EMPTY RECORD, exactly as `blitzStanding: null` is not an
+   * unblocked one. A reading that has not resolved proposes nothing on its own account.
+   */
+  claimState: ClaimState;
   /**
    * Where the blitz record stands, or NULL WHEN IT HAS NOT BEEN READ YET.
    *
@@ -181,6 +223,25 @@ export function deriveNextAction(state: ProductState): NextAction {
     return { kind: "test-hypothesis", ruleId: state.untestedRule };
   }
   /*
+   * AND THE INSTRUMENT'S OWN OPEN QUESTION, UNDER THE SAME RULE 4 AND ONE RANK BELOW THE PLAYER'S.
+   *
+   * THIS IS WHERE THE LOOP BECOMES RECURSIVE. `awaitsForwardTest` is true only of a separation the
+   * search found and nothing has decided, so the branch fires once, changes what happens next, and
+   * stops firing the moment a drill has graded it in either direction -- including when the drill
+   * REFUTED it. A derivation that kept proposing the test after the answer arrived would be a
+   * system that only accumulates confirmation.
+   *
+   * IT IS ABOVE THE ANCHOR SHORTFALL AND BELOW THE UNSEEN EVENT, and both placements are the file's
+   * existing arguments rather than new ones. Rule 3: a finding nobody has read outranks collecting
+   * more. Rule 4: nothing is coaching until it could have come back negative, so a question that
+   * can be settled outranks adding more evidence of the kind that raised it -- which is also
+   * `shared/claim.ts`'s rule from the other side, that more retrospective data can never promote a
+   * claim however much of it arrives.
+   */
+  if (awaitsForwardTest(state.claimState)) {
+    return { kind: "test-claim", claimId: state.claimState.claimId };
+  }
+  /*
    * NOT READ YET IS NOT UNBLOCKED. Everything above this line is a fact the caller holds
    * synchronously -- a run in progress, a backlog it counted, an event it is holding -- and
    * everything below depends on a reading that arrives late. `none` is the honest answer in
@@ -226,6 +287,7 @@ export function producesEvidence(action: NextAction): boolean {
     case "play-blitz":
     case "collect-more-evidence":
     case "test-hypothesis":
+    case "test-claim":
     case "continue-drill":
     case "continue-transfer":
       return true;
@@ -293,6 +355,13 @@ export function actFor(kind: NextActionKind): PrimaryAction | null {
     case "review-event":
       return "review-event";
     case "test-hypothesis":
+    /*
+     * ONE ACT, TWO KINDS, AND THE SECOND PRECEDENT FOR IT IN THIS FUNCTION. The control a player
+     * presses is the same -- start a test that could come back negative -- and the closed
+     * vocabulary is not widened for a sentence. The kinds stay apart because the sentence and the
+     * id differ, which is the argument `continue-run` already makes two cases down.
+     */
+    case "test-claim":
       return "test-hypothesis";
     case "continue-drill":
     case "continue-transfer":

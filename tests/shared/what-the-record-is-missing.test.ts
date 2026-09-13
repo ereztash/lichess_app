@@ -29,6 +29,8 @@ import {
   type ProductState,
 } from "@shared/next-action";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "@shared/blitz-reading";
+import { CLAIM_STATE_KINDS } from "@shared/claim-state";
+import { DISCOVERY_FLOOR } from "@shared/detector";
 import { MODE_CONTRACT } from "@shared/interaction-mode";
 
 const MAY: BlitzStanding = { may: true, readable: 120 };
@@ -46,6 +48,12 @@ const SETTLED: ProductState = {
   transfer: null,
   unseenEvent: null,
   untestedRule: null,
+  /*
+   * THE RECORD HAS BEEN READ AND THE SEARCH HAS SEPARATED NOTHING, which is the settled state this
+   * file's cases are about. `unread` would be a record still loading and `candidate` an open
+   * question that outranks most of what is asserted below, so neither describes "settled".
+   */
+  claimState: { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
   blitzStanding: MAY,
   decisionsOnRecord: 40,
   anchor: { answered: 8, total: 8 },
@@ -201,6 +209,7 @@ describe("what it refuses to say", () => {
       next({ transfer: { transferId: "t", done: 1, total: 3 } }).kind,
       next({ unseenEvent: { gameId: "g", ply: 3 } }).kind,
       next({ untestedRule: "r" }).kind,
+      next({ claimState: { kind: "candidate", claimId: "c" } }).kind,
       next({ decisionsOnRecord: 0, blitzStanding: blocked("no-games") }).kind,
       next({ blitzStanding: blocked("too-few-readable") }).kind,
       next({ anchor: { answered: 1, total: 8 } }).kind,
@@ -217,6 +226,7 @@ describe("what it refuses to say", () => {
         "play-first-decision",
         "return-record",
         "review-event",
+        "test-claim",
         "test-hypothesis",
         "wait-analysis",
       ].sort(),
@@ -228,8 +238,23 @@ describe("it is a router, not a coach", () => {
   it("gives the same answer whatever the record says about the player", () => {
     /*
      * THE ASSERTION THAT KEEPS THIS ON THE NEAR SIDE OF THE LINE. `ProductState` carries no verdict,
-     * no gap, no bucket and no claim -- only what is MISSING. If a field describing how well the
-     * player decides ever arrives here, this stops compiling, which is the point.
+     * no gap and no bucket -- only what is MISSING and what is OPEN. If a field describing how well
+     * the player decides ever arrives here, this stops compiling, which is the point.
+     *
+     * `claimState` JOINED THE LIST AND THE SENTENCE ABOVE LOST THE WORDS "no claim", so what
+     * changed is written here rather than left for a reader to infer from a diff.
+     *
+     * WHY IT IS ON THE NEAR SIDE. It says *a hypothesis is open on this record and no forward test
+     * has decided it*, which is a fact about the record of exactly the shape `untestedRule` already
+     * had and has always been in this list -- a saved hypothesis nothing has tested. The difference
+     * between them is who wrote the hypothesis, the player or the search, and neither is a
+     * prediction about the player. The guard below is what holds that: the state carries an id and
+     * a grade and never the claim's statement, scope, bucket, gap or direction, so nothing here can
+     * rank an option by how badly the player does something.
+     *
+     * AND NOTHING ON SCREEN MOVED. `D22` has handed no surface to this derivation; it runs beside
+     * one and its answer is discarded. A field that changed what a player sees on the strength of
+     * their own measurements would be the `D21` exposure, and this one changes nothing they see.
      */
     const fields = Object.keys(SETTLED).sort();
     expect(fields).toEqual(
@@ -237,6 +262,7 @@ describe("it is a router, not a coach", () => {
         "analysisRunning",
         "anchor",
         "blitzStanding",
+        "claimState",
         "decisionsOnRecord",
         "drill",
         "pendingAnalyses",
@@ -245,6 +271,33 @@ describe("it is a router, not a coach", () => {
         "untestedRule",
       ].sort(),
     );
+  });
+
+  it("carries the fact that a claim is open and none of what the claim says", () => {
+    /*
+     * THE GUARD THAT REPLACES "no claim" WITH SOMETHING STRONGER THAN A WORD IN A COMMENT. The
+     * hazard was never that the derivation knows a claim EXISTS; it is that it could come to know
+     * what the claim is ABOUT, and then rank what the player should work on. So the permitted
+     * vocabulary is closed: a kind, a count of scored decisions, an id and a grade. A statement, a
+     * scope, a bucket, a gap or a direction arriving in this union turns this red.
+     */
+    const PERMITTED = new Set(["kind", "scored", "claimId", "grade"]);
+    const EVERY_STATE: readonly ProductState["claimState"][] = [
+      { kind: "unread" },
+      { kind: "accumulating", scored: 3 },
+      { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
+      { kind: "candidate", claimId: "c-1" },
+      { kind: "decided", claimId: "c-1", grade: "refuted" },
+    ];
+    /* Every kind is represented, so a member added later cannot slip past the vocabulary check. */
+    expect(EVERY_STATE.map((state) => state.kind).sort()).toEqual([...CLAIM_STATE_KINDS].sort());
+    for (const state of EVERY_STATE) {
+      for (const field of Object.keys(state)) {
+        expect(PERMITTED.has(field), `"${field}" tells the router what the claim is about`).toBe(
+          true,
+        );
+      }
+    }
   });
 
   it("never routes a player into a mode that forbids what the action needs", () => {

@@ -125,6 +125,13 @@ function stateAfter(over: Partial<ProductState>): ProductState {
     transfer: null,
     unseenEvent: null,
     untestedRule: null,
+    /*
+     * ACCUMULATING WITH NOTHING IN IT, which is what a walk starting from a cleared browser holds.
+     * The search needs `DISCOVERY_FLOOR` scored decisions before it looks at all, and this walk
+     * records one or two -- so no separation exists to be found, and a fixture claiming a candidate
+     * here would be asserting a state the walk never reaches.
+     */
+    claimState: { kind: "accumulating", scored: 0 },
     blitzStanding: { may: false, because: "no-games", readable: 0, needs: null },
     decisionsOnRecord: 0,
     anchor: { answered: 0, total: ANCHOR_POSITIONS.length },

@@ -45,11 +45,12 @@ import {
 } from "@shared/primary-action";
 import type { BlitzReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
-import type { RecordReading } from "@shared/record-service";
+import { claimStateOf } from "@shared/claim-state";
+import type { ClaimView, RecordReading } from "@shared/record-service";
 import { recordTrialEvent, trialEventSeenOn } from "@/lib/progress-record";
 import { useBlitzReading } from "@/lib/blitz-reading-api";
 import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
-import { useDecisionCount, useRecordReading } from "@/lib/record-api";
+import { useClaimView, useDecisionCount, useRecordReading } from "@/lib/record-api";
 
 /**
  * Inputs each surface cannot supply, named so a disagreement can be read.
@@ -98,6 +99,16 @@ export function productStateFor(input: {
    * proposal that nothing was scoring.
    */
   analysisRunning: boolean;
+  /**
+   * The claim view, or `undefined` while it has not resolved.
+   *
+   * NOT A BLIND SPOT AND NOT A DEFAULT. `claimStateOf` answers `unread` to `undefined`, which is
+   * what the derivation needs to hear; filling it with an empty record instead would tell a player
+   * whose search has just separated something that nothing has been found. It is the one input this
+   * assembly gained that costs nothing to supply: both live shadow surfaces are inside a tree that
+   * already calls `useClaimView`, and react-query dedupes by key.
+   */
+  claim: ClaimView | undefined;
 }): ProductState {
   return {
     /*
@@ -110,6 +121,7 @@ export function productStateFor(input: {
     transfer: null,
     unseenEvent: null,
     untestedRule: null,
+    claimState: claimStateOf(input.claim),
     blitzStanding: input.reading.standing,
     decisionsOnRecord: input.decisionsOnRecord,
     anchor: {
@@ -146,12 +158,22 @@ export function useProductState(): ProductState | null {
   const analysis = useBlitzAnalysis();
   const decisions = useDecisionCount();
   const record = useRecordReading();
+  /*
+   * THE CLAIM LANE, SUBSCRIBED HERE RATHER THAN PASSED IN. Both surfaces that shadow live already
+   * hold this query -- `ResumeScreen` calls it for the finding it renders, and it sits inside
+   * `Record`, which calls it too -- so the fifth reading costs one cache hit rather than one
+   * request. `D22` refused to instrument the other two surfaces on page-weight grounds and that
+   * argument is untouched: this adds no module to the entry graph that the front door did not
+   * already import.
+   */
+  const claim = useClaimView();
   if (!blitz.data) return null;
   return productStateFor({
     reading: blitz.data.reading,
     games: blitz.data.games,
     decisionsOnRecord: decisions.data?.decisions ?? 0,
     record: record.data,
+    claim: claim.data,
     /*
      * THE QUEUE'S OWN PROGRESS. `scoring` is the game being worked on right now, so a non-null one
      * is the difference between "eleven games are waiting" and "eleven are waiting and one is being

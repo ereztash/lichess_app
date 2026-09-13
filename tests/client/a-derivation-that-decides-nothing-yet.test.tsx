@@ -62,8 +62,18 @@ const game = (gameId: string, analysisState: StoredBlitzGame["analysisState"]): 
   }) as unknown as StoredBlitzGame;
 
 type StateInput = Parameters<typeof productStateFor>[0];
-const stateFrom = (over: Omit<StateInput, "analysisRunning"> & { analysisRunning?: boolean }) =>
-  productStateFor({ analysisRunning: false, ...over });
+/*
+ * `claim` DEFAULTS TO `undefined` AND THAT IS THE READING, not a convenience. `undefined` is what
+ * react-query holds before the claim query resolves, and `claimStateOf` answers `unread` to it --
+ * so a case that says nothing about the claim is a case about a front door whose claim view has not
+ * come back, which is the state every one of these assertions was written in.
+ */
+const stateFrom = (
+  over: Omit<StateInput, "analysisRunning" | "claim"> & {
+    analysisRunning?: boolean;
+    claim?: StateInput["claim"];
+  },
+) => productStateFor({ analysisRunning: false, claim: undefined, ...over });
 
 beforeEach(() => {
   localStorage.clear();

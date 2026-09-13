@@ -59,6 +59,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D24](D24-learning-architecture.md) | can the insight → uncued-transfer layer be evaluated at all? | `NARROW` | reached MEASUREMENT-BLOCKED, then RC-06 landed and answered it. Survives as cued discrimination on a **screened** rule class; not as transfer of a **player-authored** one — **superseded by D25** |
 | [D25](D25-evidence-architecture.md) | can the evidence architecture support the intended claim at all? | `REJECT` (the current action signature) | **`CONSTRUCT-UNDERIDENTIFIED`** — the one eligible rule class separates because its two cells score different acts; under one fixed predicate separation is −0.048, not +0.768. Supersedes `D24`'s `NARROW` |
 | [D26](D26-primary-evidence-path.md) | which population is the product's user-facing denominator? | `DEFER` | `decisions` is the destination and `blitzGames` is a context, decided by the owner; the consolidation waits on the FIELD run, against which `C-1` is left visible on purpose |
+| [D27](D27-recursive-spine.md) | what is the recurring loop, and which layer may decide what happens next in it? | `DEFER` | five phases stated once and held by a test; the claim layer now reaches the layer that proposes, so a pass over a record that learned something is no longer the pass before it. Still no screen handed over, and no surface a cold participant reaches has moved |
 
 ### D04, whose trigger fired and which has now been measured
 
