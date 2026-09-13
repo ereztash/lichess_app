@@ -435,30 +435,50 @@ function nextActionResolves(derive: (state: ProductState) => NextAction): GateRe
     transfer: null,
     unseenEvent: null,
     untestedRule: null,
+    claimState: { kind: "unread" },
     blitzStanding: null,
     decisionsOnRecord: 40,
     anchor: { answered: 8, total: 8 },
   };
-  for (const because of BLITZ_BLOCKERS) {
-    const standing: BlitzStanding = { may: false, because, readable: 4, needs: null };
-    const unscored = because === "nothing-scored";
-    const action = derive({
-      ...base,
-      blitzStanding: standing,
-      /* The state each blocker actually describes: unscored games exist only for that one. */
-      pendingAnalyses: unscored ? 3 : 0,
-      decisionsOnRecord: because === "no-games" ? 0 : 40,
-    });
-    if (unscored && producesEvidence(action)) {
-      return fail(
-        `${because} is answered with "${action.kind}", which adds to the backlog that is the blocker`,
-      );
-    }
-    if (!unscored && !producesEvidence(action)) {
-      return fail(`${because} is a shortage of record and is answered with "${action.kind}"`);
+  /*
+   * EVERY BLOCKER TWICE, ONCE WITH THE OTHER LANE HOLDING AN OPEN QUESTION.
+   *
+   * `claimState` IS AN INPUT THAT CAN OUTRANK A BLOCKER, which none of the other fields in `base`
+   * can: a candidate the search found and nothing has decided proposes a drill, and a drill makes
+   * evidence. `nothing-scored` is the one blocker that more evidence cannot resolve, so an ordering
+   * that let the decision lane's open question jump the queue there would re-create the exact defect
+   * this gate was written for, in a lane the original loop never varied. Running the same table
+   * under both claim states is what makes that a red gate rather than an argument in a comment.
+   */
+  const CLAIM_STATES: readonly ProductState["claimState"][] = [
+    { kind: "unread" },
+    { kind: "candidate", claimId: "gate-claim" },
+  ];
+  for (const claimState of CLAIM_STATES) {
+    for (const because of BLITZ_BLOCKERS) {
+      const standing: BlitzStanding = { may: false, because, readable: 4, needs: null };
+      const unscored = because === "nothing-scored";
+      const action = derive({
+        ...base,
+        claimState,
+        blitzStanding: standing,
+        /* The state each blocker actually describes: unscored games exist only for that one. */
+        pendingAnalyses: unscored ? 3 : 0,
+        decisionsOnRecord: because === "no-games" ? 0 : 40,
+      });
+      if (unscored && producesEvidence(action)) {
+        return fail(
+          `${because} is answered with "${action.kind}" under claim state "${claimState.kind}", which adds to the backlog that is the blocker`,
+        );
+      }
+      if (!unscored && !producesEvidence(action)) {
+        return fail(`${because} is a shortage of record and is answered with "${action.kind}"`);
+      }
     }
   }
-  return pass(`all ${BLITZ_BLOCKERS.length} blockers are answered by something that resolves them`);
+  return pass(
+    `all ${BLITZ_BLOCKERS.length} blockers are answered by something that resolves them, under ${CLAIM_STATES.length} claim states`,
+  );
 }
 
 /**

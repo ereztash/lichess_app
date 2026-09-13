@@ -239,10 +239,20 @@ describe("a verdict that cannot name its engine", () => {
        * build containing the separator could otherwise produce the id of a different regime, which
        * is silent pooling arriving through the identifier of the module that prevents it.
        */
-      const base = { protocol: "legacy", protocolVersion: "legacy", revealTiming: "legacy" } as const;
+      const base = {
+        protocol: "legacy",
+        protocolVersion: "legacy",
+        revealTiming: "legacy",
+        /*
+         * THE ARM'S SEGMENT NOW FOLLOWS THE BUILD, which changes which forgery is available and
+         * not whether one is. A build is still the only free-text component, so it is still the
+         * only one that can contain a separator, and the two assertions below are still about it.
+         */
+        quietWindow: "legacy",
+      } as const;
       const forged = stratumId({ ...base, engineBuild: "a/b" });
       const real = stratumId({ ...base, engineBuild: "a" });
-      expect(forged).not.toBe(`${real}/b`);
+      expect(forged).not.toBe(real.replace("/a/", "/a/b/"));
       expect(forged).toContain("a%2Fb");
     });
   });

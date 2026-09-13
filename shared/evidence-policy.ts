@@ -27,6 +27,7 @@
 import type { DecisionAtom } from "./decision-atom.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
 import type { RevealTiming } from "./reveal-timing.js";
+import type { QuietWindowExposure } from "./quiet-window.js";
 import { protocolOf, type ProtocolKey } from "./measurement-protocol.js";
 
 /**
@@ -46,8 +47,15 @@ import { protocolOf, type ProtocolKey } from "./measurement-protocol.js";
  * NOTHING PERSISTS THIS NUMBER TODAY, so the bump is a marker rather than a migration. It is worth
  * making anyway: the day a stored finding does carry it, the version has to already mean what it
  * says, and a version that only moves when someone remembers to move it means nothing.
+ *
+ * 4 -> 5: THE QUIET-WINDOW ARM BECAME A STRATUM AXIS. A bucket now produces a different population
+ * than it did under 4 -- rows from before migration `0019` split off as `legacy` rather than
+ * joining the visible ones -- and that is exactly the condition this number exists to mark. The
+ * axis and the bump are in one commit for the reason `D21` gives about the last pair: *"A version
+ * that moves while nothing stratifies on it is worse than a version that never moves"*, and the
+ * converse costs just as much, because a split nobody can date cannot be compared across.
  */
-export const EVIDENCE_POLICY_VERSION = 4;
+export const EVIDENCE_POLICY_VERSION = 5;
 
 /**
  * The analyses that read observations. One entry per consumer, not per screen: two screens
@@ -327,6 +335,48 @@ export interface StratumKey {
    * this decision yet. That keeps it out of every population without inventing a build for it.
    */
   engineBuild: string | typeof LEGACY_CONTEXT;
+  /**
+   * WHICH SCREEN PRODUCED IT: the quiet-window arm, or `legacy`.
+   *
+   * THE THIRD TIME THIS EXACT DEFECT HAS BEEN FOUND IN THIS KEY, and the first two are written
+   * directly above. `reveal_timing` was stamped on every row while nothing pooled on it -- *"the
+   * recording happened; the wall did not exist"*. `protocol_version` was stamped on every row while
+   * nothing pooled on it, and `blitz-strata.ts` had already got it right and been left
+   * ungeneralised. `quiet_window_exposure` is the same sentence a third time: a stored atom field
+   * (`ATOM_FIELDS`), a wire field, a MySQL enum since migration `0019`, and no axis here.
+   *
+   * WHAT IT VARIES, AND WHY THAT IS EXACTLY WHAT A STRATUM IS FOR. Under the arm the context ribbon
+   * renders nothing while the player is producing evidence. The ribbon carries the record's own
+   * state during `DECIDE`, and the question `MEASUREMENT_REACTIVITY_EXPERIMENTS.md` X-5 asks is
+   * whether that moves the confidence stated after it. If it does, an ON row and an OFF row are two
+   * populations in the one variable the calibration gap is computed from.
+   *
+   * A VERSION BUMP COULD NOT HAVE COVERED IT, which is why the axis is the only repair. The arm is
+   * a `VITE_` flag, and `client/src/lib/features.ts` says what that means: *"a flag moves without a
+   * commit, so two deployments of one source can differ in stimulus while agreeing on every version
+   * they carry, and the version cannot be derived from the flag either."* So `protocolVersion` is
+   * constant across the two arms by construction, and pooling them would have been silent in the
+   * one direction no existing axis can see.
+   *
+   * FREE WHILE IT IS CONSTANT, which is `blitz-strata.ts`'s own argument for adding an axis before
+   * it moves. No deployment sets the flag today, so every row written since `0019` carries
+   * `context-ribbon-visible` and lands in one stratum exactly as it does now.
+   *
+   * WHAT IT COSTS, AND IT IS NOT NOTHING. Rows written between the reveal-timing migration and
+   * `0019` carry a timing and no exposure, and they now split off as `legacy` rather than joining
+   * the visible ones. How many such rows a real record holds is not knowable from the tree, and the
+   * measurement that would settle it is a count of `quiet_window_exposure IS NULL` beside
+   * `reveal_timing IS NOT NULL` on the owner's record. `MIN_BUCKET_N` is 30 and the discovery floor
+   * is twice that, so the split could plausibly cost a claim.
+   *
+   * BACKFILLING WOULD HAVE BEEN CHEAPER AND IS REFUSED, for the reason every other slot here
+   * refuses it. It is tempting in this one case: the flag is opt-in, no deployment sets it, so a
+   * null row was "obviously" produced with the ribbon visible. But `features.ts` is the file that
+   * says a flag moves without a commit, and nothing in this tree can establish which environment
+   * variables a deployment carried. Calling a null row `visible` would assert a condition nobody
+   * wrote down, which is the argument this module already makes three times above.
+   */
+  quietWindow: QuietWindowExposure | typeof LEGACY_CONTEXT;
 }
 
 /** One stratum: a set of decisions that share the conditions that make them comparable. */
@@ -345,8 +395,12 @@ export function stratumId(key: StratumKey): string {
    *
    * THE VERSION IS JOINED TO ITS PROTOCOL WITH `@` RATHER THAN A FOURTH `/` SEGMENT, because it
    * qualifies that protocol and means nothing without it: `legacy@legacy` is one fact, not two.
+   *
+   * THE ARM IS ITS OWN SEGMENT AND NOT JOINED TO ANYTHING, because it qualifies no other axis. It
+   * is a property of the screen the row was produced on, which is independent of the protocol, the
+   * timing and the engine, and a value that stood for two facts at once could not be read back.
    */
-  return `${key.protocol}@${key.protocolVersion}/${key.revealTiming}/${encodeURIComponent(key.engineBuild)}`;
+  return `${key.protocol}@${key.protocolVersion}/${key.revealTiming}/${encodeURIComponent(key.engineBuild)}/${key.quietWindow}`;
 }
 
 /**
@@ -372,6 +426,7 @@ function stratumKeyOf(atom: DecisionAtom): StratumKey {
     protocolVersion: atom.protocol_version ?? LEGACY_CONTEXT,
     revealTiming: atom.reveal_timing ?? LEGACY_CONTEXT,
     engineBuild: atom.result?.engine_build ?? LEGACY_CONTEXT,
+    quietWindow: atom.quiet_window_exposure ?? LEGACY_CONTEXT,
   };
 }
 
