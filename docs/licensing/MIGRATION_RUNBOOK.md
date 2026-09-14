@@ -13,7 +13,7 @@ Against the three artefacts in `GPL_CUTOFF.md`:
 ```text
 LAST_GPL_MAIN_PRODUCT_BASELINE   = 490aed07b0ec2e2d27ab7574eacdb7673a7d5666
 PUBLIC_GPL_PRODUCT_DELTA         = 78baa67ff21734be0f4785229cb246eb033c4511  (PR #123, unmerged)
-FINAL_GPL_MAIN_TRANSITION_STATE  = UNKNOWN UNTIL PR #122 IS MERGED
+FINAL_GPL_MAIN_TRANSITION_STATE  = 1789294593dee5cfcca50a06ed2e1b535b7d1870
 ```
 
 ---
@@ -25,7 +25,7 @@ FINAL_GPL_MAIN_TRANSITION_STATE  = UNKNOWN UNTIL PR #122 IS MERGED
 | 1 | Freeze the GPL line for first-party product development | **in force** — §1 |
 | 2 | Immutable historical boundary, all three artefacts | **recorded** — `GPL_CUTOFF.md`; marker is §1a |
 | 3 | Audit the rights chain | **done** — `IP_PROVENANCE_AUDIT.md`, no unresolved ownership conflict |
-| 4 | New proprietary repository | **after the freeze** — §2 |
+| 4 | New proprietary repository | **BLOCKED — OWNER ACTION.** Repository creation returned 403 to the session; §2 |
 | 5 | Explicit component licence scope | **done** — `LICENSING.md` |
 | 6 | Preserve and harden Stockfish compliance apparatus | **mechanically verified**, legal sufficiency pending — §5 |
 | 7 | Keep the boundary narrow and visible | **verified** — `IP_PROVENANCE_AUDIT.md` §6 |
@@ -33,7 +33,7 @@ FINAL_GPL_MAIN_TRANSITION_STATE  = UNKNOWN UNTIL PR #122 IS MERGED
 | 9 | GPL-regression gate | **done** — `GATE-LICENSE-BOUNDARY`, seven detectors each proven |
 | 10 | Protect the boundary operationally | **partial** — §3 |
 | 11 | Separate product changes from the migration | **held** — §4 |
-| 12 | Resume development under the new default | **after the freeze** — §2 |
+| 12 | Resume development under the new default | **not reached** — gated on step 4 |
 
 ---
 
@@ -117,6 +117,19 @@ GPL mirror alongside a private line, has commercial and legal consequences that 
 counsel brief bears on directly. The sequence below implements the mission's chosen architecture; if
 counsel's answer to Question 2 is that the works are separable, a simpler arrangement may become
 available.
+
+### Step 4 is blocked on an owner action, and it is a permission rather than a decision
+
+Creating a repository is refused to the automation that prepared this migration:
+
+```
+POST https://api.github.com/user/repos  ->  403 Resource not accessible by integration
+```
+
+That is a missing `administration: write` permission on the GitHub App, not a transient failure and
+not a policy judgement about the name. **Until the private repository exists, no first-party product
+development happens anywhere** — and in particular it does not fall back to this repository, which is
+the whole point of the freeze. The sequence below is what to run once it exists.
 
 ### The sequence
 
@@ -268,8 +281,8 @@ State at this commit. `owner` means it needs a repository setting or a decision 
 | --- | --- | --- | --- |
 | 1 | An exact commit identifies the last GPL **product baseline** on `main` | **met** — `GPL_CUTOFF.md` §A | — |
 | 2 | The public GPL **product delta** outside `main` is recorded, not hidden | **met** — §B, PR #123 head | — |
-| 3 | The final public-GPL transition commit is identified | **pending the merge** — §C fills from the marker | — |
-| 4 | A discoverable marker exists on the transition commit | **not met** — `refs/tags/*` is out of scope for a session | owner |
+| 3 | The final public-GPL transition commit is identified | **met** — `17892945`, recorded in `GPL_CUTOFF.md` §C | — |
+| 4 | A discoverable marker exists on the transition commit | **not met** — tag created, push returned 403; the branch dry-run to the same remote succeeded, so it is scope | owner |
 | 5 | Historical GPL rights not falsely revoked | **met** — asserted nowhere, denied explicitly | — |
 | 6 | Rights chain carries no unresolved material ownership conflict | **met**, two conditions recorded | — |
 | 7 | A CI gate prevents GPL-scope regression | **met** — seven detectors, each proven individually | — |
@@ -279,7 +292,7 @@ State at this commit. `owner` means it needs a repository setting or a decision 
 | 11 | Stockfish **legal sufficiency** determined | **not met** | counsel |
 | 12 | The proprietary/engine interface is identifiable and auditable | **met** — `LICENSING.md` §5 | — |
 | 13 | Weak-copyleft dependencies classified by a person, not by a string search | **met** — `LICENSING.md` §1a | — |
-| 14 | Public `main` frozen **mechanically**, not by convention | **not met** — branch protection is a setting | owner |
+| 14 | Public `main` frozen **mechanically**, not by convention | **not met** — stated at repository level in `README.md`; branch protection is a setting, and a notice is not a mechanism | owner |
 | 15 | Open public product PRs cannot drift back into the frozen line | **pending** — closed once the private line reproduces them | — |
 | 16 | A private repository exists with a proprietary default | **after the freeze** — recorded in that repository | — |
 | 17 | The proprietary codebase has an explicit first-party licence | **after the freeze** — same | — |
@@ -287,14 +300,14 @@ State at this commit. `owner` means it needs a repository setting or a decision 
 | 19 | Lichess dataset terms verified from primary sources | **not met** | owner |
 | 20 | External proprietary distribution cleared | **not met** — §6 | counsel |
 
-**Met at this commit: 10 of 20.** The other ten, counted so the four states add up to the
-denominator rather than being summarised into one:
+**Met: 11 of 20.** The other nine, counted so the four states add up to the denominator rather
+than being summarised into one:
 
 | State | Count | Rows |
 | --- | --- | --- |
-| met | 10 | 1, 2, 5, 6, 7, 8, 9, 10, 12, 13 |
+| met | 11 | 1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13 |
 | not met | 5 | 4, 11, 14, 19, 20 |
-| pending, and resolves without a decision | 2 | 3 (fills from this merge), 15 (follows the private line) |
+| pending, and resolves without a decision | 1 | 15 (follows the private line) |
 | after the freeze, recorded elsewhere | 3 | 16, 17, 18 |
 
 Rows 16 to 18 are not scored *met* or *not met* because their evidence lives in a repository this

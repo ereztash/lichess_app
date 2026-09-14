@@ -70,21 +70,29 @@ Three things follow, and all three are recorded rather than chosen between:
 
 | | |
 | --- | --- |
-| commit | **`UNKNOWN UNTIL PR #122 IS MERGED`** |
-| will be | the merge commit of pull request #122 into `main` |
+| commit | `1789294593dee5cfcca50a06ed2e1b535b7d1870` |
+| short | `17892945` |
+| subject | Merge pull request #122 from ereztash/claude/license-boundary |
 | ref | `main` |
-| marker | `gpl-main-cutoff-2026-09-14`, created on that commit — see `MIGRATION_RUNBOOK.md` §1a |
+| date | 2026-09-14 |
+| marker | `gpl-main-cutoff-2026-09-14` — **created, NOT PUSHED**; see `MIGRATION_RUNBOOK.md` §1a |
 
-**This row cannot be filled in by the commit it describes.** The merge SHA does not exist until the
-merge happens, and this file is inside the merge. Writing a plausible-looking SHA here would put a
-fabricated identifier into the one document whose whole job is to be checkable, so the row says
-`UNKNOWN` and the actual value is recorded in two places that come *after* the merge and can
-therefore be true: the annotated marker `gpl-main-cutoff-2026-09-14`, which points at it, and
-`SOURCE_PROVENANCE.md` in the private repository, which records it by SHA.
-
-The merge of the licensing transition itself. **After that commit, public `main` receives no further
+The merge of the licensing transition itself. **After this commit, public `main` receives no further
 first-party product code.** The repository stays public, its root `LICENSE` stays GPL, and the line
 stops being a development authority without ceasing to be true.
+
+**This row could not be filled in by the commit it describes, and was not guessed.** The merge SHA
+does not exist until the merge happens, and this file is inside the merge — so at that commit the
+row read `UNKNOWN UNTIL PR #122 IS MERGED`. Writing a plausible-looking SHA would have put a
+fabricated identifier into the one document whose whole job is to be checkable. It is filled one
+commit later, from the merge that actually happened.
+
+**That later commit carries no product code**, and it is the only thing on `main` after the
+transition state: the freeze notice in `README.md`, this correction, and the scoreboard row it
+closes. The sentence `FINAL_GPL_MAIN_TRANSITION_STATE` anchors is *"after this commit public `main`
+receives no further first-party product **code**"*, and documentation of the freeze is not product
+code. If that reading is disputed, the remedy is to read the two commits, which is why both are
+named rather than one being folded into the other.
 
 The marker's name is deliberately `gpl-main-cutoff` and not "the last GPL product code ever
 published". §B is why: it would be false.
@@ -156,7 +164,7 @@ PUBLIC_GPL_PRODUCT_DELTA
 = 78baa67ff21734be0f4785229cb246eb033c4511  (PR #123, claude/ui-executes-architecture, unmerged)
 
 FINAL_GPL_MAIN_TRANSITION_STATE
-= UNKNOWN UNTIL PR #122 IS MERGED
+= 1789294593dee5cfcca50a06ed2e1b535b7d1870
 ```
 
 ## This history is never rewritten
