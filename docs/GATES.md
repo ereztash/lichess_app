@@ -45,7 +45,7 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-CONTINUATION-OUTRANKS | LAW 4 | ריצה פתוחה שנדחקת מתחת להצעה נמוכה ממנה בסולם |
 | GATE-CONTINUE-REACHABLE-OFF-RUN | LAW 4 | הפעולה שמסיימת סט שכבר התחיל, כשאפשר להגיע אליה רק מתוך הריצה עצמה |
 | GATE-UNREAD-COMMITMENT-NOT-EMPTY | LAW 4 | קריאה שלא חזרה שמוצגת כרשומה שאין בה סט פתוח |
-| GATE-LICENSE-BOUNDARY | R-IP | קוד copyleft שנכנס לספרייה קניינית, תלות copyleft חדשה, הצהרת GPL על המוצר כולו, או רשומת התאימות של המנוע שלא תואמת את מה שנשלח |
+| GATE-LICENSE-BOUNDARY | R-IP | קוד copyleft שנכנס לאחת מחמש משפחות המקור הראשוניות, תלות strong-copyleft חדשה, תלות weak-copyleft שאיש לא סיווג, הצהרת GPL על המוצר כולו, מפת הרכיבים שנמחקה, או רשומת התאימות של המנוע שלא תואמת את מה שנשלח |
 | GATE-ONE-PRIMARY-ACTION | LAW 2 | דלת כניסה שמציעה שני מוצרים במשקל אחד |
 | GATE-NO-DUPLICATE-ACTION | LAW 2 | חשיפה שמציעה את אותה פעולה פעמיים |
 | GATE-TOOLBOX-OUTSIDE-FOCUS | LAW 2 | ארגז הכלים נטען לכל נכנס ונפתח בלי שאיש לחץ עליו |

@@ -68,6 +68,7 @@ import {
 import { continuationOffer } from "../shared/continuation-offer";
 import {
   licenseBoundaryFindings,
+  REQUIRED_DETECTORS,
   REPOSITORY as LICENSE_REPOSITORY,
   type LicenseTree,
 } from "./license-boundary";
@@ -202,8 +203,16 @@ const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
  */
 const CONTINUE_CONTROL_FIXTURES = "tests/fixtures/continuation-surfaces";
 
-/** The licensing boundary, broken on purpose. `GATE-LICENSE-BOUNDARY`'s control, nothing else. */
+/**
+ * The licensing boundary, broken on purpose. `GATE-LICENSE-BOUNDARY`'s controls, nothing else.
+ *
+ * TWO TREES, BECAUSE TWO OF THE DETECTORS CANNOT BE PROVEN IN ONE. Check 5 fires when
+ * `THIRD_PARTY_NOTICES.md` is MISSING; check 7 fires when it is PRESENT and names the wrong engine
+ * version. A single fixture can satisfy one of those and must infer the other, and an inferred
+ * detector is an unproven one -- which this gate has already been caught doing once.
+ */
 const LICENSE_FIXTURES = "tests/fixtures/licensing";
+const LICENSE_STALE_FIXTURES = "tests/fixtures/licensing-stale-notices";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
@@ -476,28 +485,78 @@ const shadowSurfacesLive = (roots: string[]): GateResult => {
  * violations quietly repaired, the control would go green and the gate would be unproven while
  * reporting itself proven -- the exact hole `GATE-SHADOW-SURFACE-LIVE` names for its own control.
  */
-const licenseBoundary = (tree: LicenseTree): GateResult => {
-  const findings = licenseBoundaryFindings(tree);
-  if (tree.root === LICENSE_FIXTURES) {
-    /*
-     * A NON-ZERO COUNT IS NOT ENOUGH, and this gate has already proved why. The header check --
-     * the one that catches a file PASTED in with its licence notice, which is the commonest way a
-     * boundary is actually lost -- was dead on arrival: it was given the SPDX pattern the lockfile
-     * checks use, and a real header says "the terms of the GNU General Public License" with no
-     * `GPL` token in it. The control went red on four findings out of five and the dead check was
-     * invisible inside the red.
-     *
-     * So the control asserts that the check most likely to die silently is the one that fired.
-     */
-    if (!findings.some((f) => f.text.startsWith("copyleft notice in a proprietary path"))) {
-      return fail(
-        `${HARNESS_ERROR} the licensing control found no pasted-header violation, so the header ` +
-          `check is unproven however many other findings it returned`,
-      );
-    }
-    if (findings.length === 0) {
-      return fail(`${HARNESS_ERROR} the licensing control fixture no longer violates the boundary`);
-    }
+const licenseBoundary = (tree: LicenseTree): GateResult =>
+  fromFindings(
+    licenseBoundaryFindings(tree),
+    "the proprietary/GPL boundary holds across the tree",
+  );
+
+/**
+ * THE CONTROL, WHICH ASSERTS EACH DETECTOR FIRED BY NAME RATHER THAN COUNTING RED.
+ *
+ * A NON-ZERO COUNT IS NOT ENOUGH, and this gate has already proved why. The header check -- the one
+ * that catches a file PASTED in with its licence notice, which is the commonest way a boundary is
+ * actually lost -- was dead on arrival: it was given the SPDX pattern the lockfile checks use, and
+ * a real header says "the terms of the GNU General Public License" with no `GPL` token in it. The
+ * control went red on four findings out of five and the dead check was invisible inside the red.
+ *
+ * So every entry in `REQUIRED_DETECTORS` must be observed firing, across two fixture trees, and
+ * one thing must be observed NOT firing: `scripts/sf-wasm.mjs` carries the same GPL header as
+ * `scripts/ordinary-helper.mjs` beside it, and only the second may be reported. That pair is what
+ * turns the exception list from a comment into a tested rule -- and it is not hypothetical, because
+ * under the previous `.ts`-only walk the allowlist entry for that file could never have fired at
+ * all.
+ */
+const licenseBoundaryControl = (): GateResult => {
+  const lost = licenseBoundaryFindings({
+    root: LICENSE_FIXTURES,
+    proprietary: ["client/src", "server", "shared", "scripts", "tests"],
+    exceptions: [
+      {
+        path: "scripts/sf-wasm.mjs",
+        side: "gpl",
+        why: "the real tree's one GPL-side first-party file, mirrored so the pair differs only here",
+      },
+    ],
+  });
+  const stale = licenseBoundaryFindings({
+    root: LICENSE_STALE_FIXTURES,
+    proprietary: ["client/src", "server", "shared", "scripts", "tests"],
+    exceptions: [],
+  });
+  const findings = [...lost, ...stale];
+
+  if (findings.length === 0) {
+    return fail(`${HARNESS_ERROR} the licensing control fixtures no longer violate the boundary`);
+  }
+  const unproven = REQUIRED_DETECTORS.filter(
+    (d) => !findings.some((f) => f.text.includes(d.match)),
+  );
+  if (unproven.length > 0) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control never observed ${unproven.length} detector(s) ` +
+        `firing, so each is unproven however many other findings it returned: ` +
+        unproven.map((d) => d.id).join(", "),
+    );
+  }
+  const allowlistLeaked = lost.filter((f) => f.file.endsWith("scripts/sf-wasm.mjs"));
+  if (allowlistLeaked.length > 0) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control reported the allowlisted GPL-side file, so the ` +
+        `exception list does not hold: ${allowlistLeaked[0].text}`,
+    );
+  }
+  if (!lost.some((f) => f.file.endsWith("scripts/ordinary-helper.mjs"))) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control did not report the un-allowlisted .mjs paste beside ` +
+        `the allowlisted one, so the allowlist proves nothing`,
+    );
+  }
+  if (stale.length !== 1) {
+    return fail(
+      `${HARNESS_ERROR} the stale-notices fixture is meant to isolate ONE detector and produced ` +
+        `${stale.length} findings: ${stale.map((f) => f.text).join(" | ")}`,
+    );
   }
   return fromFindings(findings, "the proprietary/GPL boundary holds across the tree");
 };
@@ -1477,25 +1536,13 @@ export const GATES: Gate[] = [
     id: "GATE-LICENSE-BOUNDARY",
     rule: "R-IP",
     description:
-      "The proprietary boundary holds: no copyleft in first-party paths, no unapproved copyleft " +
-      "dependency, no whole-product GPL claim, and the engine's compliance record matches what ships.",
+      "The proprietary boundary holds across every first-party source family: no copyleft notice " +
+      "in client/src, server, shared, scripts or tests outside the four justified exceptions, no " +
+      "unapproved strong-copyleft dependency, every weak-copyleft dependency classified by hand " +
+      "in LICENSING.md, no whole-product GPL claim, the component map present, and the engine's " +
+      "compliance record matching what ships.",
     run: () => licenseBoundary(LICENSE_REPOSITORY),
-    positiveControl: () =>
-      /*
-       * THE SAME PREDICATE OVER A TREE WHERE THE BOUNDARY HAS BEEN LOST, and every violation in it
-       * is one that has actually happened to somebody rather than one invented to be caught: a
-       * helper pasted with its GPL header into an application directory, a second copyleft package
-       * arriving beside the permitted engine, the product manifest declaring copyleft, the
-       * compliance files deleted in a refactor, and an engine version the notices do not name.
-       *
-       * The fixture's paths mirror the real tree's, so the control differs from the run in its
-       * INPUT and in nothing else. A control with its own weaker predicate proves nothing.
-       */
-      licenseBoundary({
-        root: LICENSE_FIXTURES,
-        proprietary: ["client/src", "server", "shared"],
-        gplAllowlist: [],
-      }),
+    positiveControl: licenseBoundaryControl,
   },
   {
     id: "GATE-CONTINUE-REACHABLE-OFF-RUN",

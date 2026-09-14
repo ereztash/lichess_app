@@ -1,6 +1,11 @@
 # IP provenance audit
 
-**Audited revision:** `490aed07b0ec2e2d27ab7574eacdb7673a7d5666` (`main`, 2026-09-14)
+**Audited revision:** `490aed07b0ec2e2d27ab7574eacdb7673a7d5666` (`main`, 2026-09-14), recorded in
+`docs/licensing/GPL_CUTOFF.md` as `LAST_GPL_MAIN_PRODUCT_BASELINE`. Two further public GPL artefacts
+exist and are **not** covered by this revision: `PUBLIC_GPL_PRODUCT_DELTA` (`78baa67`, PR #123,
+first-party product code published publicly and unmerged) and `FINAL_GPL_MAIN_TRANSITION_STATE` (the
+merge of PR #122, unknown until it happens). §B of the cutoff record is why one SHA is no longer a
+sufficient description of the public GPL line.
 **Purpose:** establish whether the rights chain over Decision Lab first-party source is clean
 enough to relicense it under proprietary terms, and to identify every component that is not
 first-party and therefore cannot be relicensed.
@@ -32,7 +37,7 @@ resolved, replaced, or isolated. Nothing is promoted out of `UNCERTAIN` by plaus
 | --- | --- | --- |
 | `FIRST-PARTY` | 5 source families (~134,600 lines), 203 docs | no |
 | `PERMISSIVE-3P` | 27 production packages + 2 font families | no |
-| `COPYLEFT-3P` | 1 production package (Stockfish) + 1 dev package (axe-core, MPL-2.0) | Stockfish: yes, by design — it stays GPL |
+| `COPYLEFT-3P` | **strong:** 1 package (Stockfish). **weak, file-level:** 13 packages (`axe-core` and 12 `lightningcss` builds, all MPL-2.0), classified in `LICENSING.md` §1a | Stockfish: yes, by design — it stays GPL. Weak: no, subject to §4.2 |
 | `GENERATED` | 7 modules from 2 upstream datasets | no, subject to §5 |
 | `UNCERTAIN` | **0 source families** | — |
 
@@ -137,8 +142,11 @@ who received a copy may use, modify, fork and redistribute it under the GPL. Tha
 of the migration; it is the correct and honest outcome, and no part of this work attempts to
 narrow it.
 
-The migration is prospective only. It governs first-party code written *after* the cutoff. The
-cutoff revision is recorded in `docs/licensing/GPL_CUTOFF.md` and tagged so it cannot drift.
+The migration is prospective only. It governs first-party code written *after* the transition. All
+three public GPL artefacts are recorded by SHA in `docs/licensing/GPL_CUTOFF.md`, including the
+product delta published on a branch that was never merged — because a record that named only `main`
+would have been quietly incomplete on exactly the point that matters. A discoverable marker on the
+transition commit is owner action and is **not** in place; the SHAs do not depend on it.
 
 ---
 
@@ -164,12 +172,27 @@ This is the finding that makes the migration tractable. The copyleft surface of 
 **one package**, it is an engine behind a message-passing boundary, and it is the one component
 nobody proposes to relicense.
 
-### 4.2 Development dependencies
+### 4.2 Weak-copyleft packages — thirteen, not one, and absence was never measured
 
-One weak-copyleft item: **`axe-core@4.13.0`, MPL-2.0** — accessibility testing. MPL-2.0 is
-file-level copyleft: it reaches modified MPL-licensed *files*, and does not propagate to code that
-merely uses the library. `axe-core` is a devDependency, is not imported by any distributed module,
-and is not present in `dist/`. Recorded for completeness; not a constraint on distribution.
+The first revision of this section said *"one weak-copyleft item"*. The resolved tree carries
+**thirteen**: `axe-core@4.13.0` and twelve `lightningcss` entries — the CSS transform plus its
+eleven optional native platform builds — all MPL-2.0. Only `axe-core` is flagged `dev` in the
+lockfile; all twelve `lightningcss` entries are not. A reading that filtered on that flag therefore
+saw one package and reported one.
+
+MPL-2.0 is file-level copyleft: it reaches modified MPL-covered *files* and does not propagate to
+code that merely uses the library (§3.3 of the licence permits a Larger Work under other terms).
+
+**What was NOT established, and was previously implied.** The gate decided these packages were not
+conveyed by searching emitted chunks for their npm package names and treating absence of the string
+as evidence of absence of the code. A bundler makes no undertaking to preserve package-name strings.
+That mechanism is now labelled `DRIFT_HEURISTIC`, is positive-evidence-only, and permits nothing.
+
+What replaces it is a classification in `LICENSING.md` §1a that a person wrote: for each package, the
+claim is that **no first-party module imports it and its role is to transform build input**, which is
+checkable by reading `client/src/**`. That is a weaker claim than bundle provenance and is written
+as the weaker claim on purpose. Not a constraint on distribution on the present classification; a
+change to any row is a licensing change.
 
 ### 4.3 The one first-party file that loads Stockfish in-process
 
@@ -316,11 +339,14 @@ client-side only. The server-side analysis path stores and reads results; it doe
 | AI-authorship / copyrightability (§3.2) | no | no — affects remedy strength, not permission |
 | Lichess dataset terms (§5) | no | **yes, until verified** |
 | Stockfish boundary determination (§6) | no | **yes, until counsel answers Q2 and Q4** |
-| Stockfish GPL compliance (§6.3) | no | no — obligations identified and met |
+| Stockfish compliance **apparatus** (§6.3) | no | no — `MECHANICALLY_VERIFIED`: texts present, notices current, bytes hash-identical, gate detector proven |
+| Stockfish compliance **legal sufficiency** | no | **yes, until counsel answers** — `PENDING_COUNSEL`; whether a repository URL plus a version tag discharges GPL §6 is not a measurement |
+| Weak-copyleft classification (§4.2) | no | no, on the present classification — but it rests on a reviewed statement, not on bundle provenance |
 | `scripts/sf-wasm.mjs` in-process linkage (§4.3) | no | no, provided it stays on the GPL side |
 
-Two conditions gate external proprietary distribution. Both are resolvable, neither requires code
-changes, and neither is discovered by this audit to be a defect — they are open questions that were
+Three conditions gate external proprietary distribution — the dataset terms, the boundary
+determination, and the compliance record's legal sufficiency. All are resolvable, none requires code
+changes, and none is discovered by this audit to be a defect — they are open questions that were
 previously hidden behind a blanket whole-repository GPL notice, which is precisely what the
 migration exists to surface.
 

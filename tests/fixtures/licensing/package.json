@@ -5,6 +5,7 @@
   "decisionLabLicenseScope": "proprietary",
   "dependencies": {
     "stockfish": "^18.0.8",
-    "some-agpl-thing": "^2.0.0"
+    "some-agpl-thing": "^2.0.0",
+    "some-mpl-tool": "^1.0.0"
   }
 }
