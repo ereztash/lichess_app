@@ -87,17 +87,27 @@ const show = (
   watching?: WatchedBucket,
 ) => {
   const seePosition = vi.fn();
-  const playAgain = vi.fn();
+  const takeCanonical = vi.fn();
+  /*
+   * THE CANONICAL OFFER, SUPPLIED BY THE TEST BECAUSE IT IS SUPPLIED BY THE ROUTE.
+   *
+   * This screen used to decide its own next act: `postGameWords().action` said "שחק עוד משחק"
+   * UNCONDITIONALLY whenever a game produced no finding -- not "unless something outranks it".
+   * A player four positions into a pre-registered set finished a quiet game and was told to play
+   * another one. The policy is now `proposeNextAction`'s and reaches this component as a prop, so
+   * these tests supply what `Blitz.tsx` supplies.
+   */
   const view = render(
     <PostGame
       game={g}
       reading={readBlitzGame(g, decisions, watching)}
       analysed={decisions.length}
       onSeePosition={seePosition}
-      onPlayAgain={playAgain}
+      offer={{ act: "play-blitz", label: "משחק חדש", because: "עוד החלטות חדשות." }}
+      onCanonicalAction={takeCanonical}
     />,
   );
-  return { ...view, seePosition, playAgain };
+  return { ...view, seePosition, takeCanonical };
 };
 
 const card = () => screen.getByRole("heading", { level: 2 }).closest(".finding") as HTMLElement;
@@ -266,16 +276,26 @@ describe("a screen that said how many decisions were analysed", () => {
       expect(seePosition.mock.calls[0][0].ply).toBe(confidentAndCostly.ply);
     });
 
-    it("starts a new game from the button outside the card", async () => {
-      const { playAgain } = show([confidentAndCostly]);
+    it("takes the canonical act from the button outside the card", async () => {
+      const { takeCanonical } = show([confidentAndCostly]);
       await userEvent.click(screen.getByText("משחק חדש"));
-      expect(playAgain).toHaveBeenCalledTimes(1);
+      expect(takeCanonical).toHaveBeenCalledTimes(1);
     });
 
-    it("makes the card's action a new game when there is no position to show", async () => {
-      const { playAgain, seePosition } = show([decision(1, { cpLoss: 5, confidence: 4 })]);
-      await userEvent.click(screen.getByText("שחק עוד משחק"));
-      expect(playAgain).toHaveBeenCalledTimes(1);
+    it("no longer answers a findingless game with a new game of its own accord", async () => {
+      /*
+       * THE DEFECT THIS MIGRATION REMOVED, ASSERTED AS ABSENT.
+       *
+       * With no position to show, the card's action slot used to say "שחק עוד משחק" and call
+       * `onPlayAgain` -- a product decision taken by a component that had never been told what
+       * else was outstanding. The slot is now empty in that state, and the only act on screen is
+       * the one the canonical policy chose. A player with a drill in progress gets `continue-run`
+       * here, because the ladder ranks it above another game and this screen no longer overrules it.
+       */
+      const { takeCanonical, seePosition } = show([decision(1, { cpLoss: 5, confidence: 4 })]);
+      expect(document.querySelector(".finding__action")).toBeNull();
+      await userEvent.click(screen.getByText("משחק חדש"));
+      expect(takeCanonical).toHaveBeenCalledTimes(1);
       expect(seePosition).not.toHaveBeenCalled();
     });
   });

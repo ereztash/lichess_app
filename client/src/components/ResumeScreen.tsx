@@ -33,6 +33,7 @@ import { readResume } from "@shared/resume-reading";
 import { changedSentence, knowsSentence, patternCounts } from "@shared/blitz-words";
 import { authorityOfRecordReading } from "@shared/evidence-authority";
 import { useNextActionShadow, useProductState } from "@/lib/next-action-shadow";
+import type { SurfaceOffer } from "@shared/surface-offer";
 import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
 
 export function ResumeScreen({
@@ -64,11 +65,22 @@ export function ResumeScreen({
    * control this screen has.
    */
   standDown,
-  onPlay,
+  /**
+   * Take the canonical act this screen just rendered.
+   *
+   * ONE HANDLER FOR EVERY ACT, AND THE ROUTING IS THE PAGE'S. This screen knows which act the
+   * policy chose and how to word it; where that act lands -- a route, a handoff, a board -- is a
+   * fact about the application shell, and a card that knew it would be a card that could be
+   * rendered in only one place. It used to take `onPlay`, which could express exactly one
+   * destination, which is the same constraint one layer down.
+   */
+  offer,
+  onTakeOffer,
 }: {
   returning: boolean;
   standDown: boolean;
-  onPlay: () => void;
+  offer: SurfaceOffer | null;
+  onTakeOffer: () => void;
 }) {
   const { data, isLoading } = useBlitzReading();
   /*
@@ -204,20 +216,31 @@ export function ResumeScreen({
            * and `unreadable` has decided nothing -- a request that failed may not silence the one
            * control this screen has.
            */
-          standDown
+          /*
+           * THE CANONICAL ACT, WORDED FOR A RETURNING PLAYER. This slot used to hold
+           * `resume.next`, a two-kind vocabulary -- `play` or `wait` -- looked up from
+           * `BlitzBlocker`. It could not express a drill in progress, a transfer in progress, a
+           * rule nobody had tested, or a claim awaiting its forward test, so it offered "play
+           * another game" to a player four positions into an eight-position set. The policy is now
+           * `proposeNextAction`'s and the sentence is still this screen's.
+           *
+           * `unknown` AND `unsound` DRAW NOTHING, and that is the rule rather than a gap. An
+           * answer whose readings have not settled, or one computed without an input that could
+           * have outranked it, is not an answer to act on -- and substituting this screen's old
+           * guess would be the parallel policy returning through the error path.
+           *
+           * `standDown` STILL WINS. The page mounts `ContinuationSlot` above this card, and when a
+           * set is open and reopenable that slot holds the act. Two controls naming one act is
+           * LAW 2's defect whichever layer chose them.
+           */
+          standDown || offer === null
             ? null
-            : resume.next.kind === "play"
-              ? {
-                  label: resume.next.label,
-                  because: resume.next.because,
-                  /*
-                   * THE FRONT DOOR'S ONE PRIMARY ACT on a returning visit. `FirstDecision` below
-                   * defers to it rather than offering a second product at the same weight.
-                   */
-                  act: "play-blitz" as const,
-                  onClick: onPlay,
-                }
-              : null
+            : {
+                label: offer.label,
+                because: offer.because,
+                act: offer.act,
+                onClick: onTakeOffer,
+              }
         }
         why={
           <dl className="resume__why">

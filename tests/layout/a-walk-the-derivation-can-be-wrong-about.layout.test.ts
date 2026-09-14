@@ -67,7 +67,7 @@ import {
   type ProductState,
   observed,
   proposeNextAction,
-  UNOBSERVED,
+  UNIMPLEMENTED,
 } from "@shared/next-action";
 import { PRIMARY_ACTIONS, type PrimaryAction } from "@shared/primary-action";
 
@@ -125,15 +125,21 @@ function stateAfter(over: Partial<ProductState>): ProductState {
      * so an OBSERVED absence is what the product actually holds here and not merely what the
      * fixture says.
      *
-     * `unseenEvent` IS THE ONE THAT STAYS UNOBSERVED, and it is unobserved in the shipped assembly
-     * too: nothing anywhere in the product writes a seen-set, so `productStateFor` cannot do
-     * better than say so. Writing `observed(null)` here would make this walk claim a fidelity it
-     * does not have -- the derivation would propose the same action either way, but the PROPOSAL
-     * would be reported sound when the product's own would not be.
+     * `unseenEvent` IS UNIMPLEMENTABLE, AND THIS FIXTURE USED TO SAY MERELY UNOBSERVED.
+     *
+     * The old note argued that writing `observed(null)` would claim a fidelity the walk does not
+     * have, and it was right about that and wrong about the alternative. Nothing in this product
+     * writes a seen-set, so nothing can produce an unseen event, so nothing can outrank an answer
+     * from that branch -- and `UNOBSERVED` asserted that something might have. Because the branch
+     * sits at rank 4, that phantom competitor made every proposal below it unsound, in this
+     * fixture and in the shipped assembly alike, which is why no surface could act on the policy.
+     *
+     * `UNIMPLEMENTED` is what `productStateFor` now hands the ladder, so this fixture mirrors the
+     * product again. `review-event` is still unreachable and no seen-set was built.
      */
     drill: observed(null),
     transfer: observed(null),
-    unseenEvent: UNOBSERVED,
+    unseenEvent: UNIMPLEMENTED,
     untestedRule: observed(null),
     /*
      * ACCUMULATING WITH NOTHING IN IT, which is what a walk starting from a cleared browser holds.

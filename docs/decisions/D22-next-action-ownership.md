@@ -205,3 +205,46 @@ and `undefined` never. `GATE-UNREAD-COMMITMENT-NOT-EMPTY` holds it, and its cont
 that would undo it.
 
 **Reversal condition 3 is still untouched** and still needs the acquisition trial.
+
+---
+
+## AUTHORITY TRANSFERRED — 2026-09-14
+
+This decision's standing position was that the derivation may not own a screen until a shadow has
+had the chance to show it wrong, and that **eight of eleven proposals are unsound as shipped** so
+nothing could be handed over. The second half has been repaired, and the repair is not what this
+file predicted.
+
+**The unsoundness was a modelling error, not a missing feature.** `D22`'s amendment recorded the
+cause as *"`unseenEvent` sits at branch 4, nothing in the product writes a seen-set"* and treated
+that as a fact to wait out. It is the right observation and the wrong conclusion. An input the
+product has **no mechanism to produce** is not a blind spot; it is an unimplemented branch. Marking
+it `UNOBSERVED` asserted that something *might have* outranked every answer below it — and because
+it sits at rank 4, that phantom competitor made `soundProposal` false for eight kinds, permanently,
+for every surface, in every state. `soundProposal` is the predicate this decision gated transfer on,
+so the gate could not open, and the reason recorded here was the symptom rather than the cause.
+
+`Observed<T>` now carries `unimplemented`, and only genuinely unread inputs are charged as
+blindness. **No seen-set was built. `review-event` is still unreachable and is reported as
+unreachable.** `GATE-NO-FABRICATED-STATE` holds both directions and its control inverts that one
+line.
+
+**What transferred, and what did not.** Resume, PostGame and the record page now render the
+canonical act; their own policies are gone — `ResumeNext`'s two-kind table and
+`postGameWords().action`'s unconditional "play another game" among them. The **in-run loop did
+not** transfer and should not: once a player is inside a set, what happens next is the protocol
+executing, not the policy routing, and the policy's answer would be the state they are already in.
+`ARCHITECTURE_UI_AUTHORITY_MIGRATION.md` §2 argues it and lists every exception with its reason.
+
+**Reversal condition 1 is now asserted rather than awaited.**
+`a-walk-the-derivation-can-be-wrong-about.layout.test.ts` walks the built app and requires zero
+disagreement. It went red during this work — twice, for two real defects — and both were fixed
+rather than accommodated.
+
+**The shadow stays mounted on the surfaces that now act.** Its disagreement count there is
+structurally zero, and the rows it writes say so; removing the call would leave a gap in the ledger
+where a transition should be legible.
+
+**Reversal condition 3 is untouched** and still needs the acquisition trial. Whether a player
+notices, understands or acts on the canonical action is `FIELD_REQUIRED` and is not answered by any
+of this.

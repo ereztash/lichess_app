@@ -30,6 +30,7 @@ import {
 import type { BlitzEvent, PostGameReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
 import { primaryAction } from "@shared/primary-action";
+import type { SurfaceOffer } from "@shared/surface-offer";
 
 /**
  * The measurement detail, behind "why are we saying this?".
@@ -82,7 +83,6 @@ export function PostGame({
   reading,
   analysed,
   onSeePosition,
-  onPlayAgain,
   /**
    * Whether a set this player started is being offered above, so nothing here may offer a new game.
    *
@@ -96,15 +96,24 @@ export function PostGame({
    * different label -- so suppressing only the button would leave the act on screen wearing the
    * card's clothes. `lead === null` is exactly the state where the card is that act.
    */
-  standDown = false,
+  /**
+   * The canonical act for this record, already worded by `presentOnPostGame`, or null.
+   *
+   * A PROP AND NOT A HOOK, for the reason `standDown` was: this component is presentational, its
+   * tests render it with no query client, and an earlier attempt to read the record from inside it
+   * broke all of them. The route that owns the screen reads the policy and hands down the answer.
+   */
+  offer = null,
+  onCanonicalAction = () => undefined,
 }: {
   game: StoredBlitzGame;
   reading: PostGameReading;
   /** How many of the player's decisions the engine scored. The old headline, demoted. */
   analysed: number;
   onSeePosition: (event: BlitzEvent) => void;
-  onPlayAgain: () => void;
   standDown?: boolean;
+  offer?: SurfaceOffer | null;
+  onCanonicalAction?: () => void;
 }) {
   const words = postGameWords(reading);
   const lead = reading.state === "nothing-to-conclude" ? null : reading.lead;
@@ -134,13 +143,22 @@ export function PostGame({
         }
         authority={words.authority}
         action={
-          standDown && lead === null
+          /*
+           * THE CARD'S SLOT IS THE READING'S, AND ONLY WHILE THE READING HAS A POSITION TO SHOW.
+           *
+           * "ראה את העמדה" is not a product routing decision -- it opens the board of the game the
+           * player just finished, inside this screen's own review. It stays local for the reason
+           * `docs/ARCHITECTURE_UI_CURRENT_STATE.md` §6 gives for the in-run loop: a reading of the
+           * thing just played is the reading's to offer.
+           *
+           * WHAT LEFT IS THE OTHER BRANCH. With no position to show, this slot used to say "שחק
+           * עוד משחק" UNCONDITIONALLY -- not "unless something outranks it", unconditionally -- so
+           * a player with a drill four positions in finished a quiet game and was told to play
+           * another. That branch is now the canonical policy's, rendered below.
+           */
+          lead === null
             ? null
-            : {
-                label: words.action.label,
-                because: words.action.because,
-                onClick: () => (lead ? onSeePosition(lead) : onPlayAgain()),
-              }
+            : { label: words.action.label, because: words.action.because, onClick: () => onSeePosition(lead) }
         }
         why={<Why game={game} analysed={analysed} lead={lead} />}
         /*
@@ -205,14 +223,25 @@ export function PostGame({
         * The reading's own state is what says whether a position is being offered, so that is what
         * is asked.
         */}
-      {lead !== null && !standDown && (
+      {/*
+        * THE CANONICAL ACT, WORDED FOR SOMEBODY WHO HAS JUST FINISHED A GAME.
+        *
+        * This was a `play-blitz` button with no condition but `lead !== null`. It is now whatever
+        * the ladder says outranks -- a set in progress, a rule nobody tested, a claim awaiting its
+        * forward test, or another game when nothing outranks one. The sentence is still this
+        * screen's; `shared/post-game-presentation.ts` holds it and words it differently from the
+        * front door's for the same act, which is the point of keeping presenters per surface.
+        *
+        * NOTHING IS DRAWN ON `unknown` OR `unsound`, and no old default returns in their place.
+        */}
+      {offer !== null && (
         <button
-    type="button"
-    className="post-game__again"
-    {...primaryAction("play-blitz")}
-    onClick={onPlayAgain}
-  >
-          משחק חדש
+          type="button"
+          className="post-game__again"
+          {...primaryAction(offer.act)}
+          onClick={onCanonicalAction}
+        >
+          {offer.label}
         </button>
       )}
     </section>

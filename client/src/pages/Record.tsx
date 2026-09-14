@@ -34,7 +34,8 @@
  *     coat, and the product refuses streaks;
  *   - any figure derived from imported games anywhere near the word "כיול".
  */
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
+import type { SurfaceOffer } from "@shared/surface-offer";
 import { useLocation } from "wouter";
 import { lazyChunk } from "@/lib/lazy-chunk";
 import { Loader2 } from "lucide-react";
@@ -462,6 +463,35 @@ export default function Record() {
    * and never that a control disappears on a record that turns out to have nothing open.
    */
   const [standDown, setStandDown] = useState(false);
+  /*
+   * THE CANONICAL ACT, REPORTED UP FROM THE LAZY SLOT AND HANDED TO THE CARD THAT WORDS IT.
+   *
+   * HELD HERE RATHER THAN READ HERE. `useCanonicalAction` reaches the whole reading chain and this
+   * file is the entry chunk; `ContinuationSlot` is already lazy for that reason and is where the
+   * policy is actually consulted. The page holds the answer so that ONE control renders it -- the
+   * resume card's action slot -- instead of the slot drawing a second one beside the card.
+   */
+  const [canonical, setCanonical] = useState<{ offer: SurfaceOffer | null; take: () => void }>({
+    offer: null,
+    take: () => undefined,
+  });
+  /*
+   * BAILS WHEN THE ANSWER HAS NOT CHANGED, and without that this loops.
+   *
+   * `useProductState` builds a fresh `ProductState` on every render, so the canonical answer is a
+   * fresh OBJECT every render even when it is the same ANSWER. An effect that reported it upward
+   * unconditionally set state, which re-rendered, which reported again. Comparing the two fields a
+   * reader can actually see -- the act and the label -- is what makes the report idempotent.
+   */
+  const onCanonical = useCallback(
+    (offer: SurfaceOffer | null, take: () => void) =>
+      setCanonical((prev) =>
+        prev.offer?.act === offer?.act && prev.offer?.label === offer?.label
+          ? prev
+          : { offer, take },
+      ),
+    [],
+  );
 
   return (
     <main className="record-page">
@@ -572,7 +602,7 @@ export default function Record() {
          * arrival does not fetch the chunk at all and does not get the reserved space either.
          */
         <Suspense fallback={<div className="resume resume--pending" aria-hidden="true" />}>
-          <ResumeScreen returning standDown={standDown} onPlay={() => navigate("/blitz")} />
+          <ResumeScreen returning standDown={standDown} offer={canonical.offer} onTakeOffer={canonical.take} />
         </Suspense>
       )}
 
@@ -616,7 +646,25 @@ export default function Record() {
         * nothing, and a reserved block that is empty on nearly every visit is a hole in the page.
         */}
       <Suspense fallback={null}>
-        <ContinuationSlot onStandDown={setStandDown} />
+        <ContinuationSlot
+          onStandDown={setStandDown}
+          onCanonical={onCanonical}
+          /*
+           * DRAW THE ACT ONLY WHEN NOTHING ELSE ON THIS PAGE ALREADY DOES.
+           *
+           * Three states, and exactly one element holds the canonical act in each:
+           *   returning              -> `ResumeScreen`'s card action slot
+           *   first visit, no record -> `FirstDecision`'s submit, which IS `play-first-decision`
+           *                             and is the allowlisted exception that provably agrees
+           *   first visit, a record  -> nothing, until this slot. The second-device case.
+           *
+           * THE MIDDLE ROW IS NOT A GUESS. Passing `!returning` alone put two controls wearing the
+           * primary fill on the cold front door, both naming `play-first-decision` -- one act, two
+           * buttons, LAW 2's defect -- and `what-a-colour-and-a-direction-mean.layout.test.ts`
+           * caught it against the built app.
+           */
+          renderOffer={!returning && measured > 0}
+        />
       </Suspense>
 
       {reading.isLoading ? (

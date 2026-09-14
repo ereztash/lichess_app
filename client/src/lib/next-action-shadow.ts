@@ -35,6 +35,7 @@ import {
   agreesWith,
   observed,
   proposeNextAction,
+  UNIMPLEMENTED,
   UNOBSERVED,
   type NextActionProposal,
   type Observed,
@@ -91,7 +92,17 @@ import { useContinuation } from "@/lib/continuation-api";
  * `proposeNextAction` reports the prefix that actually mattered. A surface cannot claim to see
  * something it did not read, because the only way to say "I read it" is to hand over the value.
  */
-export const PERMANENTLY_UNOBSERVED = ["unseenEvent"] as const;
+export const UNIMPLEMENTED_INPUTS = ["unseenEvent"] as const;
+
+/**
+ * @deprecated The old name, kept until every reader is moved.
+ *
+ * IT WAS THE RIGHT LIST UNDER THE WRONG WORD. "Permanently unobserved" reads as a surface that
+ * never gets round to looking, which is what put `blind: ["unseenEvent"]` under every branch below
+ * it and made eight of eleven proposals unsound forever. The list did not change; what it means
+ * did. See `Observed` in `shared/next-action.ts`.
+ */
+export const PERMANENTLY_UNOBSERVED = UNIMPLEMENTED_INPUTS;
 
 /**
  * One commitment slot, as the derivation's highest-priority input.
@@ -187,7 +198,7 @@ export function productStateFor(input: {
       done: run.done,
       total: run.total,
     })),
-    unseenEvent: UNOBSERVED,
+    unseenEvent: UNIMPLEMENTED,
     /*
      * OBSERVED ONLY WHEN THE COMMITMENTS WERE, because they come from the same request. Reporting
      * `observed(null)` here off an unread reading would tell the derivation that this record holds
