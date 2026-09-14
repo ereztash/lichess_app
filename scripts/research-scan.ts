@@ -95,7 +95,8 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     keyPath: "sha256.<doc>",
     kind: "HASH_OF_TREE_FILE",
     status: "SUPERSEDED",
-    supersededBy: "research/b3_population_expertise/results/FINAL_HOLDOUT_SEALED.json document_sha256",
+    supersededBy:
+      "research/b3_population_expertise/results/FINAL_HOLDOUT_SEALED.json document_sha256",
     subject: siblingDoc,
     why: "the hashes AT the freeze, before Gate 2's amendments. Kept because an amendment is only auditable beside what it amended",
   },
@@ -104,7 +105,8 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     keyPath: "amended_sha256.<doc>",
     kind: "HASH_OF_TREE_FILE",
     status: "SUPERSEDED",
-    supersededBy: "research/b3_population_expertise/results/FINAL_HOLDOUT_SEALED.json document_sha256",
+    supersededBy:
+      "research/b3_population_expertise/results/FINAL_HOLDOUT_SEALED.json document_sha256",
     subject: siblingDoc,
     why: "X-02. A snapshot at 2026-09-02T00:46:57Z; Gate 2 then required an edit to DATA_PROTOCOL.md at 02:07:45Z, and the seal written at 02:08:13Z recorded the post-edit hash of all five documents. The later record is the current one. Not a whitelist: findOrphanedSupersessions requires the successor to exist and to cover the same documents, and the successor is checked on every run",
   },
@@ -220,6 +222,13 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "generated blitz datasets, derived from dumps that are not in the tree",
   },
   {
+    artefact: "research/player-path/field/REGISTERED_STIMULUS.json",
+    keyPath: "stimulus_sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the forty files a FIELD participant's browser is served, as a deployment emitted them. `dist/public` is not in the tree, so this is the stockfish row's class rather than the corpus rows': checkable only where the build is. Two places check it. `npm run build` writes the same digest from this source when the five recorded flags match, and tests/deployment/the-stimulus-nobody-registered.deployment.test.ts reads it off the live origin on every production deployment and once a day besides, refusing rather than skipping when DEPLOYED_ORIGIN is set. A local recomputation is NOT the authority: a build inlines VITE_ variables, so the number is only the participant's stimulus if the deployment's flags agree, which is why the manifest records them",
+  },
+  {
     artefact: "research/mechanism/replication/BASELINE_EREZ281.json",
     keyPath: "data_sha256.<doc>",
     kind: "HASH_OF_TREE_FILE",
@@ -292,7 +301,8 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
   },
   {
     artefact: "research/mechanism/replication100/preservation/failed_attempts_index.json",
-    keyPath: "research_identity.cohort_hash|research_identity.prereg_hash|research_identity.instrument_hash|research_identity.pipeline_hash|research_identity.protocol_hash",
+    keyPath:
+      "research_identity.cohort_hash|research_identity.prereg_hash|research_identity.instrument_hash|research_identity.pipeline_hash|research_identity.protocol_hash",
     kind: "INTERNAL_DIGEST",
     status: "CURRENT",
     why: "the five identities the cohort is frozen around, repeated once at the head of the index so a failed attempt cannot be read as belonging to some other cohort. Each is a document's digest of itself or of a path-to-hash map, already classified where it is generated; here they are quotations, and the row exists so that a reader who finds these attempts years from now can tell which run they failed inside",
@@ -328,7 +338,8 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
   },
   {
     artefact: "research/mechanism/replication100/*.json",
-    keyPath: "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash|instrument.instrument_hash|instrument.pipeline_hash|instrument.protocol_hash|prereg_hash|cohort_hash|sampling_frame.frame_hash",
+    keyPath:
+      "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash|instrument.instrument_hash|instrument.pipeline_hash|instrument.protocol_hash|prereg_hash|cohort_hash|sampling_frame.frame_hash",
     kind: "INTERNAL_DIGEST",
     status: "CURRENT",
     why: "digests over blocks the documents already carry. `instrument_hash` is the freeze's hash of itself, repeated by the power plan, the feasibility screen, the cohort pre-registration and the frozen cohort so a reader can tell which instrument each was computed against; `pipeline_hash` and `protocol_hash` are digests over the path-to-hash map that `tree_sha256` asserts above; `frame_hash` is the screen's digest of the rows it read; `prereg_hash` and `cohort_hash` are the cohort pre-registration's and the frozen cohort's hashes of themselves, which is how a rule edited after a result becomes visible. They name no tree file, and each generator recomputes its own, while `cohort_select.py`, `freeze_cohort.py`, `cohort_run.py` and `aggregate_cohort.py` all refuse to proceed when the hash they were started under has moved",
@@ -419,7 +430,9 @@ export const GENERATED_VALUE_RELATIONS: GeneratedValueRelation[] = [
 const read = (root: string, file: string) => readFileSync(join(root, file), "utf8");
 const has = (root: string, file: string) => existsSync(join(root, file));
 const sha256 = (root: string, file: string) =>
-  createHash("sha256").update(readFileSync(join(root, file))).digest("hex");
+  createHash("sha256")
+    .update(readFileSync(join(root, file)))
+    .digest("hex");
 
 /**
  * `research/*​/corpus_manifest.json` and friends, as a regex.
@@ -665,7 +678,10 @@ export function findOrphanedSupersessions(root: string): Finding[] {
     const doc = JSON.parse(raw) as Record<string, Record<string, unknown>>;
     const head = relation.keyPath.split(".")[0];
     const subjects = Object.keys(doc[head] ?? {});
-    const successorDoc = JSON.parse(read(root, successorFile)) as Record<string, Record<string, unknown>>;
+    const successorDoc = JSON.parse(read(root, successorFile)) as Record<
+      string,
+      Record<string, unknown>
+    >;
     const successorHead = relation.supersededBy.split(" ")[1];
     const covered = new Set(Object.keys(successorDoc[successorHead] ?? {}));
     const missing = subjects.filter((s) => !covered.has(s));

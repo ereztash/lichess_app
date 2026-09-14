@@ -1,0 +1,13 @@
+{
+  "registrationVersion": 1,
+  "state": "open",
+  "participantsRun": 0,
+  "origin": "https://lichessapp.vercel.app",
+  "stimulus_sha256": "20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd",
+  "gitSha": "d2da163c26398c83fa91401699741e26a46af5a9",
+  "files": 40,
+  "bytes": 8865024,
+  "storage": "not-configured",
+  "registeredAt": "2026-09-14T06:12:00Z",
+  "protocol": "research/player-path/FIELD_RUN_CURRENT.md"
+}
