@@ -154,8 +154,29 @@ others: reachability is not the build, and the build is not the server configura
    frozen branch is a deployment of the same tree, so the digest stays and the commit the origin
    reports becomes that branch's. Read the digest. Record whatever sha comes back.
 
+   **THE ONE CHANGE NONE OF THE THREE CHECKS CAN SEE, NAMED RATHER THAN LEFT IMPLICIT.** The digest
+   is over `dist/public`. **The server bundle is not in it**, and `checks.storage` reports one
+   subsystem rather than the build that answers. So a merge touching only `server/` or `api/` moves
+   nothing these three steps read, and `build.gitSha` -- which the server itself reports -- was the
+   only thing that would have moved. Dropping it as a stop condition drops that coverage with it,
+   and the coverage was accidental: the old rule fired on every docs merge too, which is why it was
+   being dropped.
+
+   The repair is not to compare the sha again. It is the frozen branch. **Once production tracks
+   `field/frozen-20c3c60d`, a merge to `main` moves neither the client nor the server**, and the gap
+   closes for the same reason and at the same moment as the one above it.
+
+   **UNTIL THEN, THE RULE A MODERATOR CAN ACTUALLY EXECUTE:** a moved `build.gitSha` is not a stop
+   and is not nothing. It is one question to the owner before the session -- *did that merge touch
+   `server/` or `api/`?* A yes is a stop. A no is a reading to write down. What a participant
+   signed out can reach of the server is `auth.me`, `/api/health` and the static files; every
+   `record.*` and `lichess.*` procedure is an `ownerProcedure` and needs a sign-in the session
+   script never asks for.
+
 4. If the URL does not answer, the digest does not match, or storage is not `"not-configured"`,
-   **stop**. (A moved `build.gitSha` is not one of these.) Do not run the session against whatever is
+   **stop**. A moved `build.gitSha` is not one of these: while production tracks `main` it is the
+   one question in step 3, and once production tracks the frozen branch it is not even that. Do not
+   run the session against whatever is
    there and do not update this file to match it: check with the owner first, because a mismatch
    means either a merge landed or the pre-registration is describing a build nobody is serving.
 
