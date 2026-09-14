@@ -6,9 +6,14 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `main`.
-* **Stimulus frozen at** `stimulus_sha256` **`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`**, produced from
-  `d2da163`, over 40 emitted files totalling 8,865,024 bytes. Read from the origin at
-  2026-09-14 05:56Z, not computed here.
+* **Stimulus frozen at** `stimulus_sha256` **`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`**,
+  over 40 emitted files totalling 8,865,024 bytes. Read from the origin, not computed here: first at
+  2026-09-14 05:56Z from `d2da163`, and again at 07:18Z from `32478f2` with the same digest.
+* **THE COMMIT IS NOT THE FREEZE AND IS EXPECTED TO MOVE.** `d2da163` and `32478f2` are two
+  recordings of where the digest was read, not two stimuli. A merge that touches only `research/`,
+  `docs/`, `scripts/` or `tests/` moves `gitSha` and leaves `stimulus_sha256` exactly where it is;
+  that has now happened twice within two hours. **Only the digest gates a session**, and
+  `field/README.md` says so at the step where a moderator could otherwise stop a valid one.
 * **RE-FROZEN THREE TIMES, ALL THREE BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON ANY WAS
   ALLOWED.** **Zero participants have run**, which is what makes this bookkeeping rather than a
   protocol violation. After the first session it would be one, and the same change would have to

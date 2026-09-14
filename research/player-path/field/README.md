@@ -80,13 +80,27 @@ others: reachability is not the build, and the build is not the server configura
    **So the check is the content and never the status code. JSON is the pass; the app is the stop.**
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
-   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level;
-   the same response also carries `build.gitSha`, so this one request covers the commit as well.
-   Verified in that shape on 2026-09-13 at 22:29Z. Storage is not in the digest and cannot be: it is
-   server configuration and it can change with no deployment at all, which is exactly why it is
-   checked live.
+   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level.
+   Storage is not in the digest and cannot be: it is server configuration and it can change with no
+   deployment at all, which is exactly why it is checked live.
 
-4. If **any** of the three does not match, **stop**. Do not run the session against whatever is
+   **THE `build.gitSha` IN THE SAME RESPONSE IS NOT A PASS CRITERION. RECORD IT; DO NOT COMPARE
+   IT.** An earlier version of this step said the request "covers the commit as well", and that
+   sentence would have stopped a valid session. Measured twice within two hours on 2026-09-14:
+
+   | merge | commit | `stimulus_sha256` |
+   |---|---|---|
+   | #111 | `e663ebc` → `d2da163` | `20c3c60d…` |
+   | #115 | `d2da163` → `32478f2` | `20c3c60d…` unchanged |
+
+   Both merges touched only `research/`, `docs/`, `scripts/` and `tests/`. **The commit is expected
+   to move while the stimulus holds**, which is the whole reason `gitSha` sits beside the digest
+   rather than inside it. A moderator who treats a moved commit as a mismatch learns to override the
+   step, and an overridden step is worse than an absent one. Write the sha into the participant
+   file as provenance. **The digest is what gates.**
+
+4. If the URL does not answer, the digest does not match, or storage is not `"not-configured"`,
+   **stop**. (A moved `build.gitSha` is not one of these.) Do not run the session against whatever is
    there and do not update this file to match it: check with the owner first, because a mismatch
    means either a merge landed or the pre-registration is describing a build nobody is serving.
 
