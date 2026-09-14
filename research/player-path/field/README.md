@@ -11,9 +11,17 @@ does not restate it; it operationalises it.
 
 ## The build
 
+**THE AUTHORITY IS [`REGISTERED_STIMULUS.json`](REGISTERED_STIMULUS.json), NOT THIS PARAGRAPH.**
+The stimulus is registered there as data, the deployed check reads it, and
+`tests/docs/two-identities-for-one-build.test.ts` holds this file and the protocol to it in the
+direction that matters: a digest or a commit named here that the registration does not name fails
+the suite. That is the direct repair for the drift recorded two paragraphs below, where prose
+discipline had already been tried and had already failed.
+
 Stimulus frozen at `stimulus_sha256`
-`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, produced from
-`d2da163c26398c83fa91401699741e26a46af5a9`, the production deployment.
+`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, over forty files totalling
+8,865,024 bytes, produced from `d2da163c26398c83fa91401699741e26a46af5a9`, the production
+deployment.
 Do not push product source to `main` while sessions are running: production tracks it.
 
 **THIS SECTION HAD DRIFTED, AND THE DRIFT IS RECORDED RATHER THAN QUIETLY OVERWRITTEN.** It named
@@ -29,24 +37,36 @@ disagree with the bytes, and a content hash cannot.**
 **`https://lichessapp.vercel.app/`**
 
 Production tracks `main`, so the frozen build is the production deployment and no share link is
-needed. Verified signed-out, not assumed, on 2026-09-14 at 05:56Z: `200`, titled `Decision Lab`,
+needed. Verified signed-out, not assumed, on 2026-09-14 at 06:12Z: `200`, titled `Decision Lab`,
 loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, `/stimulus-manifest.json`
 answering `application/json` with `stimulus_sha256: 20c3c60d…` over 40 files,
-`/build-identity.json` reporting `gitSha: d2da163c26398c83fa91401699741e26a46af5a9`,
-`builtAt: 2026-09-14T05:52:03Z` and `target: production`, and `/api/health` answering `200` with
-`checks.storage` equal to `"not-configured"`, which is the same storage model every walk was
-performed against.
+`/build-identity.json` reporting `gitSha: d2da163c26398c83fa91401699741e26a46af5a9` and
+`target: production`, and `/api/health` answering `200` with `checks.storage` equal to
+`"not-configured"`, which is the same storage model every walk was performed against.
 
 **THE BUILD UNDER TEST HAS MOVED THREE TIMES, AND THE OWNER HAS DECIDED HOW THAT STOPS.** All three
 were merges to `main`, and this file's own rule -- do not push product source while sessions are
 running -- is a request nothing enforces. **The third move is the one worth reading:** the commit
-went `e663ebc` -> `d2da163` and `stimulus_sha256` did not move at all. That is the first time this
-package could say so with a measurement instead of an argument about the diff. The decision is option `(a)`, an immutable deployment, and
-`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
-dashboard action that has not been taken**: production branch set to a frozen branch instead of
-`main`, so merges stop moving the build behind this URL while `main` stays live for development.
-Until it is taken, production still tracks `main` and the check below is the only thing between a
-session and a stimulus nobody registered. **Run it every single time.**
+went `e663ebc` -> `d2da163` and the two content-hashed filenames did not move at all. What cannot
+be said is that the DIGEST did not move: `e663ebc` served no manifest, so there is nothing on that
+side to compare, and `../FIELD_RUN_CURRENT.md` carries the four terms that stand in for the
+comparison and names what they leave open. From `d2da163` onward the question is a comparison
+rather than an argument. The decision is option `(a)`, an immutable deployment, and
+`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. The mechanism is production
+branch set to a frozen branch instead of `main`, so merges stop moving the build behind this URL
+while `main` stays live for development. **The branch exists: `field/frozen-20c3c60d`, pushed at the
+commit whose deployment was verified to serve the registered digest. The dashboard half has not been
+taken** and cannot be taken from the repository: Vercel -> Project -> Settings -> Git -> Production
+Branch. Until it is, production still tracks `main` and the step below is the only protection.
+
+**THE CHECK NO LONGER WAITS FOR A SESSION TO RUN, WHICH IS THE PART THAT WAS MISSING.** A
+pre-session check, however good, only ever fires when a moderator is already in the room with a
+participant, so a merge that moved the stimulus stayed invisible until the worst possible minute.
+`tests/deployment/the-stimulus-nobody-registered.deployment.test.ts` now makes the same three
+readings on every production deployment and once a day besides, and `.github/workflows/deployed.yml`
+runs it. **It does not replace the step below.** Reachability and storage can change with no
+deployment at all, so between the last automatic run and this participant there is a window only
+this step covers. **Run it every single time.**
 
 ### Before each session
 
@@ -58,7 +78,8 @@ others: reachability is not the build, and the build is not the server configura
    exactly how a wall would go unnoticed until participant 1 is sitting there.
 
 2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json`. The page must be
-   **JSON, beginning `{`**, and its `stimulus_sha256` must read
+   **JSON, beginning `{`**, and its `stimulus_sha256` must equal the one in
+   [`REGISTERED_STIMULUS.json`](REGISTERED_STIMULUS.json):
 
    ```
    20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd
@@ -70,6 +91,21 @@ others: reachability is not the build, and the build is not the server configura
    `_redirects`. Nothing the browser fetches or obeys is outside it except the two generated
    identity files, and `scripts/stimulus-manifest.ts` says why each of those is.
 
+   **DO NOT COMPARE THOSE SIXTY-FOUR CHARACTERS BY EYE.** A person checks the first few and the
+   last few and trusts the middle, which is the one part a swapped build would differ in as
+   readily as any other. If you have a terminal in the checkout, run the comparison instead and
+   read one word:
+
+   ```bash
+   DEPLOYED_ORIGIN=https://lichessapp.vercel.app \
+     npx vitest run tests/deployment/the-stimulus-nobody-registered.deployment.test.ts
+   ```
+
+   It prints each of the three readings as `PASS`, `WARN` or `FAIL` and exits non-zero on a `FAIL`.
+   Without a terminal, paste both strings into anything that compares text. A `WARN` on the digest
+   means the build moved while the run is still open with zero participants: that is a re-point to
+   take to the owner before the session, not a reading to wave through.
+
    **IF THE APP LOADS INSTEAD, THE BUILD HAS NO MANIFEST — AND IT DOES NOT LOOK LIKE AN ERROR.**
    Measured, not assumed: on a build without one that URL answers `200 text/html`, because
    `vercel.json`'s last route sends every unmatched path to `index.html`. A browser shows the
@@ -78,6 +114,16 @@ others: reachability is not the build, and the build is not the server configura
    reading that as 'an older build' would be a confident and false diagnosis"* — and an early
    version of this step walked straight into it by claiming the endpoint `404`s.
    **So the check is the content and never the status code. JSON is the pass; the app is the stop.**
+   A build with no manifest is a `FAIL` in every run state rather than a stale registration: it is
+   not a stimulus that moved, it is a stimulus this check cannot read at all.
+
+   **THE INTERIM CHECK IS WITHDRAWN AND IS NOT TO BE REVIVED.** While no deployment carried a
+   manifest, this step named two content-hashed filenames instead, `assets/index-ZgOyRttd.js` and
+   `assets/index-_bGdMEE1.css`. Production has carried the digest since `d2da163`, so the substitute
+   is no longer needed, and it was never sufficient: nine `.woff2` faces, the favicon, the share
+   card, `robots.txt`, `_headers` and `_redirects` carry no content hash at all, so nothing about
+   their names moves when their bytes do. If a future deployment ever answers this step with the app
+   again, that is a `FAIL` to take to the owner, not a signal to fall back to reading filenames.
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
    **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level.
@@ -86,18 +132,27 @@ others: reachability is not the build, and the build is not the server configura
 
    **THE `build.gitSha` IN THE SAME RESPONSE IS NOT A PASS CRITERION. RECORD IT; DO NOT COMPARE
    IT.** An earlier version of this step said the request "covers the commit as well", and that
-   sentence would have stopped a valid session. Measured twice within two hours on 2026-09-14:
+   sentence would have stopped a valid session. It would have stopped one today: the registration
+   names the commit that produced the digest, four merges have landed on `main` since, and the
+   origin reports the newest of them. Each reading below was taken from the origin after that merge
+   went live:
 
-   | merge | commit | `stimulus_sha256` |
+   | merge | what it touched | digest read from the origin afterwards |
    |---|---|---|
-   | #111 | `e663ebc` → `d2da163` | `20c3c60d…` |
-   | #115 | `d2da163` → `32478f2` | `20c3c60d…` unchanged |
+   | #115 | `research/` | `20c3c60d…` |
+   | #116 | `.github/`, `research/`, `scripts/`, `tests/` | `20c3c60d…` unchanged |
+   | #118 | `docs/` | `20c3c60d…` unchanged |
+   | #119 | `docs/` | `20c3c60d…` unchanged |
 
-   Both merges touched only `research/`, `docs/`, `scripts/` and `tests/`. **The commit is expected
-   to move while the stimulus holds**, which is the whole reason `gitSha` sits beside the digest
-   rather than inside it. A moderator who treats a moved commit as a mismatch learns to override the
-   step, and an overridden step is worse than an absent one. Write the sha into the participant
-   file as provenance. **The digest is what gates.**
+   Not one touched `client/` or `shared/`, and the digest did not move once, over the same 40 files
+   and the same 8,865,024 bytes. **The commit is expected to move while the stimulus holds**, which
+   is the whole reason `gitSha` sits beside the digest rather than inside it. A moderator who treats
+   a moved commit as a mismatch learns to override the step, and an overridden step is worse than an
+   absent one. Write the sha into the participant file as provenance. **The digest is what gates.**
+
+   **THE SAME HOLDS WHEN PRODUCTION STOPS TRACKING `main`.** Pointing the production branch at a
+   frozen branch is a deployment of the same tree, so the digest stays and the commit the origin
+   reports becomes that branch's. Read the digest. Record whatever sha comes back.
 
 4. If the URL does not answer, the digest does not match, or storage is not `"not-configured"`,
    **stop**. (A moved `build.gitSha` is not one of these.) Do not run the session against whatever is
