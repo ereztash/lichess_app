@@ -98,6 +98,7 @@ describe("the gate catalog cannot fall behind the gates", () => {
       42: "ארבעים ושניים",
       43: "ארבעים ושלושה",
       44: "ארבעים וארבעה",
+      45: "ארבעים וחמישה",
     };
     const word = hebrewNumeral[declared.length];
     expect(

@@ -11,40 +11,108 @@ does not restate it; it operationalises it.
 
 ## The build
 
-Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, merged to `main` in
-[PR #105](https://github.com/ereztash/lichess_app/pull/105) and now the production deployment at
-`b2d8865`. Do not push product source to `main` while sessions are running: production tracks it.
+Product source frozen at `e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, the production deployment.
+Do not push product source to `main` while sessions are running: production tracks it.
+
+**THIS SECTION HAD DRIFTED, AND THE DRIFT IS RECORDED RATHER THAN QUIETLY OVERWRITTEN.** It named
+`4c39563` and `b2d8865` while claiming the `index-DUEXf-qq.js` bundle, which those two commits do
+not build. What happened: `9818a62` pointed this file at production when PR #105 merged, then
+`6053af2` re-froze the protocol and updated the HASH here without updating the commit identities
+beside it. Two identities for one build, in the one file a moderator opens before a session. It is
+fixed here and it is why the check below is the hash rather than a commit: **a sha in prose can
+disagree with the bytes, and a content hash cannot.**
 
 ## The URL participants get
 
 **`https://lichessapp.vercel.app/`**
 
-PR #105 merged on 2026-09-12 at 19:53Z, so the frozen build is now the production deployment and
-the access problem this section used to describe is gone. Verified signed-out, not assumed:
-`200`, titled `Decision Lab`, loading `assets/index-DUEXf-qq.js`, with `/build-identity.json`
-reporting `gitSha: b2d8865`, `target: production`, and `/api/health` answering `200` with
-`storage: "not-configured"`, which is the same storage model every walk was performed against.
+Production tracks `main`, so the frozen build is the production deployment and no share link is
+needed. Verified signed-out, not assumed, on 2026-09-13 at 19:25Z: `200`, titled `Decision Lab`,
+loading `assets/index-ZgOyRttd.js`, with `/build-identity.json` reporting
+`gitSha: e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, `builtAt: 2026-09-13T17:26:33Z` and
+`target: production`, and `/api/health` answering `200` with `storage: "not-configured"`, which is
+the same storage model every walk was performed against.
 
-The build under test did not move. Between the frozen product source `4c39563` and merged `main`,
-the only change to anything the build reads is a corrected comment in
-`shared/confidence-asked.ts`. Comments do not ship, and the content hash is the proof: the bundle
-is the same `index-DUEXf-qq.js` the pre-registration names.
+**THE BUILD UNDER TEST HAS MOVED TWICE, AND THE OWNER HAS DECIDED HOW THAT STOPS.** Both moves were
+merges to `main`, and this file's own rule -- do not push product source while sessions are running
+-- is a request nothing enforces. The decision is option `(a)`, an immutable deployment, and
+`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
+dashboard action that has not been taken**: production branch set to a frozen branch instead of
+`main`, so merges stop moving the build behind this URL while `main` stays live for development.
+Until it is taken, production still tracks `main` and the check below is the only thing between a
+session and a stimulus nobody registered. **Run it every single time.**
 
 ### Before each session
 
-1. Open the URL **in a browser that is not signed in to Vercel**, or a private window.
-2. Confirm the page loads `assets/index-DUEXf-qq.js`. The build is content-hashed, so that one
-   string is the whole freeze check, and anything that moves it has changed the stimulus.
-3. Hand the participant the URL. Nothing else is said.
+Three checks before the hand-over, and they are three because no one of them can cover the
+others: reachability is not the build, and the build is not the server configuration.
+
+1. Open the URL **in a browser that is not signed in to Vercel**, or a private window. The page must
+   answer `200`. A moderator's own browser loads the page whatever the protection says, which is
+   exactly how a wall would go unnoticed until participant 1 is sitting there.
+
+2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json`. The page must be
+   **JSON, beginning `{`**, and its `stimulus_sha256` must equal the one in
+   `../FIELD_RUN_CURRENT.md`.
+
+   **IF THE APP LOADS INSTEAD, THE BUILD HAS NO MANIFEST — AND IT DOES NOT LOOK LIKE AN ERROR.**
+   Measured, not assumed, on 2026-09-13 at 21:05Z: that URL answers `200 text/html` on the frozen
+   build, because `vercel.json`'s last route sends every unmatched path to `index.html`. A browser
+   shows the product. There is no `404`, no red, nothing to notice. `client/src/lib/self-check.ts`
+   already refuses this trap by name — *"an SPA fallback answers `200 text/html` for any unknown
+   path, and reading that as 'an older build' would be a confident and false diagnosis"* — and the
+   first version of this step walked straight into it by claiming the endpoint `404`s.
+   **So the check is the content and never the status code.**
+
+   **The value in the protocol is currently `PENDING`** because the frozen build predates the
+   generator, so seeing the app there today is expected. What a build that DOES carry it looks like
+   was checked rather than imagined: the `PR #111` preview at `fce720a` answered
+   `content-type: application/json` with a manifest over 40 files on 2026-09-13 at 20:53Z. **JSON is
+   the pass; the app is the stop.** Until the deploy that carries it, the
+   interim check is the two content-hashed filenames in the page source,
+   `assets/index-ZgOyRttd.js` **and** `assets/index-_bGdMEE1.css`. Two filenames is better than the
+   one this file used to name, and it is **still not sufficient**: nine `.woff2` faces, the favicon,
+   the share card, `robots.txt`, `_headers` and `_redirects` carry no content hash at all, so
+   nothing about their names moves when their bytes do. That is the whole reason the digest exists.
+
+3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
+   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level;
+   the same response also carries `build.gitSha`, so this one request covers the commit as well.
+   Verified in that shape on 2026-09-13 at 22:29Z. Storage is not in the digest and cannot be: it is
+   server configuration and it can change with no deployment at all, which is exactly why it is
+   checked live.
+
+4. If **any** of the three does not match, **stop**. Do not run the session against whatever is
+   there and do not update this file to match it: check with the owner first, because a mismatch
+   means either a merge landed or the pre-registration is describing a build nobody is serving.
+
+5. Hand the participant the URL. Nothing else is said.
+
+### Why the check is a digest and not a filename
+
+This file used to say that confirming one content-hashed JS filename was "the whole freeze check".
+The build emits **forty** files. The named one is 695,047 bytes of 8,865,024 -- **7.8%** -- and
+eighteen of the forty carry no content hash in their name at all. Swapping a Hebrew face changes
+what every participant reads and leaves the JS filename exactly where the protocol says it should
+be. The check would have passed.
+
+The repair is not a longer list of filenames, which is the same defect with a later expiry date.
+`scripts/write-stimulus-manifest.ts` walks whatever the build wrote, hashes every file and publishes
+one `stimulus_sha256`. The enumeration is the walk, so an asset kind nobody anticipated cannot slip
+past it.
 
 ### What this replaced, kept because the reasoning still applies
 
 Before the merge the build lived only on the PR preview, which answered a signed-out visitor with
 `302` to `vercel.com/sso-api`, and participants would have reached it through a protection-bypass
-share link generated fresh per session. That is no longer needed. The rule that produced it stands:
-**check the URL from a signed-out browser and never from the moderator's own**, because a
-moderator's laptop loads the page whatever the protection says, which is exactly how a wall would
-have gone unnoticed until participant 1 was sitting there.
+share link generated fresh per session. That is no longer needed for the URL above, and the same
+wall is why the run is not pinned to a per-deployment URL: measured signed-out on 2026-09-13,
+`lichessapp.vercel.app` answers `200` and the production deployment's own URL answers `302` to
+`vercel.com/sso-api`. The project protects every deployment URL and exempts the alias.
+
+The rule that produced all of this stands: **check the URL from a signed-out browser and never from
+the moderator's own**, because a moderator's laptop loads the page whatever the protection says,
+which is exactly how a wall would have gone unnoticed until participant 1 was sitting there.
 
 A share link, if one is ever needed again, is a bearer credential and does not go in this
 directory, a commit, a PR comment or a participant file.

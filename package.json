@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:lan": "vite --host 0.0.0.0",
-    "build": "vite build && tsx scripts/write-build-identity.ts",
+    "build": "vite build && tsx scripts/write-build-identity.ts && tsx scripts/write-stimulus-manifest.ts",
     "check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

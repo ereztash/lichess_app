@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-ארבעים וארבעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+ארבעים וחמישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -57,5 +57,6 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-FINDING-OUTRANKS-ITS-NUMBERS | R1 | רשימת קריאות שהמסקנה עליה נכתבת מתחתיה, או נכתבת דרך רגיסטר המקור במקום כממצא |
 | GATE-PLACEMENT-NOT-EVIDENCE | R1 | ציון "שקילה" שנבנה ממהלכים שהונחו על הלוח, בעוד שגרירה שחזרה ואצבע שעברה נרשמות בדיוק כמו מהלך שנבחן |
 | GATE-ELSEWHERE-NOT-MEASURED | R1 | מסך שלישי שממציא את הפועל החזק: החלטות שנקראות בחלק אחר, מדווחות כאילו מנוע כבר ניקד אותן |
+| GATE-STIMULUS-FLAGS | R-01 | דגל בנייה שהלקוח קורא ואינו מופיע במניפסט הגירוי: בדיקת ההקפאה שמנחה הניסוי מריץ לפני מפגש חייבת להיות קריאה, ולא מבוססת על אמון. שם הקובץ היחיד שהמניפסט החליף כיסה קובץ אחד מתוך ארבעים |
 
 The IDs are the synchronized contract. The prose explains why each gate exists but is not treated as an executable definition; the runner remains the authority for what actually runs.

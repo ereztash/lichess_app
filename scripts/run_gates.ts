@@ -53,6 +53,7 @@ import { findAuthorityDrift } from "./authority-scan";
 import { findUnobservableCues } from "./cue-scan.js";
 import { findFalsificationDrift } from "./falsification-scan";
 import { rollbackDrift as findRollbackDrift } from "./rollback-scan";
+import { RECORDED_FLAGS } from "./stimulus-manifest";
 import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
@@ -196,6 +197,9 @@ const CUE_FIXTURES = "tests/fixtures/cue";
 /** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
 const ROLLBACK_FIXTURES = "tests/fixtures/rollback";
+
+/** A surface flag the stimulus manifest does not record. `GATE-STIMULUS-FLAGS`. */
+const STIMULUS_FIXTURES = "tests/fixtures/stimulus";
 
 /** And for O-2: the clause accepted and ignored, and the way-on press counted as a move. */
 const CONTINUATION_FIXTURES = "tests/fixtures/continuation";
@@ -557,6 +561,52 @@ async function precommitRevealPayload(): Promise<string> {
   } finally {
     server.close();
   }
+}
+
+/**
+ * Every build-time variable the client reads, against the ones the stimulus manifest records.
+ *
+ * WHY IT IS A GATE AND NOT A LIST SOMEBODY MAINTAINS. `RECORDED_FLAGS` exists so a moderator can
+ * read `/stimulus-manifest.json` and SEE that experimental learning was off before a session, and
+ * a list kept by hand falls behind the code on the first flag added in a hurry -- which is exactly
+ * the failure the manifest was built to end. The `.woff2` faces escaped the old freeze check
+ * because nobody updated a sentence. This makes the same omission red instead of silent.
+ *
+ * The digest is unaffected either way: Vite inlines these values into the JS, so a missing entry
+ * hides a flag from a human, never from the hash. The gate protects legibility, and says so.
+ */
+function unrecordedStimulusFlags(roots: string[]): GateResult {
+  const READ = /import\.meta\.env\.(VITE_[A-Za-z0-9_]+)/g;
+  const found = new Map<string, string>();
+  let scanned = 0;
+  const visit = (dir: string): void => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        if (entry.name !== "node_modules") visit(full);
+        continue;
+      }
+      if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+      scanned += 1;
+      const text = readFileSync(full, "utf8");
+      for (const m of text.matchAll(READ)) if (!found.has(m[1])) found.set(m[1], full);
+    }
+  };
+  for (const root of roots) visit(root);
+
+  const missing = [...found].filter(([name]) => !RECORDED_FLAGS.includes(name));
+  if (missing.length > 0) {
+    return fail(
+      `${missing.length} build-time flag(s) read by the client and absent from RECORDED_FLAGS in ` +
+        `scripts/stimulus-manifest.ts: ${missing.map(([n, f]) => `${n} (${f})`).join(", ")}. ` +
+        `A moderator reading the stimulus manifest would not see it.`,
+    );
+  }
+  if (found.size === 0) {
+    return fail(`no import.meta.env.VITE_* read found under ${roots.join(", ")}; the scan matched nothing`);
+  }
+  return pass(`${found.size} build-time flag(s) across ${scanned} files, all recorded in the stimulus manifest`);
 }
 
 export const GATES: Gate[] = [
@@ -1384,6 +1434,22 @@ export const GATES: Gate[] = [
      */
     run: () => rollbackDrift("."),
     positiveControl: () => rollbackDrift(ROLLBACK_FIXTURES),
+  },
+  {
+    id: "GATE-STIMULUS-FLAGS",
+    rule: "R-01",
+    description:
+      "Every build-time flag the client reads is recorded in the stimulus manifest, so the freeze check a moderator runs is legible rather than trusted.",
+    /*
+     * THE FREEZE CHECK THIS SERVES USED TO BE ONE FILENAME. `research/player-path/field/README.md`
+     * told a moderator that `assets/index-ZgOyRttd.js` was "the whole freeze check". The build
+     * emits forty files; eighteen of them, every font among them, carry no content hash at all, so
+     * that string could never have caught a font change however carefully it was compared.
+     * `scripts/write-stimulus-manifest.ts` replaced it with a digest over the walk. This holds the
+     * one part of the manifest that is still a list to the code it describes.
+     */
+    run: () => unrecordedStimulusFlags(["client"]),
+    positiveControl: () => unrecordedStimulusFlags([STIMULUS_FIXTURES]),
   },
 ];
 
