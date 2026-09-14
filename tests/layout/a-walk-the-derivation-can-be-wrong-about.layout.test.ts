@@ -65,6 +65,9 @@ import {
   deriveNextAction,
   type NextAction,
   type ProductState,
+  observed,
+  proposeNextAction,
+  UNOBSERVED,
 } from "@shared/next-action";
 import { PRIMARY_ACTIONS, type PrimaryAction } from "@shared/primary-action";
 
@@ -116,15 +119,22 @@ function stateAfter(over: Partial<ProductState>): ProductState {
     pendingAnalyses: 0,
     analysisRunning: false,
     /*
-     * NULL, AND THE WALK IS WHY THIS IS HONEST RATHER THAN CONVENIENT. A drill and a transfer live
-     * in `Home.tsx`'s component state and do not survive navigating away -- D22 reversal condition
-     * 2, a LAW 4 defect with its own row. This walk never starts one, so null is what the product
-     * holds and not merely what the fixture says.
+     * OBSERVED-AND-EMPTY, AND THE WALK IS WHY THAT IS HONEST RATHER THAN CONVENIENT. D22 reversal
+     * condition 2 has fired: an open drill and an open transfer are now readable from the record
+     * (`continuationReading`), so a screen that asks gets an answer. This walk never starts a run,
+     * so an OBSERVED absence is what the product actually holds here and not merely what the
+     * fixture says.
+     *
+     * `unseenEvent` IS THE ONE THAT STAYS UNOBSERVED, and it is unobserved in the shipped assembly
+     * too: nothing anywhere in the product writes a seen-set, so `productStateFor` cannot do
+     * better than say so. Writing `observed(null)` here would make this walk claim a fidelity it
+     * does not have -- the derivation would propose the same action either way, but the PROPOSAL
+     * would be reported sound when the product's own would not be.
      */
-    drill: null,
-    transfer: null,
-    unseenEvent: null,
-    untestedRule: null,
+    drill: observed(null),
+    transfer: observed(null),
+    unseenEvent: UNOBSERVED,
+    untestedRule: observed(null),
     /*
      * ACCUMULATING WITH NOTHING IN IT, which is what a walk starting from a cleared browser holds.
      * The search needs `DISCOVERY_FLOOR` scored decisions before it looks at all, and this walk
@@ -143,12 +153,24 @@ interface Point {
   where: string;
   proposed: NextAction;
   offered: PrimaryAction | null;
+  /**
+   * Inputs that outrank the proposal and were not read, from the derivation itself.
+   *
+   * PRINTED BESIDE THE PROPOSAL BECAUSE IT DECIDES WHAT THE PROPOSAL IS WORTH. A screen and a
+   * derivation agreeing about `play-first-decision` means one thing when every higher-ranked input
+   * was read and another when one of them was not -- in the second case they agree about an answer
+   * that a fact nobody measured would have overruled. A walk that printed only the two acts would
+   * report those as the same result.
+   */
+  blind: readonly string[];
 }
 
 const agreed = (point: Point) =>
   `${point.where}: the derivation proposes ${point.proposed.kind} (act ${
     actFor(point.proposed.kind) ?? "none"
-  }), the screen offers ${point.offered ?? "none"}`;
+  }), the screen offers ${point.offered ?? "none"}${
+    point.blind.length ? ` [blind to ${point.blind.join(", ")} -- proposal unsound]` : " [sound]"
+  }`;
 
 describe("what the screens offer, against what the derivation would send them to", () => {
   const points: Point[] = [];
@@ -172,6 +194,7 @@ describe("what the screens offer, against what the derivation would send them to
       points.push({
         where: "the record page, empty",
         proposed: deriveNextAction(stateAfter({})),
+        blind: proposeNextAction(stateAfter({})).blind,
         offered: await offeredOnPage(page),
       });
 
@@ -228,9 +251,14 @@ describe("what the screens offer, against what the derivation would send them to
       /* ---- STOP 2: the record page, one decision on it ---- */
       await page.goto(`${origin}/`, { waitUntil: "networkidle" });
       await page.waitForTimeout(2_000);
+      const afterOne = stateAfter({
+        decisionsOnRecord: 1,
+        anchor: { answered: 1, total: ANCHOR_POSITIONS.length },
+      });
       points.push({
         where: "the record page, one decision",
-        proposed: deriveNextAction(stateAfter({ decisionsOnRecord: 1, anchor: { answered: 1, total: ANCHOR_POSITIONS.length } })),
+        proposed: deriveNextAction(afterOne),
+        blind: proposeNextAction(afterOne).blind,
         offered: await offeredOnPage(page),
       });
 

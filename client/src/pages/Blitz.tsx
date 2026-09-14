@@ -53,6 +53,7 @@ import { isFinished } from "@shared/blitz-post-game";
 import { toPendingRecord, isRefusal } from "@shared/blitz-record";
 import { readBlitzGame, type BlitzEvent } from "@shared/blitz-reading";
 import { PostGame } from "@/components/PostGame";
+import { NextActionProbe } from "@/components/NextActionProbe";
 import { useSaveBlitzGame } from "@/lib/record-api";
 import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
 import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
@@ -553,6 +554,28 @@ export default function Blitz() {
                 onSeePosition={setReviewing}
                 onPlayAgain={() => setGame({ phase: "idle" })}
               />
+              {/*
+                * THE `post-game` SURFACE'S SHADOW, MOUNTED BESIDE THE SCREEN RATHER THAN INSIDE IT.
+                *
+                * `SHADOW_SURFACES` has named `post-game` since it was written and nothing ever
+                * called it; `GATE-SHADOW-SURFACE-LIVE` now fails on a declaration with no call
+                * site, which is what let this one stay declared and absent.
+                *
+                * IT IS A SIBLING BECAUSE `PostGame` IS PRESENTATIONAL AND MUST STAY SO. The hook
+                * went inside it first and broke eleven tests that render the screen on its own --
+                * correctly, because `useProductState` reaches `useRecordMode`, which needs the
+                * query and tRPC providers. A component that cannot be rendered without the data
+                * layer is a component whose rendering can no longer be asserted cheaply, and the
+                * shadow's whole claim on this repository is that it changes nothing on screen.
+                *
+                * D22 REFUSED THIS SURFACE ON COST AND THE COST IS NOT HERE. Its argument was that
+                * instrumenting two more surfaces pulls the blitz reading chain *"into two hot
+                * routes"* at +16.1 kB raw. That is exactly right about the record page, which IS
+                * the entry chunk. This is `/blitz`, a lazy route (`App.tsx:23`), and this file
+                * already imports `use-blitz-analysis` and `blitz-reading`. The budget measures the
+                * entry chunk and what is eagerly fetched beside it; this is neither.
+                */}
+              <NextActionProbe surface="post-game" />
               {/*
                 * LAW 4, SAID OUT LOUD. The old screen could not offer this, because leaving
                 * cancelled the search. It can now, and saying so is the difference between a player

@@ -33,11 +33,14 @@ import { useEffect, useRef } from "react";
 import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import {
   agreesWith,
-  deriveNextAction,
-  type NextAction,
+  observed,
+  proposeNextAction,
+  UNOBSERVED,
+  type NextActionProposal,
   type ProductState,
   type ShadowSurface,
 } from "@shared/next-action";
+import type { ActiveContinuation } from "@shared/continuation";
 import {
   PRIMARY_ACTION_ATTR,
   PRIMARY_ACTIONS,
@@ -51,6 +54,7 @@ import { recordTrialEvent, trialEventSeenOn } from "@/lib/progress-record";
 import { useBlitzReading } from "@/lib/blitz-reading-api";
 import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
 import { useClaimView, useDecisionCount, useRecordReading } from "@/lib/record-api";
+import { useContinuation } from "@/lib/continuation-api";
 
 /**
  * Inputs each surface cannot supply, named so a disagreement can be read.
@@ -66,14 +70,23 @@ import { useClaimView, useDecisionCount, useRecordReading } from "@/lib/record-a
  * shared constant would make that look like a design rather than the coincidence it is, and would
  * quietly become wrong the first time one surface gains a reader the others lack.
  */
-export const SURFACE_BLIND_SPOTS: Record<ShadowSurface, readonly string[]> = {
-  resume: ["drill", "transfer", "unseenEvent", "untestedRule"],
-  "post-game": ["drill", "transfer", "unseenEvent", "untestedRule"],
-  record: ["drill", "transfer", "unseenEvent", "untestedRule"],
-};
-
-/** Kept for the tests and readers that named it before the surfaces were split apart. */
-export const RESUME_BLIND_SPOTS = SURFACE_BLIND_SPOTS.resume;
+/**
+ * THE ONE INPUT NO SURFACE CAN READ, BECAUSE NOTHING IN THE PRODUCT WRITES IT.
+ *
+ * `unseenEvent` HAS NO IMPLEMENTATION AND IS DELIBERATELY NOT BEING GIVEN ONE. There is no seen-set
+ * anywhere in the repository -- no writer, no reader, no storage -- and building one to satisfy a
+ * branch would be inventing infrastructure for an architecture rather than for a decision.
+ * `docs/ARCHITECTURE_UI_AUTHORITY_TRANSFER.md` §"The event nobody has seen" records what behaviour
+ * would justify it and what stays blind until then.
+ *
+ * IT IS NOT A TABLE ANY MORE, AND THAT IS THE CHANGE. This used to be a hand-maintained
+ * `Record<ShadowSurface, string[]>` listing four blind inputs per surface, kept in step with
+ * `productStateFor` by nothing but attention -- and it reached the LEDGER while the derivation went
+ * on reading fabricated `null`s. Blindness is now carried by `Observed` in the state itself, and
+ * `proposeNextAction` reports the prefix that actually mattered. A surface cannot claim to see
+ * something it did not read, because the only way to say "I read it" is to hand over the value.
+ */
+export const PERMANENTLY_UNOBSERVED = ["unseenEvent"] as const;
 
 /**
  * The state a surface can actually assemble, with everything it cannot left null.
@@ -109,7 +122,17 @@ export function productStateFor(input: {
    * already calls `useClaimView`, and react-query dedupes by key.
    */
   claim: ClaimView | undefined;
+  /**
+   * The open run and the untested rule, or `undefined` while the read has not settled.
+   *
+   * `undefined` BECOMES `UNOBSERVED` AND NOT `null`, and the whole migration turns on the
+   * difference. `null` inside an observed reading is a record with no run in it; `UNOBSERVED` is a
+   * screen that has not been told. The four fields this replaces had only the first value available
+   * to them, so every shadow row ever written asserted the first while meaning the second.
+   */
+  continuation: { active: ActiveContinuation | null; untestedRule: string | null } | undefined;
 }): ProductState {
+  const runs = input.continuation;
   return {
     /*
      * COUNTED FROM THE GAMES AND NOT FROM `stored - scored`. That subtraction folds `refused` and
@@ -117,10 +140,35 @@ export function productStateFor(input: {
      */
     pendingAnalyses: input.games.filter((g) => g.analysisState === "pending").length,
     analysisRunning: input.analysisRunning,
-    drill: null,
-    transfer: null,
-    unseenEvent: null,
-    untestedRule: null,
+    /*
+     * ONE READING, TWO BRANCHES, AND THE SPLIT HAPPENS HERE RATHER THAN IN THE SERVICE. The record
+     * can hold at most one run worth finishing -- `activeContinuationOf` decides which, once -- and
+     * the derivation asks two questions about it because the SENTENCES differ. Answering "is a
+     * drill open" with "the active run is a transfer" is the honest `null`: observed, and not a
+     * drill.
+     */
+    drill:
+      runs === undefined
+        ? UNOBSERVED
+        : observed(
+            runs.active?.kind === "drill"
+              ? { drillId: runs.active.runId, done: runs.active.done, total: runs.active.total }
+              : null,
+          ),
+    transfer:
+      runs === undefined
+        ? UNOBSERVED
+        : observed(
+            runs.active?.kind === "transfer"
+              ? {
+                  transferId: runs.active.runId,
+                  done: runs.active.done,
+                  total: runs.active.total,
+                }
+              : null,
+          ),
+    unseenEvent: UNOBSERVED,
+    untestedRule: runs === undefined ? UNOBSERVED : observed(runs.untestedRule),
     claimState: claimStateOf(input.claim),
     blitzStanding: input.reading.standing,
     decisionsOnRecord: input.decisionsOnRecord,
@@ -186,8 +234,17 @@ export function useProductState(): ProductState | null {
    * already import.
    */
   const claim = useClaimView();
-  if (!blitz.data || claim.isLoading) return null;
+  /*
+   * THE RUN AND THE RULE, AND THEY ARE GATED THE SAME WAY THE CLAIM IS. `continuation.isLoading`
+   * held open would hand `productStateFor` an `undefined` it reads as UNOBSERVED -- which is
+   * truthful, and is also a permanently blind shadow if the gate were left off, because the write
+   * happens once per visit and the first frame always precedes the response. Waiting for it settled
+   * is what makes the top three branches of the ladder reachable at all.
+   */
+  const continuation = useContinuation();
+  if (!blitz.data || claim.isLoading || continuation.isLoading) return null;
   return productStateFor({
+    continuation: continuation.data,
     reading: blitz.data.reading,
     games: blitz.data.games,
     decisionsOnRecord: decisions.data?.decisions ?? 0,
@@ -244,10 +301,16 @@ export function offeredAct(root: ParentNode): PrimaryAction | null {
 export function useNextActionShadow(
   surface: ShadowSurface,
   state: ProductState | null,
-): NextAction | null {
+): NextActionProposal | null {
   const written = useRef(false);
-  const action = state === null ? null : deriveNextAction(state);
-  const kind = action?.kind ?? null;
+  const proposal = state === null ? null : proposeNextAction(state);
+  const kind = proposal?.action.kind ?? null;
+  /*
+   * SERIALISED SO THE EFFECT DEPENDS ON THE CONTENT RATHER THAN THE ARRAY IDENTITY. `blind` is
+   * rebuilt on every render; keying the effect on the array itself would rewrite the row whenever
+   * React re-rendered, and keying it on nothing would miss a surface that gained a reader.
+   */
+  const blindKey = proposal === null ? "" : proposal.blind.join(",");
 
   useEffect(() => {
     if (kind === null || written.current) return;
@@ -270,9 +333,19 @@ export function useNextActionShadow(
        * screen going quiet agrees with exactly the two proposals that are not acts.
        */
       agrees: agreesWith(kind, offered),
-      blind: [...SURFACE_BLIND_SPOTS[surface]],
+      /*
+       * WHAT THE DERIVATION COULD NOT SEE ABOVE THIS PROPOSAL, from the derivation itself.
+       *
+       * IT USED TO BE A CONSTANT PER SURFACE and it was wrong in both directions. It named four
+       * inputs on every row, including rows where the blind inputs ranked BELOW the branch that
+       * fired -- `continue-drill` proposed by a screen that could see drills was logged as blind to
+       * drills -- and it could not have noticed a surface that gained a reader, because the table
+       * was maintained by hand. `proposal.blind` is the prefix that actually outranked this answer,
+       * so an empty array is the sound case rather than an unmaintained one.
+       */
+      blind: blindKey === "" ? [] : blindKey.split(","),
     });
-  }, [kind, surface]);
+  }, [kind, surface, blindKey]);
 
-  return action;
+  return proposal;
 }

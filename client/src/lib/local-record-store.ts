@@ -714,6 +714,13 @@ export class LocalRecordStore implements RecordStore {
     return started;
   }
 
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    const state = read();
+    return Object.values(state.drills)
+      .filter((d) => !state.drillResults.some((r) => r.drill_id === d.spec.drill_id))
+      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+  }
+
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
     return update((state) => {
       if (state.drillResults.some((r) => r.drill_id === result.drill_id)) {

@@ -156,6 +156,26 @@ export interface RecordStore {
   /** Record a started drill. R5: written before the drill runs, condition included. */
   saveDrill(started: StoredDrill): Promise<void>;
   getDrill(drillId: string): Promise<StoredDrill | null>;
+  /**
+   * Drills that were started and never reported -- the drill's `getOpenLearningTransfer`.
+   *
+   * WITHOUT THIS THE PRODUCT CANNOT SEE ITS OWN HIGHEST-PRIORITY STATE. `saveDrill` writes before
+   * the first position is shown, precisely so that a pre-registered set exists independently of the
+   * screen running it. Nothing could read it back except by id, and the only holder of the id was
+   * `Home.tsx`'s component state -- so a reload orphaned the run, every other surface believed no
+   * drill was open, and `deriveNextAction`'s first branch was unreachable in production.
+   *
+   * The transfer side already had this, and `getOpenLearningTransfer` states the argument in full:
+   * *"Losing a tab is not misconduct, and a rule whose test can be started but never finished is a
+   * rule that can only be refuted by accident."* A drill is the same object one authorship over.
+   *
+   * A DRILL WITH NO RECORDED DIRECTION IS NOT OPEN AND IS NOT RETURNED. `getDrill` throws
+   * `MissingClaimDirection` on one rather than hand back a spec that cannot be graded; a list may
+   * not throw for one bad row, so it omits them. The effect is the honest one: an ungradeable drill
+   * is unfinishable, and proposing that a player finish it would be proposing an act with no
+   * outcome.
+   */
+  listOpenDrills(): Promise<StoredDrill[]>;
   /** Record a drill result. Append-only: a drill reports once. */
   saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
 

@@ -959,7 +959,38 @@ const INDEX = `${ROOT}/index.html`;
  * spent nothing on the ratchet until this commit.
  */
 
-const ENTRY_RAW_KB = 679;
+/**
+ * 679 -> 681 AND 772 -> 774: THE CANONICAL DERIVATION'S TOP THREE BRANCHES, MADE READABLE.
+ *
+ * WHAT THE BYTES ARE. `deriveNextAction`'s first, second and fifth branches -- `continue-drill`,
+ * `continue-transfer` and `test-hypothesis` -- were unreachable in production because
+ * `productStateFor` hard-coded their inputs to `null`, and `null` already meant "there is none".
+ * The repair is a query (`continuation`), the cache invalidation that keeps it true across the five
+ * writes that open or close a run, and a lazily-mounted probe on the record page.
+ *
+ * WHERE IT IS *NOT*. Three of the four pieces were kept out of the entry graph on purpose and the
+ * split was driven by measurement rather than by taste:
+ *
+ *     the hook in `record-api.ts`                     680.8      212.9       774.0   +2.0
+ *     hook moved to `continuation-api.ts`             680.6      212.9       773.8   -0.2
+ *     read moved out of `record-service.ts`           679.7      212.6       772.9   -0.9
+ *
+ * `record-service.ts` is imported wholesale by `record-api.ts`, so a function added to it is in the
+ * entry chunk whatever imports it -- which is why `continuationReading` lives in
+ * `shared/continuation.ts` and is named only by the lazy surfaces and the server router.
+ *
+ * WHAT THE REMAINING 0.7 kB BUYS, and it is on the write side rather than the read side:
+ * `invalidateContinuation` plus the `trpc.useUtils()` handle in five mutations that previously
+ * needed none. A drill that opens and a screen that still says no drill is open is the same defect
+ * this change exists to remove, arriving one cache layer down, so the invalidation is not optional.
+ *
+ * THE GZIP CEILING DOES NOT MOVE. 212.6 against 213 leaves 0.4 kB and it was not crossed; a ceiling
+ * that has not fired keeps its number, which is the rule the raise four notes above states.
+ *
+ * 681 AND 774 LEAVE 1.3 kB AND 1.1 kB, the same order of headroom as every raise above.
+ *
+ */
+const ENTRY_RAW_KB = 681;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 213;
@@ -1153,7 +1184,7 @@ const ENTRY_GZIP_KB = 213;
  * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 772;
+const INITIAL_RAW_KB = 774;
 
 interface Asset {
   name: string;

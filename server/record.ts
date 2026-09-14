@@ -714,6 +714,36 @@ export class DrizzleRecordStore implements RecordStore {
     return await db.select().from(blitzDecisions);
   }
 
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(drills)
+      .leftJoin(drillResults, eq(drillResults.drillId, drills.drillId))
+      .where(isNull(drillResults.drillId))
+      .orderBy(drills.startedAt);
+    return (
+      rows
+        /*
+         * SKIPPED RATHER THAN THROWN ON, and `getDrill` is why the two differ. A spec with no
+         * recorded direction cannot be graded, so `getDrill` refuses to hand one back; a LIST that
+         * threw for one legacy row would hide every open drill behind the oldest bad one.
+         */
+        .filter((row) => row.drills.predictsOverconfidence !== null)
+        .map((row) => ({
+          spec: {
+            drill_id: row.drills.drillId,
+            claim_id: row.drills.claimId,
+            fens: row.drills.fens,
+            refutation_condition: row.drills.refutationCondition,
+            predicts_overconfidence: row.drills.predictsOverconfidence as boolean,
+          },
+          predicted: row.drills.predicted,
+          started_at: row.drills.startedAt.toISOString(),
+        }))
+    );
+  }
+
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
     const db = await this.db();
     const [drill] = await db
@@ -1182,6 +1212,12 @@ export class MemoryRecordStore implements RecordStore {
 
   async getDrill(drillId: string): Promise<StoredDrill | null> {
     return this.drillRows.get(drillId) ?? null;
+  }
+
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    return [...this.drillRows.values()]
+      .filter((d) => !this.drillResultRows.some((r) => r.drill_id === d.spec.drill_id))
+      .sort((a, b) => a.started_at.localeCompare(b.started_at));
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
