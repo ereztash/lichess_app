@@ -8,7 +8,7 @@
 | "effort before feedback", "ownership", "falsification" as metrics | DL philosophy is encoded in ruler | score chess decision, calibration, overclaim and behavior | critical |
 | full-chain Job | no incumbent claims DL's exact ontology | common Jobs + BAA workflow | critical |
 | transfer score based on DL-selected positions | selector can choose its own pattern | independent bank, trigger/non-trigger, hash freeze | critical |
-| own-game/pre-engine metadata only for DL | richer input hidden as algorithmic quality | common-input diagnostic + native-use outcomes separated | high |
+| own-game/pre-engine metadata only for DL | richer input hidden as algorithmic quality | first 10 minutes use identical PGN/moments; native-input phase reported separately | high |
 | founder moderation | accurate reframing can create the result | script; no chess help; log exact interventions | high |
 | Hebrew UI vs English competitors | language advantage for DL | English threshold, stratify/report language; real-world and normalized outputs separate | medium/high |
 | free/limited competitor tiers | deliberately weak incumbent | paid full plans supplied | critical |
@@ -20,7 +20,7 @@
 | Weakness | Mechanism | Repair | Decision value |
 |---|---|---|---|
 | scale/content/l polish dimensions | rewards platform breadth irrelevant to decision | remove from confirmatory outcome | high |
-| incumbent familiarity | faster use unrelated to product merit | stratify prior use; equal onboarding | high |
+| incumbent familiarity | faster use unrelated to product merit | stratify prior use; parallel endpoint; equal-exposure crossover before free choice | high |
 | mature account history | incumbents may have years of data | common historical window; report native extra data | high |
 | immediate feedback metrics | favor engine-review products | delayed unseen primary | critical |
 | Elo as primary | too noisy for small new product | accepted unseen decisions primary; Elo descriptive | high |
@@ -30,7 +30,7 @@
 
 ## Order, selection and learning
 
-Parallel assignment protects the confirmatory endpoint. Crossover occurs only after T5 is locked. Item order is randomized within balanced blocks; no family repeats in adjacent items; baseline/immediate/delayed forms are disjoint. Reminders and time windows are identical. Analysts see arms only after frozen derivations pass.
+Parallel assignment protects the confirmatory endpoint. Equal-exposure crossover occurs only after T5 is locked and is followed by 72 hours without product prompt before free choice. Item order is randomized within balanced blocks; no family repeats in adjacent items; baseline/immediate/delayed forms are disjoint. Reminders and time windows are identical. Analysts see arms only after frozen derivations pass.
 
 ## Residual weaknesses
 

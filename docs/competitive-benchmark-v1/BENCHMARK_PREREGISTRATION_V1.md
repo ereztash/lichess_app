@@ -26,8 +26,8 @@ Chessable, ChessTempo, DecodeChess, Dr. Wolf ו-Lichess נשארים במטרי�
 
 ## 3. אוכלוסייה
 
-- בני 18+; Lichess או Chess.com blitz/rapid rating בין 1200–1800.
-- לפחות 80 משחקים מדורגים ב-90 הימים האחרונים ולפחות 3 משחקים בשבוע בארבעת השבועות האחרונים.
+- בני 18+; Chess.com blitz/rapid rating בין 1200–1800. v1 מצומצם לפלטפורמה אחת; Lichess הוא replication cohort עתידי.
+- לפחות 80 משחקי Chess.com מדורגים ב-90 הימים האחרונים ולפחות 3 משחקים בשבוע בארבעת השבועות האחרונים.
 - עברית שפת אם; אנגלית ברמה עצמית 4/5 ומעלה, משום שממשקי המתחרים אינם שווי-שפה.
 - ללא שימוש קודם ב-Decision Lab.
 - ניסיון קודם ב-BAA נמדד לפני randomization ומשמש stratification; אינו עילת exclusion.
@@ -52,11 +52,11 @@ Aimchess Premium מול Chess.com Diamond, 9 משתתפים לכל workflow. מ�
 ## 5. רצף
 
 1. Baseline: 12 עמדות unseen, ללא feedback.
-2. Native use: 7 ימים, שלוש יחידות אימון של עד 25 דקות. שתי הזרועות מקבלות אותו time budget וגישה לתוכנית המלאה.
+2. Native use: 7 ימים, שלוש יחידות של 25 דקות. בכל יחידה: 10 דקות common-input על אותו PGN ושלושה moments קפואים, ואז 15 דקות native workflow. תוצר ה-common-input מבודד J1; ה-native portion בודק את המוצר כפי שהוא.
 3. Immediate test: 12 עמדות מקבילות שלא נראו.
 4. Delayed test אחרי 72±12 שעות: 24 עמדות unseen — 12 trigger ו-12 matched non-trigger.
 5. Prospective play: עשרה משחקים מדורגים חדשים או 14 יום, המוקדם מביניהם.
-6. Free-choice period לאחר סגירת endpoint: familiarization של 5 דקות לכל החלופה שלא נוסתה, ואז 7 ימים שבהם המשתתף רשאי לבחור. הבחירה אינה מזהמת את endpoint המאשר.
+6. Equal-exposure crossover לאחר סגירת endpoint: כל משתתף מקבל שלוש יחידות של 25 דקות עם הכלי שלא קיבל, ללא שימוש בנתונים ל-endpoint המאשר. לאחר 72 שעות ללא prompt נפתחים 7 ימי free choice. סדר החשיפה נשמר כ-covariate; הבחירה אינה מזהמת את endpoint המאשר.
 7. Commercial follow-up נפרד בלבד; אינו חלק מ-v1 confirmatory.
 
 ## 6. Primary estimand
