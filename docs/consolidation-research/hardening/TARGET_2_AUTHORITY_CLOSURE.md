@@ -31,7 +31,7 @@ Every unresolved question was classified before anything was written.
 | `Q30` | which browsers and runtimes are supported? | `DERIVABLE_BUT_NOT_DERIVED` | **resolved.** `docs/SUPPORTED_RUNTIMES.md` states the baseline and names what enforces each line |
 | `Q31` | what is the release identity? | `DERIVABLE_BUT_NOT_DERIVED` | **resolved.** `shared/build-identity.ts` + `scripts/write-build-identity.ts`, generated at build time |
 | `Q32` | who is authoritative for the study's own numbers? | — | **resolved during Study v2, not by this mission.** Disclosed separately below |
-| `Q34` | who may deploy? | **`CAPABILITY_GAP`** | a `CODEOWNERS` file alone would be inert without a branch protection rule, which lives in repository settings rather than in this tree. Recorded with that as the trigger |
+| `Q34` | who may deploy? | **`PARTIAL_AUTHORITY`** | **half closed by the licensing migration, and only half.** `.github/CODEOWNERS` now exists and names an owner for every file that holds the proprietary/GPL boundary. The reasoning this row carried is still right and now applies to that file: CODEOWNERS is **inert without a branch protection rule**, which lives in repository settings and not in this tree. So review is *requested* and not *required*, and the remaining half is an owner action recorded in `docs/licensing/MIGRATION_RUNBOOK.md` step 6. Not `resolved`: a boundary guarded by a file anyone may bypass is guarded by a convention |
 | `Q35` | what accessibility conformance target? | `DOCUMENTATION_GAP` | **resolved.** WCAG 2.2 AA was already being assessed against in two documents and adopted by none |
 | `Q36` | how is a dependency upgraded? | **`CAPABILITY_GAP`** | `npm audit` is blocking and prescribes no response |
 

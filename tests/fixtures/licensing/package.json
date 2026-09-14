@@ -1,0 +1,10 @@
+{
+  "name": "decision-lab-fixture",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "decisionLabLicenseScope": "proprietary",
+  "dependencies": {
+    "stockfish": "^18.0.8",
+    "some-agpl-thing": "^2.0.0"
+  }
+}

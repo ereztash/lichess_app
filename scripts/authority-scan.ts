@@ -277,15 +277,33 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q34",
     question: "Who may deploy, and what approves a merge to the branch that deploys?",
+    /*
+     * WAS `CAPABILITY_GAP`, KEYED ON THE ABSENCE OF `CODEOWNERS`, AND THE LICENSING MIGRATION
+     * CREATED THAT FILE -- which reddened this gate, correctly, as a stale record.
+     *
+     * The old row's own reasoning is what decides the new one, and it was right: *"a CODEOWNERS
+     * file alone would not close this: it is inert without a branch protection rule, which lives in
+     * repository settings rather than in this tree."* So the file existing does not resolve the
+     * question, and recording it as resolved would be the exact drift this register exists to
+     * catch -- an artefact appearing and being read as an answer.
+     *
+     * `PARTIAL_AUTHORITY` is the honest shape. The in-tree half is real and checkable: every file
+     * holding the proprietary/GPL boundary now names an owner. The half that makes review
+     * COMPULSORY rather than requested is a repository setting, is outside this tree, and stays
+     * uncovered. The question stays outside the resolved count, which is the point.
+     */
     gap: "CAPABILITY_GAP",
     resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: [".github/CODEOWNERS", "CODEOWNERS"],
-      trigger:
-        "the second person with write access. `main` is unprotected and Vercel deploys it on " +
-        "push, so the gate that must pass is written down and who may cause it to run is not. A " +
-        "CODEOWNERS file alone would not close this: it is inert without a branch protection rule, " +
-        "which lives in repository settings rather than in this tree.",
+      kind: "PARTIAL_AUTHORITY",
+      covers:
+        "who reviews a change to the licensing boundary -- the licence documents, the package " +
+        "manifests, the Stockfish bridge and harness, and the gate that holds them",
+      authority: [".github/CODEOWNERS", "LICENSING.md"],
+      uncovered:
+        "who may MERGE and therefore deploy. `main` is unprotected and Vercel deploys it on push, " +
+        "so CODEOWNERS routes review without compelling it. Closing this needs a branch protection " +
+        "rule in repository settings, which is not a file in this tree; it is recorded as an owner " +
+        "action in `docs/licensing/MIGRATION_RUNBOOK.md` step 6.",
     },
   },
   {

@@ -67,6 +67,11 @@ import {
 } from "../shared/next-action";
 import { continuationOffer } from "../shared/continuation-offer";
 import {
+  licenseBoundaryFindings,
+  REPOSITORY as LICENSE_REPOSITORY,
+  type LicenseTree,
+} from "./license-boundary";
+import {
   COMMITMENT_READ_FAILED,
   COMMITMENT_UNREAD,
   type ContinuationReading,
@@ -196,6 +201,9 @@ const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
  * decision in a bank, and the next position of a pre-registered set -- and this is the second.
  */
 const CONTINUE_CONTROL_FIXTURES = "tests/fixtures/continuation-surfaces";
+
+/** The licensing boundary, broken on purpose. `GATE-LICENSE-BOUNDARY`'s control, nothing else. */
+const LICENSE_FIXTURES = "tests/fixtures/licensing";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
@@ -455,6 +463,43 @@ const shadowSurfacesLive = (roots: string[]): GateResult => {
     return fail(`${HARNESS_ERROR} the control fixture instruments every declared surface`);
   }
   return fromFindings(findings, "every declared shadow surface has a live call site");
+};
+
+/**
+ * THE LICENSING BOUNDARY, CHECKED THE WAY EVERY OTHER SCANNING GATE HERE IS CHECKED.
+ *
+ * The predicate lives in `scripts/license-boundary.ts` and takes the tree as an argument, so this
+ * wrapper does one thing: turn findings into a gate result. That split is what lets the control run
+ * the identical logic over a broken fixture.
+ *
+ * A CLEAN RUN OVER THE FIXTURE IS A HARNESS ERROR, NOT A PASS. If the fixture were deleted, or its
+ * violations quietly repaired, the control would go green and the gate would be unproven while
+ * reporting itself proven -- the exact hole `GATE-SHADOW-SURFACE-LIVE` names for its own control.
+ */
+const licenseBoundary = (tree: LicenseTree): GateResult => {
+  const findings = licenseBoundaryFindings(tree);
+  if (tree.root === LICENSE_FIXTURES) {
+    /*
+     * A NON-ZERO COUNT IS NOT ENOUGH, and this gate has already proved why. The header check --
+     * the one that catches a file PASTED in with its licence notice, which is the commonest way a
+     * boundary is actually lost -- was dead on arrival: it was given the SPDX pattern the lockfile
+     * checks use, and a real header says "the terms of the GNU General Public License" with no
+     * `GPL` token in it. The control went red on four findings out of five and the dead check was
+     * invisible inside the red.
+     *
+     * So the control asserts that the check most likely to die silently is the one that fired.
+     */
+    if (!findings.some((f) => f.text.startsWith("copyleft notice in a proprietary path"))) {
+      return fail(
+        `${HARNESS_ERROR} the licensing control found no pasted-header violation, so the header ` +
+          `check is unproven however many other findings it returned`,
+      );
+    }
+    if (findings.length === 0) {
+      return fail(`${HARNESS_ERROR} the licensing control fixture no longer violates the boundary`);
+    }
+  }
+  return fromFindings(findings, "the proprietary/GPL boundary holds across the tree");
 };
 
 /**
@@ -1427,6 +1472,30 @@ export const GATES: Gate[] = [
           ? { kind: "wait-analysis", games: state.pendingAnalyses, scoring: state.analysisRunning }
           : deriveNextAction(state),
       ),
+  },
+  {
+    id: "GATE-LICENSE-BOUNDARY",
+    rule: "R-IP",
+    description:
+      "The proprietary boundary holds: no copyleft in first-party paths, no unapproved copyleft " +
+      "dependency, no whole-product GPL claim, and the engine's compliance record matches what ships.",
+    run: () => licenseBoundary(LICENSE_REPOSITORY),
+    positiveControl: () =>
+      /*
+       * THE SAME PREDICATE OVER A TREE WHERE THE BOUNDARY HAS BEEN LOST, and every violation in it
+       * is one that has actually happened to somebody rather than one invented to be caught: a
+       * helper pasted with its GPL header into an application directory, a second copyleft package
+       * arriving beside the permitted engine, the product manifest declaring copyleft, the
+       * compliance files deleted in a refactor, and an engine version the notices do not name.
+       *
+       * The fixture's paths mirror the real tree's, so the control differs from the run in its
+       * INPUT and in nothing else. A control with its own weaker predicate proves nothing.
+       */
+      licenseBoundary({
+        root: LICENSE_FIXTURES,
+        proprietary: ["client/src", "server", "shared"],
+        gplAllowlist: [],
+      }),
   },
   {
     id: "GATE-CONTINUE-REACHABLE-OFF-RUN",
