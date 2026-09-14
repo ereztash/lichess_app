@@ -508,9 +508,21 @@ const licenseBoundary = (tree: LicenseTree): GateResult =>
  * all.
  */
 const licenseBoundaryControl = (): GateResult => {
+  /*
+   * THE CONTROL TAKES THE REAL TREE'S SOURCE-FAMILY LIST RATHER THAN ITS OWN COPY.
+   *
+   * A review of this gate caught the hole: with a hard-coded list here, dropping `scripts` or
+   * `tests` from `REPOSITORY.proprietary` -- the exact weakening the widening exists to prevent --
+   * would stop the real gate scanning that family while the control went on scanning it. Gate green,
+   * control red, both in their expected states, and a whole first-party family unread.
+   *
+   * Sharing the list closes it: remove `scripts` and the fixture's `ordinary-helper.mjs` stops being
+   * reported, which trips the assertion below and turns the control into a HARNESS ERROR.
+   */
+  const families = LICENSE_REPOSITORY.proprietary;
   const lost = licenseBoundaryFindings({
     root: LICENSE_FIXTURES,
-    proprietary: ["client/src", "server", "shared", "scripts", "tests"],
+    proprietary: families,
     exceptions: [
       {
         path: "scripts/sf-wasm.mjs",
@@ -521,7 +533,7 @@ const licenseBoundaryControl = (): GateResult => {
   });
   const stale = licenseBoundaryFindings({
     root: LICENSE_STALE_FIXTURES,
-    proprietary: ["client/src", "server", "shared", "scripts", "tests"],
+    proprietary: families,
     exceptions: [],
   });
   const findings = [...lost, ...stale];
@@ -552,10 +564,16 @@ const licenseBoundaryControl = (): GateResult => {
         `the allowlisted one, so the allowlist proves nothing`,
     );
   }
-  if (stale.length !== 1) {
+  /*
+   * THE STALE FIXTURE ISOLATES THE ENGINE-COMPLIANCE PAIR AND NOTHING ELSE, which is a sharper
+   * assertion than a count. Both of its detectors read `THIRD_PARTY_NOTICES.md`, so a finding on any
+   * other file means the fixture has drifted into tripping something it was not built to prove.
+   */
+  const strays = stale.filter((f) => f.file !== "THIRD_PARTY_NOTICES.md");
+  if (strays.length > 0 || stale.length !== 2) {
     return fail(
-      `${HARNESS_ERROR} the stale-notices fixture is meant to isolate ONE detector and produced ` +
-        `${stale.length} findings: ${stale.map((f) => f.text).join(" | ")}`,
+      `${HARNESS_ERROR} the stale-notices fixture is meant to isolate the two engine-compliance ` +
+        `detectors and produced ${stale.length} finding(s): ${stale.map((f) => f.text).join(" | ")}`,
     );
   }
   return fromFindings(findings, "the proprietary/GPL boundary holds across the tree");

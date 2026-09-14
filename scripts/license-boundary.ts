@@ -492,17 +492,42 @@ export function licenseBoundaryFindings(tree: LicenseTree): Finding[] {
    */
   if (existsSync(lockPath) && existsSync(join(tree.root, "THIRD_PARTY_NOTICES.md"))) {
     const lock = JSON.parse(readFileSync(lockPath, "utf8")) as {
-      packages?: Record<string, { version?: string }>;
+      packages?: Record<string, { version?: string; integrity?: string }>;
     };
-    const installed = Object.entries(lock.packages ?? {}).find(([p]) =>
+    const engine = Object.entries(lock.packages ?? {}).find(([p]) =>
       p.endsWith("node_modules/stockfish"),
-    )?.[1]?.version;
+    )?.[1];
     const notices = readFileSync(join(tree.root, "THIRD_PARTY_NOTICES.md"), "utf8");
-    if (installed && !notices.includes(installed)) {
+    if (engine?.version && !notices.includes(engine.version)) {
       at(
         "THIRD_PARTY_NOTICES.md",
         1,
-        `stockfish@${installed} is installed and conveyed, and the notices do not name that version`,
+        `stockfish@${engine.version} is installed and conveyed, and the notices do not name ` +
+          `that version`,
+      );
+    }
+    /*
+     * THE VERSION STRING ALONE IS TOO CHEAP TO SATISFY, and a review of this gate said so. Bump the
+     * engine, change the heading, and `includes(version)` passes -- while the npm integrity, the
+     * loader and WASM hashes and the corresponding-source pointer all still describe the PREVIOUS
+     * package. That is the stale compliance record this detector exists to reject, passing.
+     *
+     * So the INTEGRITY HASH must move too. It is the one field a bump cannot leave unchanged and
+     * cannot be updated by editing a heading: it is the hash of the tarball actually resolved. A
+     * notices file naming the new version beside the old integrity is now a finding, which is the
+     * state a half-done bump actually produces.
+     *
+     * It is deliberately NOT extended to the loader/WASM SHA-256 rows: those are hashes of files
+     * inside the package, which this predicate cannot compute without a build, and a check that
+     * silently passes when `dist/` is absent would be the weaker rule wearing a stronger name.
+     * `IP_PROVENANCE_AUDIT.md` §6.3 records them and the runbook carries them as an owner step.
+     */
+    if (engine?.integrity && !notices.includes(engine.integrity)) {
+      at(
+        "THIRD_PARTY_NOTICES.md",
+        1,
+        `the notices do not carry the resolved npm integrity for the conveyed engine, so the ` +
+          `compliance record can name the new version while describing the old package`,
       );
     }
   }
@@ -526,4 +551,5 @@ export const REQUIRED_DETECTORS = [
   { id: "compliance-material-deleted", match: "required licence/compliance file is missing" },
   { id: "component-map-deleted", match: "the canonical component licensing map is missing" },
   { id: "engine-version-disagreement", match: "is installed and conveyed, and the notices do not" },
+  { id: "engine-integrity-stale", match: "do not carry the resolved npm integrity" },
 ] as const;
