@@ -125,6 +125,15 @@ const NextActionProbe = lazyChunk(() =>
   import("@/components/NextActionProbe").then((m) => ({ default: m.NextActionProbe })),
 );
 
+/**
+ * The way back into a set this player started, in its own chunk and for the same reason.
+ *
+ * `ContinuationSlot`'s own header has the measurement. The short form: this file is the entry chunk,
+ * the reading that answers "is a set open" is not in it, and a control that every arrival downloads
+ * to serve the minority who have one open is the trade `NextActionProbe` already refused.
+ */
+const ContinuationSlot = lazyChunk(() => import("@/components/ContinuationSlot"));
+
 function FirstDecision({
   knownUsername,
   /**
@@ -440,6 +449,19 @@ export default function Record() {
    * two of them.
    */
   const returning = visitsOnRecord() > 1;
+  /*
+   * WHETHER A SET THIS PLAYER STARTED IS ALREADY BEING OFFERED ABOVE, HELD BY THE PAGE.
+   *
+   * READ ONCE AND PASSED DOWN, exactly as `returning` is one line up and for the same reason: two
+   * components each asking whether a run is open would be two chances to disagree, on the one screen
+   * where a disagreement shows up as two loud buttons. Here the two are `ResumeScreen`'s card action
+   * and `FirstDecision`'s submit, and `deriveNextAction` ranks an unfinished set above both.
+   *
+   * `false` UNTIL THE SLOT SAYS OTHERWISE, and that default is the safe direction rather than the
+   * convenient one: it means the page offers its ordinary primary while the reading is in flight,
+   * and never that a control disappears on a record that turns out to have nothing open.
+   */
+  const [standDown, setStandDown] = useState(false);
 
   return (
     <main className="record-page">
@@ -550,7 +572,7 @@ export default function Record() {
          * arrival does not fetch the chunk at all and does not get the reserved space either.
          */
         <Suspense fallback={<div className="resume resume--pending" aria-hidden="true" />}>
-          <ResumeScreen returning onPlay={() => navigate("/blitz")} />
+          <ResumeScreen returning standDown={standDown} onPlay={() => navigate("/blitz")} />
         </Suspense>
       )}
 
@@ -579,12 +601,35 @@ export default function Record() {
         </Suspense>
       )}
 
+      {/*
+        * ABOVE THE BRANCH, AND NOT GATED ON `returning`, because a set that is open is open in both
+        * of this page's states.
+        *
+        * IT LOOKS LIKE A FIRST-VISIT CONTROL CANNOT BE NEEDED, AND THAT IS THE MISREADING.
+        * `returning` is `visitsOnRecord() > 1`, which is bookkeeping in THIS browser -- so somebody
+        * signing in on a second device is a first visit with a full server record, and that record
+        * can hold a drill they were four positions into an hour ago on the other machine. The two
+        * comments above this one make the same point from the other side: a surface is a state, not
+        * a URL, and the record is not the visit counter.
+        *
+        * NO RESERVED SPACE AND NO FALLBACK. On the overwhelming majority of arrivals this renders
+        * nothing, and a reserved block that is empty on nearly every visit is a hole in the page.
+        */}
+      <Suspense fallback={null}>
+        <ContinuationSlot onStandDown={setStandDown} />
+      </Suspense>
+
       {reading.isLoading ? (
         <p className="record-page-loading">קורא את ההיסטוריה…</p>
       ) : measured === 0 ? (
         <FirstDecision
           knownUsername={importReading.reading?.username}
-          deferPrimary={returning}
+          /*
+           * TWO REASONS TO DEFER, AND THEY ARE DIFFERENT REASONS. `returning` defers to the resume
+           * card, which speaks from the record this player already has. `standDown` defers to a set
+           * they are in the middle of, which outranks both by the derivation's own order.
+           */
+          deferPrimary={returning || standDown}
         />
       ) : (
         <section className="record-layer" aria-label="החלטות עם ביטחון שנאמר מראש">

@@ -97,6 +97,18 @@ screen that already offers something.
 
 ## 2b. The blocking precondition review found: an abandoned drill never closes
 
+> **SETTLED — see `docs/LEARNING_COMMITMENT_CONTINUITY.md` §2.** The answer is **option 1**, not the
+> option this section leans toward below. The deciding argument is not in this section and could not
+> have been: a reader of the commitment has to distinguish `UNKNOWN ≠ NONE ≠ ABANDONED ≠ COMPLETED ≠
+> ACTIVE`, and options 2 and 3 produce no `ABANDONED` state at all — 2 folds it into "none" and 3
+> leaves everything open forever, which makes "active" a lie. Option 1's weakness, accidental
+> abandonment, is bounded by making the write **explicit and narrow**: only the player's own close
+> control writes it, so a reload, a navigation and a lost tab all leave the drill open and
+> resumable. That is the asymmetry `getOpenLearningTransfer` argues for, kept — the objection raised
+> against option 1 below assumed abandonment would also be written by walking away, and it is not.
+> The column is `drills.abandoned_at` (migration `0020`), and it is not a result: no verdict, no
+> grade, `drill_results` untouched.
+
 **This is a pre-existing product gap that this change makes load-bearing for the first time, and it
 must be settled before `continue-drill` is rendered anywhere.**
 
@@ -207,6 +219,10 @@ named as a missing control.
 ---
 
 ## 6. Exact next move
+
+**First, settle §2b** — done, see the note at the head of that section. What follows is the
+recommendation as it stood before it was settled, kept because the reasoning it was overturned by
+is worth being able to read against it.
 
 **First, settle §2b** — an abandoned drill that never closes makes `continue-drill` unsafe to
 render however good the control is. Option 3 (`beginDrill` refuses a second open drill, as

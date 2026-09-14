@@ -93,6 +93,15 @@ vi.mock("@/components/RecordDashboard", () => ({
  * which is the failure mode a mock like this would otherwise create.
  */
 vi.mock("@/components/NextActionProbe", () => ({ NextActionProbe: () => null }));
+/*
+ * AND THE CONTINUATION SLOT, FOR THE SAME REASON AND WITH THE SAME SAFETY. It reads the record to
+ * find out whether a set is open, so it wants the query client this file's `@/lib/record-api` mock
+ * does not provide -- and this file is about what the RECORD PAGE renders, not about whether a
+ * commitment survives. `tests/client/one-act-three-surfaces.test.tsx` is about that, and
+ * `GATE-CONTINUE-REACHABLE-OFF-RUN` reads the source for the control, so stubbing it here cannot
+ * make the act silently unreachable.
+ */
+vi.mock("@/components/ContinuationSlot", () => ({ default: () => null }));
 vi.mock("@/components/ImportDiagnostic", () => ({
   ImportDiagnosticPanel: () => <div data-testid="import-panel">import</div>,
 }));

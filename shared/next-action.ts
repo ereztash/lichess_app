@@ -370,6 +370,43 @@ export function proposeNextAction(state: ProductState): NextActionProposal {
 }
 
 /**
+ * WHAT THE LADDER SAYS WHEN IT IS ASKED ONLY ABOUT THE TWO RUNS.
+ *
+ * IT IS THE SAME LADDER, AND THAT IS THE POINT. Three surfaces need to know whether a run the
+ * player started outranks whatever they were each about to offer, and none of them can assemble a
+ * full `ProductState` before their own readings have settled. The wrong repair is a second
+ * comparison -- "if a drill is open, else if a transfer is open" -- written beside each control,
+ * which is a second policy over one record and would drift from this file the first time the order
+ * changed. This calls `proposeNextAction` with every other input honestly unread, so the answer
+ * comes from the branch order above and nowhere else.
+ *
+ * THE UNREAD INPUTS COST NOTHING HERE BECAUSE THE TWO THAT MATTER ARE AT THE TOP. `continue-drill`
+ * and `continue-transfer` are branches 1 and 2, so when either fires nothing below them was
+ * consulted and `blind` comes back empty -- a sound proposal by `soundProposal`'s own definition.
+ * When neither fires the answer is unsound, correctly: this state has not read enough to say what
+ * the player should do instead, and it is not being asked to.
+ *
+ * SO THE CALLER'S TEST IS `soundProposal`, NOT A KIND CHECK. A caller that matched on the kind
+ * alone would act on `continue-drill` derived from a `drill` field the reading had not filled in,
+ * which is the failure `Observed` was introduced to make unrepresentable.
+ */
+export function proposeContinuation(
+  runs: Pick<ProductState, "drill" | "transfer">,
+): NextActionProposal {
+  return proposeNextAction({
+    ...runs,
+    pendingAnalyses: 0,
+    analysisRunning: false,
+    unseenEvent: UNOBSERVED,
+    untestedRule: UNOBSERVED,
+    claimState: { kind: "unread" },
+    blitzStanding: null,
+    decisionsOnRecord: 0,
+    anchor: { answered: 0, total: 0 },
+  });
+}
+
+/**
  * Whether an action asks the player to produce evidence.
  *
  * SEPARATE FROM THE DERIVATION because it is what binds this module to LAW 1: an action that

@@ -417,10 +417,17 @@ describe("a transfer run resumes where it stopped", () => {
      * briefing|running, and the drill id lives only in React state. Without the retry the repair
      * branch could not run at all.
      */
-    const home = code("client/src/pages/Home.tsx");
-    expect(home).toMatch(/retryOnce\(\(\) => completeDrillMutation\.mutateAsync\(drillPayload\)\)/);
+    /*
+     * IT MOVED, AND THE SCAN MOVED WITH IT. `useDrillRun` took the drill's six pieces of state and
+     * its four transitions out of `Home.tsx` when learning-commitment continuity pushed that file
+     * over its line ceiling -- which may only go down. Nothing about the retry changed; asserting
+     * against the page after the extraction would be asserting the code is absent from the file it
+     * is no longer in, which is a green test about nothing.
+     */
+    const run = code("client/src/lib/use-drill-run.ts");
+    expect(run).toMatch(/retryOnce\(\(\) => completeDrillMutation\.mutateAsync\(drillPayload\)\)/);
     // Built once and sent twice: a rebuilt payload is a different question.
-    expect(home).toMatch(/const drillPayload = \{ drill_id: drill\.drill_id/);
+    expect(run).toMatch(/const drillPayload = \{ drill_id: drill\.drill_id/);
   });
 
   it("puts the reveal-timing arm back on the board it was restored onto", () => {

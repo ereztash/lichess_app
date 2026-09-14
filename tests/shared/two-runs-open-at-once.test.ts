@@ -17,8 +17,10 @@
  */
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
-import { continuationReading, drillProgress } from "../../shared/continuation";
+import { continuationReading } from "../../shared/continuation";
+import { drillProgress } from "../../shared/drill-restore";
 import type { DrillSpec } from "../../shared/claim";
+import type { DecisionAtom } from "../../shared/decision-atom";
 
 const spec = (id: string, fens: string[]): DrillSpec => ({
   drill_id: id,
@@ -31,6 +33,18 @@ const spec = (id: string, fens: string[]): DrillSpec => ({
 const FEN_A = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const FEN_B = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
 
+
+/**
+ * A committed decision, reduced to the two fields the progress read looks at.
+ *
+ * `drill_id` IS THE BINDING AND `entry_state.fen` IS THE POSITION, and both are needed: the id says
+ * which run this decision belongs to and the board says which of that run's registered slots it
+ * answered. Everything else on a `DecisionAtom` is irrelevant here and is cast away rather than
+ * fabricated, so a reader cannot mistake a fixture's filler for something the read consults.
+ */
+const atom = (drillId: string, fen: string) =>
+  ({ drill_id: drillId, entry_state: { fen } }) as unknown as DecisionAtom;
+
 describe("the continuation read, when the record holds more than one open run", () => {
   it("reports the drill and the transfer separately instead of ranking them", async () => {
     const store = new MemoryRecordStore();
@@ -38,15 +52,18 @@ describe("the continuation read, when the record holds more than one open run", 
       spec: spec("d1", [FEN_A, FEN_B]),
       predicted: true,
       started_at: "2026-01-01T00:00:00.000Z",
+      abandoned_at: null,
     });
 
     const reading = await continuationReading(store);
-    expect(reading.drill).toMatchObject({ kind: "drill", runId: "d1" });
+    expect(reading.drill).toMatchObject({ state: "active", run: { kind: "drill", runId: "d1" } });
     /*
-     * NULL HERE IS AN OBSERVED ABSENCE AND IT IS TRUE: this record holds no open transfer. The
-     * defect was the case below, where it held one and this field said null anyway.
+     * `none` HERE IS AN OBSERVED ABSENCE AND IT IS TRUE: this record holds no transfer at all. The
+     * defect was the case below, where it held an open one and this field said absent anyway. And
+     * `none` rather than a bare null is the second half of the same repair -- a record that has
+     * never had a transfer and one whose last transfer reported are different things to say.
      */
-    expect(reading.transfer).toBeNull();
+    expect(reading.transfer).toEqual({ state: "none", kind: "transfer" });
   });
 
   it("never reports a run it was handed as absent", async () => {
@@ -60,6 +77,7 @@ describe("the continuation read, when the record holds more than one open run", 
       spec: spec("d1", [FEN_A]),
       predicted: true,
       started_at: "2026-01-01T00:00:00.000Z",
+      abandoned_at: null,
     });
     await store.saveLearningRule({
       rule_id: "r1",
@@ -91,12 +109,10 @@ describe("the continuation read, when the record holds more than one open run", 
     });
 
     const reading = await continuationReading(store);
-    expect(reading.drill, "the drill went missing").toMatchObject({ runId: "d1" });
+    expect(reading.drill, "the drill went missing").toMatchObject({ run: { runId: "d1" } });
     expect(reading.transfer, "a transfer the read loaded was reported as absent").toMatchObject({
-      kind: "transfer",
-      runId: "t1",
-      done: 0,
-      total: 3,
+      state: "active",
+      run: { kind: "transfer", runId: "t1", resumeWith: "r1", done: 0, total: 3 },
     });
     /* A rule whose test is already running is branch 2, not branch 5. */
     expect(reading.untestedRule).toBeNull();
@@ -114,13 +130,15 @@ describe("the continuation read, when the record holds more than one open run", 
       spec: spec("stale", [FEN_A]),
       predicted: true,
       started_at: "2026-01-01T00:00:00.000Z",
+      abandoned_at: null,
     });
     await store.saveDrill({
       spec: spec("live", [FEN_A, FEN_B]),
       predicted: true,
       started_at: "2026-06-01T00:00:00.000Z",
+      abandoned_at: null,
     });
-    expect((await continuationReading(store)).drill).toMatchObject({ runId: "live" });
+    expect((await continuationReading(store)).drill).toMatchObject({ run: { runId: "live" } });
   });
 
   it("omits a drill whose direction was never recorded, in every store", async () => {
@@ -135,16 +153,35 @@ describe("the continuation read, when the record holds more than one open run", 
       spec: { ...spec("legacy", [FEN_A]), predicts_overconfidence: null as unknown as boolean },
       predicted: true,
       started_at: "2026-01-01T00:00:00.000Z",
+      abandoned_at: null,
     });
-    expect((await continuationReading(store)).drill).toBeNull();
+    expect((await continuationReading(store)).drill).toEqual({ state: "none", kind: "drill" });
   });
 });
 
 describe("how far into a drill the record says the player is", () => {
   it("counts matched positions rather than matches", () => {
     /* Two slots sharing a fen must not report a run twice as finished as it is. */
-    expect(drillProgress(spec("d", [FEN_A, FEN_A, FEN_B]), [FEN_A])).toEqual({ done: 2, total: 3 });
-    expect(drillProgress(spec("d", [FEN_A, FEN_B]), [])).toEqual({ done: 0, total: 2 });
-    expect(drillProgress(spec("d", [FEN_A, FEN_B]), [FEN_A, FEN_B])).toEqual({ done: 2, total: 2 });
+    expect(drillProgress(spec("d", [FEN_A, FEN_A, FEN_B]), [atom("d", FEN_A)])).toMatchObject({
+      done: 2,
+      total: 3,
+    });
+    expect(drillProgress(spec("d", [FEN_A, FEN_B]), [])).toMatchObject({ done: 0, total: 2 });
+    expect(
+      drillProgress(spec("d", [FEN_A, FEN_B]), [atom("d", FEN_A), atom("d", FEN_B)]),
+    ).toMatchObject({ done: 2, total: 2 });
+  });
+
+  it("does not count a decision bound to a different drill, on the same board", () => {
+    /*
+     * THE REASON THE BOARD ALONE IS NOT ENOUGH. Two drills over the same loaded game can register
+     * the same position, and `commitDecision` verifies `drill_id` against a drill stored before the
+     * decision was made. A count by FEN would report the second drill as part-finished before its
+     * player had answered anything.
+     */
+    expect(drillProgress(spec("mine", [FEN_A, FEN_B]), [atom("theirs", FEN_A)])).toMatchObject({
+      done: 0,
+      total: 2,
+    });
   });
 });

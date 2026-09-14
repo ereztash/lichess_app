@@ -20,7 +20,12 @@
  * reader, which is the argument `LOCAL_KEYS.blitzGames` already makes one comment over.
  */
 import { useQuery } from "@tanstack/react-query";
-import { continuationReading } from "@shared/continuation";
+import {
+  COMMITMENT_READ_FAILED,
+  COMMITMENT_UNREAD,
+  continuationReading,
+  type ContinuationReading,
+} from "@shared/continuation";
 import { LOCAL_KEYS, useRecordMode, useStore } from "@/lib/record-api";
 import { trpc } from "@/lib/trpc";
 
@@ -73,10 +78,28 @@ export function useContinuation() {
     refetchOnWindowFocus: false,
   });
   const active = local ? localQuery : server;
-  /* Not settled is not empty: an unresolved mode reports loading, never a record with no run. */
+  const isLoading = !resolved || active.isLoading;
+  const isError = resolved && active.isError;
+  /*
+   * A READING IS ALWAYS RETURNED, AND `undefined` NEVER IS. That is the whole of §16 at this
+   * boundary: a caller cannot hold "no data" and decide for itself what that means, because there
+   * is no "no data" to hold. A pending read is `not-attempted`, a failed read is `read-failed`, and
+   * both are `unknown` -- which `productStateFor` turns into `UNOBSERVED` and a screen renders as
+   * silence rather than as an invitation to start something else.
+   *
+   * THE ERROR CASE IS THE ONE THAT WOULD HAVE COST SOMETHING. `data: undefined` on a failed query
+   * is indistinguishable from a query that has not run, and the surfaces would have rendered both
+   * as "nothing open" -- to a player four positions into an eight-position set, offering them a new
+   * game at the same weight. The record still holds their run; only the request failed.
+   */
   return {
-    data: resolved ? active.data : undefined,
-    isLoading: !resolved || active.isLoading,
-    isError: resolved && active.isError,
+    data: (isLoading || isError ? undefined : active.data) ?? readingFor(isError),
+    isLoading,
+    isError,
   };
+}
+
+/** The two honest silences, kept apart. Never a record with no run in it. */
+function readingFor(failed: boolean): ContinuationReading {
+  return failed ? COMMITMENT_READ_FAILED : COMMITMENT_UNREAD;
 }
