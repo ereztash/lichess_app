@@ -122,7 +122,11 @@ describe("a failed write is visible", () => {
     });
     const alert = screen.getByRole("alert");
     expect(alert.textContent).toContain("append-only: already revealed");
-    const details = container.querySelector("details");
+    /* SCOPED TO THE ALERT, and it was not. A page-wide `container.querySelector("details")` was
+       right while the error detail was the only disclosure on this screen; it stopped being right
+       the moment the read fields grew a `למה?`. Both of these tests are about the ERROR's
+       disclosure, so both now say so. */
+    const details = alert.querySelector("details");
     expect(details, "the detail is not inside a <details>").toBeTruthy();
     expect(details!.hasAttribute("open"), "the disclosure ships open").toBe(false);
     // Hebrew first: the summary and the message precede the raw text in the alert.
@@ -132,8 +136,10 @@ describe("a failed write is visible", () => {
   });
 
   it("renders no disclosure when the record layer wrote for the player", () => {
-    const { container } = renderScreen({ error: { message: "אין חיבור למאגר ההחלטות" } });
-    expect(container.querySelector("details")).toBeNull();
+    renderScreen({ error: { message: "אין חיבור למאגר ההחלטות" } });
+    /* The ERROR carries no disclosure when there is no technical detail to hide. Other
+       disclosures on this screen are not this test's business: see the note above. */
+    expect(screen.getByRole("alert").querySelector("details")).toBeNull();
   });
 });
 

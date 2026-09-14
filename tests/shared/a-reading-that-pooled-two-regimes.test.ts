@@ -126,7 +126,7 @@ describe("the record page reads one population, not a mixture of regimes", () =>
     expect(reading.calibration.n).toBe(30);
     // Not silently gone: named, counted, and reportable -- R1's rule for any denominator that shrank.
     expect(reading.setAside).toEqual([
-      { id: "legacy@legacy/per-decision/sf18-test-build", n: 35 },
+      { id: "legacy@legacy/per-decision/sf18-test-build/legacy", n: 35 },
     ]);
   });
 
@@ -211,7 +211,7 @@ describe("the regime in force is not the regime of the last row", () => {
     }
     const reading = await service.recordReading(store);
     expect(reading.scored).toBe(MIN_BUCKET_N);
-    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
+    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build/legacy");
     expect(reading.regime?.current).toBe(true);
   });
 });
@@ -301,11 +301,11 @@ describe("the reading says which regime it is of, and whether that regime is sti
     const reading = await service.recordReading(store);
     expect(reading.scored, "the retired protocol was read over the one in force").toBe(40);
     expect(reading.overall.accuracyRate).toBe(0);
-    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
+    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build/legacy");
     expect(reading.regime?.current).toBe(true);
     // The history is not gone. It is named, counted, and not averaged into a regime it is not in.
     expect(reading.setAside).toEqual([
-      { id: "instrumented-standard@4/per-decision/sf18-test-build", n: 120 },
+      { id: "instrumented-standard@4/per-decision/sf18-test-build/legacy", n: 120 },
     ]);
   });
 
@@ -322,7 +322,7 @@ describe("the reading says which regime it is of, and whether that regime is sti
 
     const reading = await service.recordReading(store);
     expect(reading.scored).toBe(120);
-    expect(reading.regime?.id).toBe("instrumented-standard@4/per-decision/sf18-test-build");
+    expect(reading.regime?.id).toBe("instrumented-standard@4/per-decision/sf18-test-build/legacy");
     expect(reading.regime?.current, "a retired protocol reported as the one in force").toBe(false);
   });
 

@@ -1353,6 +1353,46 @@ no continuation until they do, and the value question arrives on the second reve
 placed, or a one-press route that lands the player where they cannot legally move.
 
 
+### R-30 · A record that has not been read renders as a record with nothing in it
+
+| | |
+| --- | --- |
+| type | representation |
+| state | **open** — found while separating the claim layer out; deliberately not repaired |
+| severity | P2 |
+| basis | **verified** — read in the tree at `client/src/lib/journey-readings.ts` and `shared/learning-journey.ts` |
+
+`recordReading(undefined)` passes `scored: 0, hasClaim: false` into `recordJourney`, which returns
+`ACCUMULATING` with a count of nought. So *"the claim query has not come back yet"* and *"you have
+recorded nothing"* are one sentence on the record page, and the first is the state every arrival is
+in for as long as the query takes.
+
+**The same hazard is already refused one lane over.** `ProductState.blitzStanding` carries its own
+`null` for "not read yet" and `deriveNextAction` answers `none` to it, on the stated ground that
+*"a derivation that treated an unread record as an unblocked one would tell a player with eleven
+unscored games that there is nothing to do."* The decision lane had no such member until
+`shared/claim-state.ts` gave it one.
+
+**Why it is not repaired here.** The repair is a sentence on the record page, and the record page is
+a surface a cold participant reaches in the pre-registered run frozen by
+`research/player-path/FIELD_RUN_CURRENT.md`. `D26` decision 3 already holds one record-page defect
+visible on purpose for that run; adding a second change to the same screen before it would spend the
+one cold-eyes pass this build gets on a repair nobody asked for. `docs/decisions/D27-recursive-spine.md`
+carries it as `B-6`.
+
+**What was done instead.** `ClaimState` has `unread` as its own member, so the layer that decides
+what happens next can tell the two apart even while the ledger cannot;
+`tests/shared/an-instrument-that-cannot-learn-from-its-own-result.test.ts` asserts the aliasing
+explicitly, so the day somebody separates them the test says which two things parted.
+
+**Gate.** A render assertion that a record page mounted with an unresolved claim query says
+something other than what an empty record says. It does not exist and is not claimed to.
+
+**Reversal condition.** A FIELD participant who reads the empty-record sentence as a statement about
+themselves rather than about the record, or who acts on a count that had not loaded. Either makes
+this a comprehension defect rather than a representation one, and it goes up a severity.
+
+
 ## Refuted — measured, found wrong, and recorded so it is not reopened
 
 ### R-14 · "The detector's uncertainty is too small, and a clustered judge is the fix"

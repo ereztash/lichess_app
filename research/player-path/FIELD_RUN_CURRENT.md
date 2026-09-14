@@ -5,25 +5,141 @@ any participant was recruited, and is not to be edited after the first session.
 
 ## The build under test
 
-* Repository: `ereztash/lichess_app`, branch `claude/ux-ui-analysis-v6ao5u`.
-* **Product source frozen at** `4c395637cd274c5faffb29ebb8429bfdac358eb1`.
-* Later commits on this branch change documentation only, and the build is content-hashed: the
-  page bundle stays `index-D_Il6CdA.js` across them, so the stimulus a participant sees is the same
-  bytes. The one file that does differ is `/build-identity.json`, which names the head commit and
-  the build time and is read only by the self-check overlay. Verify before a session that the
-  deployed bundle still carries that hash; if it does not, the stimulus has moved and the run is
-  against a different build.
-* What that commit contains beyond its parent: the audit in `PRODUCT_STATE_WALK.md`, and one
-  repair, B-1 (a live game can reach its second decision). No new surface, no new wording pass.
+* Repository: `ereztash/lichess_app`, branch `main`.
+* **Stimulus frozen at** `stimulus_sha256` **`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`**, produced from
+  `d2da163`, over 40 emitted files totalling 8,865,024 bytes. Read from the origin at
+  2026-09-14 05:56Z, not computed here.
+* **RE-FROZEN THREE TIMES, ALL THREE BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON ANY WAS
+  ALLOWED.** **Zero participants have run**, which is what makes this bookkeeping rather than a
+  protocol violation. After the first session it would be one, and the same change would have to
+  wait.
+
+  | # | from | to | why |
+  |---|---|---|---|
+  | 1 | `4c39563` / `index-D_Il6CdA.js` | `dd30b3a` / `index-DUEXf-qq.js` | the owner reported, from a phone frame, that step 2's option list was scrolling inside a clipped box. The repair changes the commitment screen, and a changed commitment screen is a changed stimulus |
+  | 2 | `dd30b3a` / `index-DUEXf-qq.js` | `e663ebc` / `index-ZgOyRttd.js` | [PR #109](https://github.com/ereztash/lichess_app/pull/109) merged. Production tracks `main`, so the merge moved the deployment off the named hash |
+  | 3 | `e663ebc` / `index-ZgOyRttd.js` | `d2da163` / `stimulus_sha256 20c3c60d…` | [PR #111](https://github.com/ereztash/lichess_app/pull/111) merged, which is the commit that installed the manifest. **The last one, because after it the identity stops being a filename somebody transcribes** |
+
+* **THE SECOND RE-FREEZE HAS A DIFFERENT CHARACTER FROM THE FIRST, AND THE DIFFERENCE IS THE POINT.**
+  The first was a changed stimulus: a participant would have seen something else. The second is a
+  changed BUNDLE with an unchanged participant-facing surface. Measured rather than assumed: between
+  `dd30b3a` and `e663ebc` the only file under `client/src` that moved is
+  `client/src/lib/next-action-shadow.ts`, which renders nothing, and everything else is `shared/`
+  read by the record's stratification, the journey ledger's refuted sentence (behind
+  `EXPERIMENTAL_LEARNING_ENABLED`, off) and two modules nothing renders. A participant arrives with
+  an empty record, so there are no strata to partition and no rule to grade.
+  **The limit of that statement:** it is an argument from the diff and the import graph, not a walk.
+  What is certain is the hash moved; what is argued is that nothing a cold participant meets did.
+
+* **THE FREEZE KEEPS BREAKING FOR A STRUCTURAL REASON, AND IT IS NOT THE MERGES.** The stimulus is
+  pinned to production and production tracks `main`, so the pre-registration is pinned to a moving
+  target: any merge invalidates it, and two have. A pre-registration that is re-pointed whenever the
+  code moves is weaker than one that cannot move.
+
+* **THE OWNER HAS NOW CHOSEN, AND THE CHOICE IS (a): THE RUN IS PINNED TO AN IMMUTABLE DEPLOYMENT.**
+  `(b)` holding `main` frozen was rejected because it stops development for the length of the run.
+  `(c)` continuing to re-freeze was rejected because it is unavailable the moment the participant
+  count leaves zero, and because a habit re-decided every week is decision debt rather than a
+  decision. What remains is `(a)`, and two things about it were not known when it was written down.
+
+  **FIRST: THE PER-DEPLOYMENT URL IS NOT REACHABLE BY A PARTICIPANT.** Measured signed-out, not
+  assumed, on 2026-09-13 at 20:02Z:
+
+  | URL | signed-out response |
+  |---|---|
+  | `https://lichessapp.vercel.app/` | `200` |
+  | `https://lichess-72bn8nwd7-ereztashs-projects.vercel.app/` (the production deployment's own URL) | `302` to `vercel.com/sso-api` |
+
+  The project carries `ssoProtection: all_except_custom_domains`, which exempts the project alias
+  and protects every per-deployment URL. So `(a)` **cannot be implemented by handing a participant a
+  deployment URL**: that path needs either a protection-bypass share link, which is a bearer
+  credential this package has already refused, or a project-wide protection change that would make
+  every preview deployment publicly reachable for good. Both are worse than the problem.
+
+  **SECOND: THE PROPERTY (a) WANTS DOES NOT REQUIRE THAT URL.** What `(a)` is for is that nothing
+  routine can move the build behind the address a participant opens. The address can stay
+  `lichessapp.vercel.app` -- already public, already verified -- and the immutability can come from
+  the other end: **set the Vercel project's production branch to a branch that is not `main`** (say
+  `field-stimulus`, at `e663ebc`). Merges to `main` then build previews and do not touch production.
+  This is not `(b)`: `main` stays completely live for development, which was the entire objection to
+  `(b)`. It is `(a)`'s property without `(a)`'s exposure cost.
+
+  **THIS IS A DASHBOARD ACTION AND IT HAS NOT BEEN TAKEN.** Vercel -> Project -> Settings -> Git ->
+  Production Branch. It cannot be done from the repository and it was not done from this session.
+  **Until it is taken, production still tracks `main` and the check below is the only protection.**
+
+* **THE FREEZE CHECK NAMED ONE FILE OUT OF FORTY, AND THAT IS A SEPARATE DEFECT FROM THE MOVING
+  TARGET.** `field/README.md` told the moderator that confirming `assets/index-ZgOyRttd.js` was
+  "the whole freeze check". The build emits forty files totalling 8,865,024 bytes; the named one is
+  695,047 of them, **7.8%**. Eighteen of the forty carry no content hash in their name at all --
+  nine `.woff2` faces, `favicon.svg`, `share-card.png`, `index.html`, `robots.txt`, three licence
+  files, `_headers`, `_redirects` -- so their names do not move when their bytes do. A swapped
+  Hebrew face changes what every participant reads and leaves the JS filename exactly where this
+  document says it should be. The check would pass.
+
+  **THE REPAIR IS NOT A LONGER LIST.** Naming the stylesheet as well reproduces the same defect with
+  a later expiry date. `scripts/write-stimulus-manifest.ts` walks whatever the build wrote, hashes
+  every file and reduces the lot to one `stimulus_sha256`, served at `/stimulus-manifest.json`
+  beside `/build-identity.json`. The enumeration is the walk, so an asset kind nobody anticipated
+  cannot escape it. What is deliberately outside the digest, and why, is in
+  `scripts/stimulus-manifest.ts`; the short version is the two generated identity files, because one
+  carries the digest and the other carries a timestamp that moves on every rebuild.
+
+  **TWO CONDITIONS CANNOT BE IN A BUILD-TIME HASH AND STAY RUNTIME CHECKS**, because both can change
+  with no deployment at all: whether the origin answers a signed-out visitor, and what `/api/health`
+  reports for `storage`. The pre-session procedure checks the three things separately;
+  `field/README.md` carries it.
+
+* **THE MANIFEST IS ON PRODUCTION, AND THE THIRD RE-FREEZE IS THE FIRST ONE THAT COULD PROVE ITS OWN
+  CHARACTER.** Read signed-out at 2026-09-14 05:56Z, after `#111` merged:
+
+  | | before | after |
+  |---|---|---|
+  | commit | `e663ebc` | `d2da163` |
+  | `stimulus_sha256` | *(no manifest)* | `20c3c60d…` |
+  | entry chunk | `index-ZgOyRttd.js`, 695,047 B | `index-ZgOyRttd.js`, 695,047 B |
+  | stylesheet | `index-_bGdMEE1.css`, 95,435 B | `index-_bGdMEE1.css`, 95,435 B |
+
+  **The commit moved and the stimulus did not, and that is now a number rather than an argument.**
+  The second re-freeze had to be defended with a paragraph about the diff and the import graph, and
+  the honest limit of that defence was written down beside it: *"it is an argument from the diff and
+  the import graph, not a walk."* This one needs no such paragraph. `20c3c60d…` is the digest over
+  all forty emitted files, it is what the preview produced, it is what a local build of the same
+  source produced on a different machine, and it is what production serves. A participant who had
+  sat down before the merge and one who sits down after are looking at the same bytes.
+
+  **That is also the first real exercise of the design decision to keep `gitSha` beside the digest
+  rather than inside it.** Folded in, this merge would have reported a stimulus change that did not
+  happen -- on a commit that touched only `research/`, `docs/`, `scripts/` and `tests/` -- and the
+  moderator would have been told to stop a session for nothing. Both questions stay answerable and
+  neither answers the other's.
+
+* **THE PRE-SESSION CHECK IS NOW THE DIGEST, AND THE INTERIM TWO-FILENAME CHECK IS RETIRED.** It
+  served while the manifest was not deployed and it was labelled interim so nobody would mistake it
+  for the design. It could not see a font, a favicon, a share card or a header rule; the digest can.
+  `field/README.md` carries the procedure.
+
+* **Nothing else in this file moved.** The participants, the conditions, the assistance tags, M1 to
+  M8 and the interpretation rules are exactly as first frozen. Only the build identity is new.
+* Verify before each session, from a signed-out browser, that the origin answers, that the digest is
+  the frozen one and that storage is the model every walk was performed against. The procedure is
+  `field/README.md`, and it is three checks because no one of them can cover the others. As of this
+  file production serves the frozen stimulus: verified signed-out on 2026-09-14 at 05:56Z,
+  `/stimulus-manifest.json` answering `application/json` with `stimulus_sha256: 20c3c60d…` over 40
+  files, `/build-identity.json` reporting `gitSha: d2da163c2639…` and `target: production`, the page
+  `200` loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, and `/api/health` `200`
+  with `checks.storage` equal to `"not-configured"` -- nested under `checks` rather than at the top
+  level.
+* What that commit contains beyond the previous freeze: the recursive spine and the policy-space
+  analysis of [PR #109](https://github.com/ereztash/lichess_app/pull/109), `D27` and `D28`. No new
+  surface, no new wording pass, and no change to any screen.
 * Reachability at this commit is the `§3` table in `PRODUCT_STATE_WALK.md`. Six of the seventeen
   states are `NOT_REACHABLE` because `EXPERIMENTAL_LEARNING_ENABLED` is off. **Do not turn it on
   for this run.** A run against a different stimulus is a different run.
 * Deployment: phone-first, participants on their own device; record the device and viewport.
-  The PR #105 preview is behind Vercel Authentication, so participants reach it through a
-  protection-bypass share link for that one deployment, generated fresh per session.
-  `field/README.md` carries the procedure and the reason. Check the URL from a signed-out browser,
-  never from the moderator's own, and confirm it loads `assets/index-D_Il6CdA.js` before the
-  participant touches it.
+  Check the URL from a signed-out browser, never from the moderator's own, and run the build check
+  before the participant touches it. `field/README.md` carries the procedure and why the signed-out
+  check matters.
 
 ## Owner decisions recorded before the run
 
@@ -36,6 +152,11 @@ Taken by the owner after the product-state walk and before any participant was r
 3. **The consolidation is not implemented before this run.** `C-1` is left visible on purpose.
 4. `EXPERIMENTAL_LEARNING_ENABLED` stays off. Do not enable it for any session.
 5. PR #105 is frozen as the stimulus under test.
+6. **The run is pinned to an immutable deployment, option `(a)`.** Recorded 2026-09-13. Re-freezing
+   on every merge is not a policy and holding `main` still is not affordable. The mechanism, the
+   measurement that ruled out the per-deployment URL, and the dashboard action this still requires
+   are in "The build under test" above. **The action has not been taken; production still tracks
+   `main` until it is.**
 
 The run's purpose, given those: determine whether the product, **with these structural facts left
 visible**, is understandable and worth continuing through without founder interpretation.

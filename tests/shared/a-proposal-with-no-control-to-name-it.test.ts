@@ -29,6 +29,7 @@ import {
 } from "@shared/next-action";
 import { PRIMARY_ACTIONS, type PrimaryAction } from "@shared/primary-action";
 import type { BlitzStanding } from "@shared/blitz-reading";
+import { DISCOVERY_FLOOR } from "@shared/detector";
 
 /**
  * Every kind, as a value.
@@ -44,6 +45,7 @@ const EVERY_KIND: Record<NextActionKind, true> = {
   "review-event": true,
   "collect-more-evidence": true,
   "test-hypothesis": true,
+  "test-claim": true,
   "continue-drill": true,
   "continue-transfer": true,
   "return-record": true,
@@ -75,6 +77,8 @@ const base = (over: Partial<ProductState> = {}): ProductState => ({
   transfer: null,
   unseenEvent: null,
   untestedRule: null,
+  /* Read, above the floor, and nothing separated: the state that proposes nothing of its own. */
+  claimState: { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
   blitzStanding: standing(),
   decisionsOnRecord: 40,
   anchor: { answered: 8, total: 8 },
@@ -93,6 +97,12 @@ const REACHES: Record<NextActionKind, ProductState> = {
   "wait-analysis": base({ pendingAnalyses: 3, analysisRunning: true }),
   "review-event": base({ unseenEvent: { gameId: "g1", ply: 21 } }),
   "test-hypothesis": base({ untestedRule: "r1" }),
+  /*
+   * A SEPARATION THE SEARCH FOUND AND NOTHING HAS DECIDED. It is reachable with no rule present,
+   * which is the point: `test-hypothesis` needs a sentence the player wrote, and the overwhelming
+   * majority of records have none while `EXPERIMENTAL_LEARNING_ENABLED` is off.
+   */
+  "test-claim": base({ claimState: { kind: "candidate", claimId: "c1" } }),
   none: base({ blitzStanding: null }),
   "play-first-decision": base({
     decisionsOnRecord: 0,
