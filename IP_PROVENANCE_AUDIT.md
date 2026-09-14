@@ -3,9 +3,10 @@
 **Audited revision:** `490aed07b0ec2e2d27ab7574eacdb7673a7d5666` (`main`, 2026-09-14), recorded in
 `docs/licensing/GPL_CUTOFF.md` as `LAST_GPL_MAIN_PRODUCT_BASELINE`. Two further public GPL artefacts
 exist and are **not** covered by this revision: `PUBLIC_GPL_PRODUCT_DELTA` (`78baa67`, PR #123,
-first-party product code published publicly and unmerged) and `FINAL_GPL_MAIN_TRANSITION_STATE` (the
-merge of PR #122, unknown until it happens). §B of the cutoff record is why one SHA is no longer a
-sufficient description of the public GPL line.
+first-party product code published publicly and unmerged) and `FINAL_GPL_MAIN_TRANSITION_STATE`
+(`17892945`, the merge of PR #122). §B of the cutoff record is why one SHA is no longer a sufficient
+description of the public GPL line.
+
 **Purpose:** establish whether the rights chain over Decision Lab first-party source is clean
 enough to relicense it under proprietary terms, and to identify every component that is not
 first-party and therefore cannot be relicensed.
@@ -46,7 +47,7 @@ resolved, replaced, or isolated. Nothing is promoted out of `UNCERTAIN` by plaus
 Two items are `RESOLVED-WITH-CONDITION` rather than simply clean, and both are recorded in full
 below because a conditional pass that is not written down is an `UNCERTAIN` in disguise:
 
-- **§3.2 — AI-authored commits.** 256 of 444 commits are authored `Claude <noreply@anthropic.com>`.
+- **§3.2 — AI-authored commits.** 256 of 445 commits are authored `Claude <noreply@anthropic.com>`.
   Ownership of the output is a contractual question, and *copyrightability* of AI-generated
   material is an open question in some jurisdictions. Neither blocks proprietary licensing; both
   are material to how strong the resulting copyright claim is. Question 1 in the counsel brief.
@@ -78,14 +79,22 @@ scan of every first-party source file.
 
 ### 3.1 The source families
 
-| Family | Files | Lines | Class |
-| --- | --- | --- | --- |
-| `client/src` | 127 | 25,451 | `FIRST-PARTY` |
-| `shared` | 98 | 22,902 | `FIRST-PARTY` (7 modules `GENERATED`, see §5) |
-| `server` | 19 | 3,544 | `FIRST-PARTY` |
-| `scripts` | 44 | 12,711 | `FIRST-PARTY` (one boundary note, see §4.3) |
-| `tests` | 409 | 69,958 | `FIRST-PARTY` |
-| `docs` | 203 | — | `FIRST-PARTY` |
+**These are TypeScript source counts (`.ts`/`.tsx`), not tracked-file counts**, and the distinction
+is worth stating because a reader checking with `git ls-tree -r --name-only` will get different
+numbers and be right. `tests` holds 479 tracked files at this revision, of which 409 are `.ts`/`.tsx`
+and the remaining 70 are fixtures: JSON, Markdown, SQL, CSS, `.py`, a `.wasm`. `scripts` holds 49, of
+which 44 are TypeScript and five are `.mjs`, `.sh` and `.py`. `client/src` holds 128, of which 127
+are TypeScript and one is a CSS file. The licence-header scan below, and `GATE-LICENSE-BOUNDARY`,
+read a wider extension set than this table counts.
+
+| Family | TS/TSX files | Lines | Tracked files | Class |
+| --- | --- | --- | --- | --- |
+| `client/src` | 127 | 25,451 | 128 | `FIRST-PARTY` |
+| `shared` | 98 | 22,902 | 98 | `FIRST-PARTY` (7 modules `GENERATED`, see §5) |
+| `server` | 19 | 3,544 | 19 | `FIRST-PARTY` |
+| `scripts` | 44 | 12,711 | 49 | `FIRST-PARTY` (one boundary note, see §4.3) |
+| `tests` | 409 | 69,958 | 479 | `FIRST-PARTY` |
+| `docs` | 203 | — | 203 | `FIRST-PARTY` |
 
 Header scan over `client/src`, `server`, `shared`, `scripts` for `Copyright (c)`,
 `SPDX-License-Identifier`, `@license` and `Licensed under`, excluding Decision Lab's own:
@@ -98,15 +107,27 @@ rather than indicative.
 
 ### 3.2 Who holds the copyright
 
-All-time commit authorship, 444 commits:
+Commit authorship reachable from the audited revision, **445 commits**
+(`git shortlog -sne 490aed07b0ec2e2d27ab7574eacdb7673a7d5666`):
 
 | Author identity | Commits | Reading |
 | --- | --- | --- |
 | `Claude <noreply@anthropic.com>` | 256 | AI-authored through Claude Code, on Erez Tash's account |
-| `ereztash <erez2812345@gmail.com>` | 122 | Erez Tash |
+| `ereztash <erez2812345@gmail.com>` | 123 | Erez Tash |
 | `Erez <Erez2812345@gmail.com>` | 46 | Erez Tash — same address, different display name |
 | `Erez Tal-Shir <erez2812345@gmail.com>` | 18 | Erez Tash — same address, different display name |
 | `dependabot[bot]` | 2 | mechanical dependency version bumps |
+
+The rows sum to the total, which is the check this table failed before: its first revision said
+*"all-time, 444 commits"* with `ereztash` at 122, and 256 + 122 + 46 + 18 + 2 is 444 while the
+revision actually reaches 445. Two numbers off by one, consistently, in the document a rights-chain
+conclusion rests on. Corrected here and pinned to the command that produces them.
+
+**"Reachable from the audited revision" is the right scope and is not the only number available.**
+Across every ref in the repository the tree reaches 491 commits authored 270 / 146 / 48 / 18 / 9,
+because unmerged branches — `PUBLIC_GPL_PRODUCT_DELTA` among them — carry commits `main` does not.
+That set adds no author identity, so it moves no conclusion; it is recorded so the two counts cannot
+be mistaken for a contradiction.
 
 **The single most important finding of this audit: there is no third-party human contributor.**
 Three of the five identities resolve to one address, `erez2812345@gmail.com`. The remaining two are

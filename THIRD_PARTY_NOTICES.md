@@ -44,9 +44,12 @@ that is no longer the one being conveyed.
 
 **Open item, stated because an unstated weakness is worse than a weak record.** The
 corresponding-source row is a repository URL plus a version, not a pinned upstream commit with the
-build relationship to these exact hashes. That is ordinary practice and very likely sufficient;
-a pinned commit would be materially stronger. It is Question 3b in `docs/legal/COUNSEL_BRIEF.md`
-and recommendation 4 of the audit.
+build relationship to these exact hashes. That is ordinary practice; a pinned commit would be
+materially stronger. **Whether the present pointer discharges GPL §6 is Question 3b in
+`docs/legal/COUNSEL_BRIEF.md` and is not answered here in either direction** — this file records the
+apparatus (`STOCKFISH_COMPLIANCE_APPARATUS: MECHANICALLY_VERIFIED`), not its legal sufficiency
+(`PENDING_COUNSEL`). Tightening it is recommendation 4 of the audit and is worth doing whatever
+counsel says, because it costs little.
 
 GPL-3.0 §4 requires the licence to be conveyed with the work and its notices kept intact; §6
 requires the corresponding source of conveyed object code to be available. Both are satisfied by
