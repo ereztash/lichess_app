@@ -6,11 +6,16 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `main`.
-* **Stimulus registered at**
-  `20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, forty files, 8,865,024 bytes,
-  built from `d2da163`. **The machine-readable registration is
-  [`field/REGISTERED_STIMULUS.json`](field/REGISTERED_STIMULUS.json) and it is the authority**;
-  this paragraph and `field/README.md` are held to it by
+* **Stimulus registered at** `stimulus_sha256`
+  **`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`**, produced from
+  `d2da163`, over 40 emitted files totalling 8,865,024 bytes. **Read from the origin, not computed
+  here** -- twice, independently, at 2026-09-14 05:56Z and again at 06:12Z by two sessions that did
+  not know of each other. With the `#111` preview and a local build of the same source that is four
+  readings from three machines, which is more than the determinism claim in
+  `write-stimulus-manifest.ts` was first argued from.
+* **The machine-readable registration is
+  [`field/REGISTERED_STIMULUS.json`](field/REGISTERED_STIMULUS.json), and it is the authority.**
+  This paragraph and `field/README.md` are held to it by
   `tests/docs/two-identities-for-one-build.test.ts`, in both documents, so the drift that produced
   two identities for one build cannot recur as prose.
 * **RE-FROZEN THREE TIMES, ALL THREE BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON ANY WAS
@@ -31,7 +36,7 @@ any participant was recruited, and is not to be edited after the first session.
   |---|---|---|---|
   | 1 | `4c39563` / `index-D_Il6CdA.js` | `dd30b3a` / `index-DUEXf-qq.js` | the owner reported, from a phone frame, that step 2's option list was scrolling inside a clipped box. The repair changes the commitment screen, and a changed commitment screen is a changed stimulus |
   | 2 | `dd30b3a` / `index-DUEXf-qq.js` | `e663ebc` / `index-ZgOyRttd.js` | [PR #109](https://github.com/ereztash/lichess_app/pull/109) merged. Production tracks `main`, so the merge moved the deployment off the named hash |
-  | 3 | `e663ebc` / `index-ZgOyRttd.js` | `d2da163` / `20c3c60d…` | [PR #111](https://github.com/ereztash/lichess_app/pull/111) merged and production rebuilt, so the deployment now carries the manifest. **This is the re-freeze that installs the mechanism**: the build identity stops being a filename somebody transcribes and becomes a digest the origin serves |
+  | 3 | `e663ebc` / `index-ZgOyRttd.js` | `d2da163` / `stimulus_sha256 20c3c60d…` | [PR #111](https://github.com/ereztash/lichess_app/pull/111) merged, which is the commit that installed the manifest. **This is the re-freeze that installs the mechanism**: after it the build identity stops being a filename somebody transcribes and becomes a digest the origin serves. A later merge that leaves `client/` alone moves `gitSha` and not the digest, so it is not a re-freeze at all |
 
 * **THE SECOND RE-FREEZE HAS A DIFFERENT CHARACTER FROM THE FIRST, AND THE DIFFERENCE IS THE POINT.**
   The first was a changed stimulus: a participant would have seen something else. The second is a
@@ -138,23 +143,43 @@ any participant was recruited, and is not to be edited after the first session.
   `d2da163` forward the question stops being an argument**, which is the whole of what this
   re-freeze bought.
 
-* **THE MECHANISM IS VERIFIED ON A DEPLOYMENT, not only in a test.** The `PR #111` preview at
-  `fce720a` was fetched at 2026-09-13 20:53Z and answered
-  `content-type: application/json; charset=utf-8` with a well-formed manifest over **40 files** --
-  so `vercel.json`'s `{"handle": "filesystem"}` step does serve a real file and the SPA fallback
-  only catches paths that do not exist. Two things fell out of it that are worth the sentence:
+* **WHAT THE THIRD RE-FREEZE COULD AND COULD NOT ESTABLISH**, read signed-out at 2026-09-14 05:56Z
+  after `#111` merged:
 
-  * its `stimulus_sha256` is **`20c3c60d…`, byte-for-byte the digest the same source produced on a
-    different machine**, with all five recorded flags unset on both. The generator is
-    deterministic across machines when the flags agree, which is what makes a mismatch mean
-    something rather than mean "a different builder".
-  * its entry chunk is `assets/index-ZgOyRttd.js` at **695,047 bytes, identical to production's**,
-    which is independent confirmation that nothing in this pass touched product code.
+  | | before | after |
+  |---|---|---|
+  | commit | `e663ebc` | `d2da163` |
+  | `stimulus_sha256` | *(no manifest)* | `20c3c60d…` |
+  | entry chunk | `index-ZgOyRttd.js`, 695,047 B | `index-ZgOyRttd.js`, 695,047 B |
+  | stylesheet | `index-_bGdMEE1.css`, 95,435 B | `index-_bGdMEE1.css`, 95,435 B |
+
+  **THE `before` COLUMN IS WHY THIS TABLE PROVES LESS THAN IT LOOKS LIKE IT PROVES.** Its
+  `stimulus_sha256` cell reads *(no manifest)*, so there is no digest on that side to compare
+  against, and "the commit moved and the stimulus did not" is not a statement this table can
+  support. What it does support is narrower and is still worth having: **the entry chunk and the
+  stylesheet are byte-identical across the merge**, two rows measured rather than argued. The rest
+  of the case is the four terms in the bullet above, and their residual is named there.
+
+  An earlier draft of this paragraph said the stimulus not moving was "now a number rather than an
+  argument". It was neither: it was a better-evidenced argument. The correction is kept visible
+  because this document's whole subject is the difference between the two, and a freeze package
+  that quietly upgrades its own evidence is the failure it exists to catch.
+
+  **WHAT IS A DIGEST COMPARISON IS EVERYTHING FROM `d2da163` ONWARD.** `20c3c60d…` is over all forty
+  emitted files, it is what the `#111` preview produced, what a local build of the same source
+  produced on a different machine, and what production serves. From here a participant who sat down
+  yesterday and one who sits down tomorrow can be shown to have met the same bytes, rather than
+  argued to have.
 
   **THAT MEANT ONE MORE RE-FREEZE, AND IT IS THE ONE THAT INSTALLS THE MECHANISM.** Row 3 above.
   It was still bookkeeping rather than a protocol violation for the reason the first two were:
-  **zero participants have run.** After it the build identity stops being a filename somebody
-  transcribes and becomes a digest the origin serves.
+  **zero participants have run.**
+
+  **IT IS ALSO THE FIRST REAL EXERCISE OF KEEPING `gitSha` BESIDE THE DIGEST RATHER THAN INSIDE
+  IT.** Folded in, this merge would have reported a stimulus change that did not happen -- on a
+  commit touching only `research/`, `docs/`, `scripts/` and `tests/` -- and a moderator would have
+  been told to stop a session for nothing. Both questions stay answerable and neither answers the
+  other's.
 
 * **THE INTERIM CHECK IS WITHDRAWN.** While no deployment carried a manifest the substitute was the
   two content-hashed filenames, `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`. Two is
@@ -175,12 +200,13 @@ any participant was recruited, and is not to be edited after the first session.
   M8 and the interpretation rules are exactly as first frozen. Only the build identity is new.
 * Verify before each session, from a signed-out browser, that the origin answers, that the stimulus
   digest is the registered one and that storage is the model every walk was performed against. The
-  procedure is `field/README.md`, and it is three checks rather than one filename for the reason
-  above. As of this file production serves the registered stimulus: verified signed-out on
+  procedure is `field/README.md`, and it is three checks because no one of them can cover the
+  others. As of this file production serves the registered stimulus: verified signed-out on
   2026-09-14 at 06:12Z, `/stimulus-manifest.json` carrying `20c3c60d…` over 40 files,
-  `/build-identity.json` reporting `gitSha: d2da163c2639…` and `target: production`, the page `200`,
-  and `/api/health` `200` with `checks.storage` equal to `"not-configured"` -- nested under `checks`
-  rather than at the top level, a shape first verified on 2026-09-13 at 22:29Z and unchanged since.
+  `/build-identity.json` reporting `gitSha: d2da163c2639…` and `target: production`, the page `200`
+  loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, and `/api/health` `200` with
+  `checks.storage` equal to `"not-configured"` -- nested under `checks` rather than at the top
+  level, a shape first verified on 2026-09-13 at 22:29Z and unchanged since.
 * What that commit contains beyond the previous freeze: the recursive spine and the policy-space
   analysis of [PR #109](https://github.com/ereztash/lichess_app/pull/109), `D27` and `D28`. No new
   surface, no new wording pass, and no change to any screen.

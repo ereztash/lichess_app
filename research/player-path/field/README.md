@@ -18,8 +18,10 @@ direction that matters: a digest or a commit named here that the registration do
 the suite. That is the direct repair for the drift recorded two paragraphs below, where prose
 discipline had already been tried and had already failed.
 
-Stimulus `20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, forty files,
-8,865,024 bytes, built from `d2da163c26398c83fa91401699741e26a46af5a9`, the production deployment.
+Stimulus frozen at `stimulus_sha256`
+`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, over forty files totalling
+8,865,024 bytes, produced from `d2da163c26398c83fa91401699741e26a46af5a9`, the production
+deployment.
 Do not push product source to `main` while sessions are running: production tracks it.
 
 **THIS SECTION HAD DRIFTED, AND THE DRIFT IS RECORDED RATHER THAN QUIETLY OVERWRITTEN.** It named
@@ -35,15 +37,22 @@ disagree with the bytes, and a content hash cannot.**
 **`https://lichessapp.vercel.app/`**
 
 Production tracks `main`, so the frozen build is the production deployment and no share link is
-needed. Verified signed-out, not assumed, on 2026-09-14 at 06:12Z: `200`, the manifest at
-`/stimulus-manifest.json` answering `application/json` with the registered digest over forty files,
-and `/api/health` answering `200` with `checks.storage` equal to `"not-configured"`, which is the
-same storage model every walk was performed against.
+needed. Verified signed-out, not assumed, on 2026-09-14 at 06:12Z: `200`, titled `Decision Lab`,
+loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, `/stimulus-manifest.json`
+answering `application/json` with `stimulus_sha256: 20c3c60d…` over 40 files,
+`/build-identity.json` reporting `gitSha: d2da163c26398c83fa91401699741e26a46af5a9` and
+`target: production`, and `/api/health` answering `200` with `checks.storage` equal to
+`"not-configured"`, which is the same storage model every walk was performed against.
 
 **THE BUILD UNDER TEST HAS MOVED THREE TIMES, AND THE OWNER HAS DECIDED HOW THAT STOPS.** All three
-moves were merges to `main`, and this file's own rule -- do not push product source while sessions
-are running -- is a request nothing enforces. The decision is option `(a)`, an immutable deployment,
-and `../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
+were merges to `main`, and this file's own rule -- do not push product source while sessions are
+running -- is a request nothing enforces. **The third move is the one worth reading:** the commit
+went `e663ebc` -> `d2da163` and the two content-hashed filenames did not move at all. What cannot
+be said is that the DIGEST did not move: `e663ebc` served no manifest, so there is nothing on that
+side to compare, and `../FIELD_RUN_CURRENT.md` carries the four terms that stand in for the
+comparison and names what they leave open. From `d2da163` onward the question is a comparison
+rather than an argument. The decision is option `(a)`, an immutable deployment, and
+`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
 dashboard action that has not been taken**: production branch set to a frozen branch instead of
 `main`, so merges stop moving the build behind this URL while `main` stays live for development.
 Until it is taken, production still tracks `main`.
@@ -74,6 +83,12 @@ others: reachability is not the build, and the build is not the server configura
    20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd
    ```
 
+   That one string is the whole build check, and this time the sentence is true. Behind it is the
+   content hash of all **40** emitted files: every chunk, the stylesheet, all nine `.woff2` faces,
+   the favicon, the share card, `index.html`, `robots.txt`, the three licences, `_headers` and
+   `_redirects`. Nothing the browser fetches or obeys is outside it except the two generated
+   identity files, and `scripts/stimulus-manifest.ts` says why each of those is.
+
    **DO NOT COMPARE THOSE SIXTY-FOUR CHARACTERS BY EYE.** A person checks the first few and the
    last few and trusts the middle, which is the one part a swapped build would differ in as
    readily as any other. If you have a terminal in the checkout, run the comparison instead and
@@ -90,15 +105,15 @@ others: reachability is not the build, and the build is not the server configura
    take to the owner before the session, not a reading to wave through.
 
    **IF THE APP LOADS INSTEAD, THE BUILD HAS NO MANIFEST — AND IT DOES NOT LOOK LIKE AN ERROR.**
-   Measured, not assumed, on 2026-09-13 at 21:05Z against the build that preceded this one: that URL
-   answered `200 text/html`, because `vercel.json`'s last route sends every unmatched path to
-   `index.html`. A browser shows the product. There is no `404`, no red, nothing to notice.
-   `client/src/lib/self-check.ts` already refuses this trap by name — *"an SPA fallback answers
-   `200 text/html` for any unknown path, and reading that as 'an older build' would be a confident
-   and false diagnosis"* — and the first version of this step walked straight into it by claiming
-   the endpoint `404`s. **So the check is the content and never the status code**, and a build with
-   no manifest is a `FAIL` in every run state rather than a stale registration: it is not a stimulus
-   that moved, it is a stimulus this check cannot read at all.
+   Measured, not assumed: on a build without one that URL answers `200 text/html`, because
+   `vercel.json`'s last route sends every unmatched path to `index.html`. A browser shows the
+   product. There is no `404`, no red, nothing to notice. `client/src/lib/self-check.ts` already
+   refuses this trap by name — *"an SPA fallback answers `200 text/html` for any unknown path, and
+   reading that as 'an older build' would be a confident and false diagnosis"* — and an early
+   version of this step walked straight into it by claiming the endpoint `404`s.
+   **So the check is the content and never the status code. JSON is the pass; the app is the stop.**
+   A build with no manifest is a `FAIL` in every run state rather than a stale registration: it is
+   not a stimulus that moved, it is a stimulus this check cannot read at all.
 
    **THE INTERIM CHECK IS WITHDRAWN AND IS NOT TO BE REVIVED.** While no deployment carried a
    manifest, this step named two content-hashed filenames instead, `assets/index-ZgOyRttd.js` and
