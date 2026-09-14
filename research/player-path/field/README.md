@@ -52,10 +52,12 @@ be said is that the DIGEST did not move: `e663ebc` served no manifest, so there 
 side to compare, and `../FIELD_RUN_CURRENT.md` carries the four terms that stand in for the
 comparison and names what they leave open. From `d2da163` onward the question is a comparison
 rather than an argument. The decision is option `(a)`, an immutable deployment, and
-`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
-dashboard action that has not been taken**: production branch set to a frozen branch instead of
-`main`, so merges stop moving the build behind this URL while `main` stays live for development.
-Until it is taken, production still tracks `main`.
+`../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. The mechanism is production
+branch set to a frozen branch instead of `main`, so merges stop moving the build behind this URL
+while `main` stays live for development. **The branch exists: `field/frozen-20c3c60d`, pushed at the
+commit whose deployment was verified to serve the registered digest. The dashboard half has not been
+taken** and cannot be taken from the repository: Vercel -> Project -> Settings -> Git -> Production
+Branch. Until it is, production still tracks `main` and the step below is the only protection.
 
 **THE CHECK NO LONGER WAITS FOR A SESSION TO RUN, WHICH IS THE PART THAT WAS MISSING.** A
 pre-session check, however good, only ever fires when a moderator is already in the room with a
@@ -124,13 +126,57 @@ others: reachability is not the build, and the build is not the server configura
    again, that is a `FAIL` to take to the owner, not a signal to fall back to reading filenames.
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
-   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level;
-   the same response also carries `build.gitSha`, so this one request covers the commit as well.
-   Verified in that shape on 2026-09-13 at 22:29Z. Storage is not in the digest and cannot be: it is
-   server configuration and it can change with no deployment at all, which is exactly why it is
-   checked live.
+   **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level.
+   Storage is not in the digest and cannot be: it is server configuration and it can change with no
+   deployment at all, which is exactly why it is checked live.
 
-4. If **any** of the three does not match, **stop**. Do not run the session against whatever is
+   **THE `build.gitSha` IN THE SAME RESPONSE IS NOT A PASS CRITERION. RECORD IT; DO NOT COMPARE
+   IT.** An earlier version of this step said the request "covers the commit as well", and that
+   sentence would have stopped a valid session. It would have stopped one today: the registration
+   names the commit that produced the digest, four merges have landed on `main` since, and the
+   origin reports the newest of them. Each reading below was taken from the origin after that merge
+   went live:
+
+   | merge | what it touched | digest read from the origin afterwards |
+   |---|---|---|
+   | #115 | `research/` | `20c3c60d…` |
+   | #116 | `.github/`, `research/`, `scripts/`, `tests/` | `20c3c60d…` unchanged |
+   | #118 | `docs/` | `20c3c60d…` unchanged |
+   | #119 | `docs/` | `20c3c60d…` unchanged |
+
+   Not one touched `client/` or `shared/`, and the digest did not move once, over the same 40 files
+   and the same 8,865,024 bytes. **The commit is expected to move while the stimulus holds**, which
+   is the whole reason `gitSha` sits beside the digest rather than inside it. A moderator who treats
+   a moved commit as a mismatch learns to override the step, and an overridden step is worse than an
+   absent one. Write the sha into the participant file as provenance. **The digest is what gates.**
+
+   **THE SAME HOLDS WHEN PRODUCTION STOPS TRACKING `main`.** Pointing the production branch at a
+   frozen branch is a deployment of the same tree, so the digest stays and the commit the origin
+   reports becomes that branch's. Read the digest. Record whatever sha comes back.
+
+   **THE ONE CHANGE NONE OF THE THREE CHECKS CAN SEE, NAMED RATHER THAN LEFT IMPLICIT.** The digest
+   is over `dist/public`. **The server bundle is not in it**, and `checks.storage` reports one
+   subsystem rather than the build that answers. So a merge touching only `server/` or `api/` moves
+   nothing these three steps read, and `build.gitSha` -- which the server itself reports -- was the
+   only thing that would have moved. Dropping it as a stop condition drops that coverage with it,
+   and the coverage was accidental: the old rule fired on every docs merge too, which is why it was
+   being dropped.
+
+   The repair is not to compare the sha again. It is the frozen branch. **Once production tracks
+   `field/frozen-20c3c60d`, a merge to `main` moves neither the client nor the server**, and the gap
+   closes for the same reason and at the same moment as the one above it.
+
+   **UNTIL THEN, THE RULE A MODERATOR CAN ACTUALLY EXECUTE:** a moved `build.gitSha` is not a stop
+   and is not nothing. It is one question to the owner before the session -- *did that merge touch
+   `server/` or `api/`?* A yes is a stop. A no is a reading to write down. What a participant
+   signed out can reach of the server is `auth.me`, `/api/health` and the static files; every
+   `record.*` and `lichess.*` procedure is an `ownerProcedure` and needs a sign-in the session
+   script never asks for.
+
+4. If the URL does not answer, the digest does not match, or storage is not `"not-configured"`,
+   **stop**. A moved `build.gitSha` is not one of these: while production tracks `main` it is the
+   one question in step 3, and once production tracks the frozen branch it is not even that. Do not
+   run the session against whatever is
    there and do not update this file to match it: check with the owner first, because a mismatch
    means either a merge landed or the pre-registration is describing a build nobody is serving.
 

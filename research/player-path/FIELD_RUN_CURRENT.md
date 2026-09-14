@@ -18,6 +18,18 @@ any participant was recruited, and is not to be edited after the first session.
   This paragraph and `field/README.md` are held to it by
   `tests/docs/two-identities-for-one-build.test.ts`, in both documents, so the drift that produced
   two identities for one build cannot recur as prose.
+* **THE COMMIT IS NOT THE FREEZE AND IS EXPECTED TO MOVE.** The registration's `gitSha` records
+  which build produced the digest. It is **not** a second identity to check, and the protocol does
+  not gate on it: a merge that leaves `client/` and `shared/` alone moves the commit and leaves
+  `stimulus_sha256` exactly where it is. That is not a prediction. Between 05:56Z and 08:40Z on
+  2026-09-14 the digest was read from the origin after each of `#115`, `#116`, `#118` and `#119`
+  merged, and all four readings were `20c3c60d...` over the same 40 files and the same 8,865,024
+  bytes. **Only the digest gates a session**, and `field/README.md` says so at the step where a
+  moderator could otherwise stop a valid one.
+* **SO THIS DOCUMENT STOPS KEEPING A LIST OF COMMITS.** Every commit named below is a re-freeze,
+  which is a change of stimulus. A commit where the digest was merely re-read unchanged is a
+  reading, not an identity, and recording it here would rebuild the confusion the bullet above
+  exists to remove. The readings are counted; the shas are not transcribed.
 * **RE-FROZEN THREE TIMES, ALL THREE BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON ANY WAS
   ALLOWED.** **Zero participants have run**, which is what makes this bookkeeping rather than a
   protocol violation. After the first session it would be one, and the same change would have to
@@ -82,9 +94,19 @@ any participant was recruited, and is not to be edited after the first session.
   This is not `(b)`: `main` stays completely live for development, which was the entire objection to
   `(b)`. It is `(a)`'s property without `(a)`'s exposure cost.
 
-  **THIS IS A DASHBOARD ACTION AND IT HAS NOT BEEN TAKEN.** Vercel -> Project -> Settings -> Git ->
-  Production Branch. It cannot be done from the repository and it was not done from this session.
-  **Until it is taken, production still tracks `main` and the check below is the only protection.**
+  **THE BRANCH NOW EXISTS AND THE DASHBOARD HALF DOES NOT.** `field/frozen-20c3c60d` is pushed, at
+  the commit whose production deployment was read from the origin and found to serve the registered
+  digest over the same 40 files and 8,865,024 bytes. The remaining half is Vercel -> Project ->
+  Settings -> Git -> Production Branch. It cannot be done from the repository and it was not done
+  from this session. **Until it is taken, production still tracks `main` and the check below is the
+  only protection.**
+
+  **WHAT TO VERIFY AFTER TAKING IT, AND WHY IT IS NOT A FORMALITY.** Changing the production branch
+  builds a new production deployment. The tree is the one already measured, so the digest must come
+  back `20c3c60d...` over 40 files; the commit the origin reports will be the frozen branch's and is
+  recorded rather than compared, per `field/README.md` step 3. Re-read all three: the URL signed
+  out, the digest, and `checks.storage`. A digest that comes back different means the frozen branch
+  is not the tree that was measured, and that is a stop.
 
 * **THE FREEZE CHECK NAMED ONE FILE OUT OF FORTY, AND THAT IS A SEPARATE DEFECT FROM THE MOVING
   TARGET.** `field/README.md` told the moderator that confirming `assets/index-ZgOyRttd.js` was
