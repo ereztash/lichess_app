@@ -11,7 +11,9 @@ does not restate it; it operationalises it.
 
 ## The build
 
-Product source frozen at `e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, the production deployment.
+Stimulus frozen at `stimulus_sha256`
+`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`, produced from
+`d2da163c26398c83fa91401699741e26a46af5a9`, the production deployment.
 Do not push product source to `main` while sessions are running: production tracks it.
 
 **THIS SECTION HAD DRIFTED, AND THE DRIFT IS RECORDED RATHER THAN QUIETLY OVERWRITTEN.** It named
@@ -27,15 +29,19 @@ disagree with the bytes, and a content hash cannot.**
 **`https://lichessapp.vercel.app/`**
 
 Production tracks `main`, so the frozen build is the production deployment and no share link is
-needed. Verified signed-out, not assumed, on 2026-09-13 at 19:25Z: `200`, titled `Decision Lab`,
-loading `assets/index-ZgOyRttd.js`, with `/build-identity.json` reporting
-`gitSha: e663ebc6c2493c30ca0d29bb1ce61cdf1f289cab`, `builtAt: 2026-09-13T17:26:33Z` and
-`target: production`, and `/api/health` answering `200` with `storage: "not-configured"`, which is
-the same storage model every walk was performed against.
+needed. Verified signed-out, not assumed, on 2026-09-14 at 05:56Z: `200`, titled `Decision Lab`,
+loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, `/stimulus-manifest.json`
+answering `application/json` with `stimulus_sha256: 20c3c60d…` over 40 files,
+`/build-identity.json` reporting `gitSha: d2da163c26398c83fa91401699741e26a46af5a9`,
+`builtAt: 2026-09-14T05:52:03Z` and `target: production`, and `/api/health` answering `200` with
+`checks.storage` equal to `"not-configured"`, which is the same storage model every walk was
+performed against.
 
-**THE BUILD UNDER TEST HAS MOVED TWICE, AND THE OWNER HAS DECIDED HOW THAT STOPS.** Both moves were
-merges to `main`, and this file's own rule -- do not push product source while sessions are running
--- is a request nothing enforces. The decision is option `(a)`, an immutable deployment, and
+**THE BUILD UNDER TEST HAS MOVED THREE TIMES, AND THE OWNER HAS DECIDED HOW THAT STOPS.** All three
+were merges to `main`, and this file's own rule -- do not push product source while sessions are
+running -- is a request nothing enforces. **The third move is the one worth reading:** the commit
+went `e663ebc` -> `d2da163` and `stimulus_sha256` did not move at all. That is the first time this
+package could say so with a measurement instead of an argument about the diff. The decision is option `(a)`, an immutable deployment, and
 `../FIELD_RUN_CURRENT.md` carries it with the measurement behind it. **The mechanism is a Vercel
 dashboard action that has not been taken**: production branch set to a frozen branch instead of
 `main`, so merges stop moving the build behind this URL while `main` stays live for development.
@@ -52,28 +58,26 @@ others: reachability is not the build, and the build is not the server configura
    exactly how a wall would go unnoticed until participant 1 is sitting there.
 
 2. **The build.** Open `https://lichessapp.vercel.app/stimulus-manifest.json`. The page must be
-   **JSON, beginning `{`**, and its `stimulus_sha256` must equal the one in
-   `../FIELD_RUN_CURRENT.md`.
+   **JSON, beginning `{`**, and its `stimulus_sha256` must read
+
+   ```
+   20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd
+   ```
+
+   That one string is the whole build check, and this time the sentence is true. Behind it is the
+   content hash of all **40** emitted files: every chunk, the stylesheet, all nine `.woff2` faces,
+   the favicon, the share card, `index.html`, `robots.txt`, the three licences, `_headers` and
+   `_redirects`. Nothing the browser fetches or obeys is outside it except the two generated
+   identity files, and `scripts/stimulus-manifest.ts` says why each of those is.
 
    **IF THE APP LOADS INSTEAD, THE BUILD HAS NO MANIFEST — AND IT DOES NOT LOOK LIKE AN ERROR.**
-   Measured, not assumed, on 2026-09-13 at 21:05Z: that URL answers `200 text/html` on the frozen
-   build, because `vercel.json`'s last route sends every unmatched path to `index.html`. A browser
-   shows the product. There is no `404`, no red, nothing to notice. `client/src/lib/self-check.ts`
-   already refuses this trap by name — *"an SPA fallback answers `200 text/html` for any unknown
-   path, and reading that as 'an older build' would be a confident and false diagnosis"* — and the
-   first version of this step walked straight into it by claiming the endpoint `404`s.
-   **So the check is the content and never the status code.**
-
-   **The value in the protocol is currently `PENDING`** because the frozen build predates the
-   generator, so seeing the app there today is expected. What a build that DOES carry it looks like
-   was checked rather than imagined: the `PR #111` preview at `fce720a` answered
-   `content-type: application/json` with a manifest over 40 files on 2026-09-13 at 20:53Z. **JSON is
-   the pass; the app is the stop.** Until the deploy that carries it, the
-   interim check is the two content-hashed filenames in the page source,
-   `assets/index-ZgOyRttd.js` **and** `assets/index-_bGdMEE1.css`. Two filenames is better than the
-   one this file used to name, and it is **still not sufficient**: nine `.woff2` faces, the favicon,
-   the share card, `robots.txt`, `_headers` and `_redirects` carry no content hash at all, so
-   nothing about their names moves when their bytes do. That is the whole reason the digest exists.
+   Measured, not assumed: on a build without one that URL answers `200 text/html`, because
+   `vercel.json`'s last route sends every unmatched path to `index.html`. A browser shows the
+   product. There is no `404`, no red, nothing to notice. `client/src/lib/self-check.ts` already
+   refuses this trap by name — *"an SPA fallback answers `200 text/html` for any unknown path, and
+   reading that as 'an older build' would be a confident and false diagnosis"* — and an early
+   version of this step walked straight into it by claiming the endpoint `404`s.
+   **So the check is the content and never the status code. JSON is the pass; the app is the stop.**
 
 3. **The storage model.** `https://lichessapp.vercel.app/api/health` must answer `200` with
    **`checks.storage` equal to `"not-configured"`** — nested under `checks`, not at the top level;
