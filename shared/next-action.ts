@@ -131,13 +131,46 @@ export type NextActionKind = NextAction["kind"];
  * `{ observed: false }` are different facts and the whole point is that they render differently:
  * the first is a record with no drill in it, the second is a screen that cannot see drills.
  */
-export type Observed<T> = { readonly observed: true; readonly value: T } | { readonly observed: false };
+export type Observed<T> =
+  | { readonly observed: true; readonly value: T }
+  /**
+   * NOT READ. Two reasons, and they are not the same fact.
+   *
+   * `unimplemented` absent -- a caller could have read this and did not. Something that might have
+   * outranked the answer went unconsulted, so the proposal below it is unsound.
+   *
+   * `unimplemented: true` -- **THE PRODUCT HAS NO MECHANISM TO PRODUCE THIS INPUT AT ALL.** Not a
+   * blind spot: an unimplemented branch. Nothing could have outranked the answer, because the
+   * product cannot reach the state that would.
+   *
+   * WHY THE DISTINCTION IS LOAD-BEARING AND NOT A NICETY. `unseenEvent` sits at branch 4 and there
+   * is no seen-set anywhere in this repository -- no writer, no reader, no storage. Modelled as
+   * merely unread, it put `blind: ["unseenEvent"]` on every branch below it, which made
+   * `soundProposal` false for eight of the eleven kinds, permanently, for every surface, in every
+   * state. `soundProposal` is the predicate authority transfer is gated on, so the gate could
+   * never open, and the cause was recorded as "the event set is unbuilt" when it was really "the
+   * ladder is asserting that an impossible state might have outranked this one".
+   *
+   * THIS IS NOT THE SEEN-SET ARRIVING BY THE BACK DOOR. Nothing here makes `review-event` fire.
+   * The branch stays unreachable and is reported as unreachable; what changes is that it stops
+   * poisoning the branches under it with a blindness that was never true.
+   */
+  | { readonly observed: false; readonly unimplemented?: true };
 
 /** A reading that was taken. */
 export const observed = <T>(value: T): Observed<T> => ({ observed: true, value });
 
 /** A reading that was not taken. Assignable to `Observed<T>` for every `T`. */
 export const UNOBSERVED: Observed<never> = { observed: false };
+
+/**
+ * An input no code path in this product can produce. See `Observed`.
+ *
+ * DISTINCT FROM `UNOBSERVED` AT THE VALUE LEVEL so a reader cannot pass one where the other is
+ * meant by forgetting a field. The only current member is `unseenEvent`; adding a second is a
+ * statement that a branch of the canonical ladder is dead, which should be hard to do quietly.
+ */
+export const UNIMPLEMENTED: Observed<never> = { observed: false, unimplemented: true };
 
 /**
  * The inputs a surface may be blind to, IN THE ORDER `deriveNextAction` CONSULTS THEM.
@@ -292,12 +325,20 @@ export function deriveNextAction(state: ProductState): NextAction {
  */
 export function proposeNextAction(state: ProductState): NextActionProposal {
   const blind: BlindableInput[] = [];
+  /*
+   * AN UNIMPLEMENTED INPUT IS SKIPPED, NOT REPORTED AS BLINDNESS. `Observed` argues it at length;
+   * the short form is that `blind` means "something that could have outranked this went unread",
+   * and nothing can outrank from a state the product cannot reach.
+   */
+  const miss = (input: BlindableInput, slot: Extract<Observed<unknown>, { observed: false }>) => {
+    if (slot.unimplemented !== true) blind.push(input);
+  };
   const action = ((): NextAction => {
-    if (!state.drill.observed) blind.push("drill");
+    if (!state.drill.observed) miss("drill", state.drill);
     else if (state.drill.value !== null) {
       return { kind: "continue-drill", ...state.drill.value };
     }
-    if (!state.transfer.observed) blind.push("transfer");
+    if (!state.transfer.observed) miss("transfer", state.transfer);
     else if (state.transfer.value !== null) {
       return { kind: "continue-transfer", ...state.transfer.value };
     }
@@ -308,11 +349,11 @@ export function proposeNextAction(state: ProductState): NextActionProposal {
       scoring: state.analysisRunning,
     };
     }
-    if (!state.unseenEvent.observed) blind.push("unseenEvent");
+    if (!state.unseenEvent.observed) miss("unseenEvent", state.unseenEvent);
     else if (state.unseenEvent.value !== null) {
       return { kind: "review-event", ...state.unseenEvent.value };
     }
-    if (!state.untestedRule.observed) blind.push("untestedRule");
+    if (!state.untestedRule.observed) miss("untestedRule", state.untestedRule);
     else if (state.untestedRule.value !== null) {
       return { kind: "test-hypothesis", ruleId: state.untestedRule.value };
     }
@@ -397,7 +438,7 @@ export function proposeContinuation(
     ...runs,
     pendingAnalyses: 0,
     analysisRunning: false,
-    unseenEvent: UNOBSERVED,
+    unseenEvent: UNIMPLEMENTED,
     untestedRule: UNOBSERVED,
     claimState: { kind: "unread" },
     blitzStanding: null,

@@ -1,127 +1,132 @@
-# Final verification
+# Architecture → UI: final verification
 
-**Base:** `main` @ `a8e7e69d541c80a7bea9d9fc047745e3e3c1a089`
-**Date:** 2026-09-14
+What was checked, how, and what it does and does not establish.
 
 ---
 
-## 1. `npm run verify` — exits 0
+## 1. Automated
 
-Every stage, on the merged tree:
+`npm run verify` **EXIT=0**:
 
-```
-check                               pass
-check:control:inverted              pass  (the typecheck control is red, as required)
-build                               pass
-test              Test Files  311 passed | 6 skipped (317)
-                       Tests  3376 passed | 38 skipped (3414)
-gates                               47 gates: 47 pass, 0 fail, 0 not-measured
-gates:controls                      47 gates: 0 pass, 47 fail, 0 not-measured
-                                    All implemented controls went red.
-bundle:budget                       within budget
-bundle:budget:control:inverted      pass  (the budget control exceeds, as required)
-verify:scope                        pass
-```
+| | |
+| --- | --- |
+| tests | **3,421 pass**, 38 skipped, 0 fail |
+| gates | **53 pass**, 0 fail, 0 not-measured |
+| positive controls | **53 red** — "All implemented controls went red" |
+| bundle | within budget (entry raw 684.5 / 685 kB) |
+| typecheck + inverted control | pass |
 
-**45 gates before, 47 after.** Both new gates have a positive control that is demonstrated red —
-`GATE-SHADOW-SURFACE-LIVE` fails on a fixture instrumenting only one surface, with the message
-*"SHADOW_SURFACES declares `post-game` and nothing instruments it"*, which is the product's actual
-prior state; `GATE-CONTINUATION-OUTRANKS` fails on the ladder with the backlog check moved above
-the run.
+Four gates are new, each with a control demonstrated red:
 
-## 2. Bundle budget — measured, attributed, raised in the same commit
+| Gate | Asserts | Its control |
+| --- | --- | --- |
+| `GATE-CANONICAL-ACTION-REACHABLE` | every canonical kind that names an act has a renderer | a presenter set that renders one kind |
+| `GATE-SEMANTIC-PRESERVATION` | a presenter may reword an act, never rename it | a presenter that rewords `continue-drill` into "new game" and stamps `play-blitz` |
+| `GATE-NO-LOCAL-PRODUCT-POLICY` | no surface names a product act outside the contract | a component branching on local state to a hardcoded act |
+| `GATE-NO-FABRICATED-STATE` | unread stays unsound; unimplementable is not blindness | the ladder as it was, charging every unobserved input |
 
-```
-entry, raw               679.7 kB / 681 kB      (was 678.8 / 679)
-entry, gzipped           212.6 kB / 213 kB      (unchanged ceiling — it was not crossed)
-initial download, raw    772.9 kB / 774 kB      (was 772.0 / 772)
-```
+---
 
-**Net cost of the whole change: +0.9 kB entry raw.** Three quarters of the first attempt was moved
-out of the entry graph rather than paid for, and `scripts/check_bundle_budget.ts` carries the
-line-by-line attribution:
+## 2. Browser verification
 
-| step | entry raw | Δ |
-|---|---|---|
-| the hook in `record-api.ts` | 680.8 | +2.0 |
-| hook moved to `continuation-api.ts` | 680.6 | −0.2 |
-| read moved out of `record-service.ts` | 679.7 | −0.9 |
+Chromium against the production build, fresh context per row, record seeded through `localStorage`
+in the shape `local-record-store.ts` reads. **No UI was mutated**; every state is constructed from
+record rows the product itself writes.
 
-The gzip ceiling does **not** move: 212.6 against 213 was not crossed, and a ceiling that has not
-fired keeps its number.
+| # | Canonical state | Canonical action | Surface | Rendered primary act | Result |
+| --- | --- | --- | --- | --- | --- |
+| A | empty record, first visit | `play-first-decision` | record | `play-first-decision` — *"קחו החלטה אחת"* | **PASS** |
+| B | empty record, returning | `play-first-decision` | resume | `play-first-decision` | **PASS** |
+| C | one decision, **first** visit | `play-blitz` | record | `play-blitz` — *"שחקו משחק קצר"* | **PASS** |
+| D | one decision, returning | `play-blitz` | resume | `play-blitz` | **PASS** |
+| E | **open drill 2/3**, returning | `continue-drill` | resume | `continue-run` — *"חזרה לסט"* | **PASS** |
+| F | **open drill 2/3**, first visit | `continue-drill` | record | `continue-run` | **PASS** |
+| G | **untested rule**, returning | `test-hypothesis` | resume | `test-hypothesis` — *"בדקו את הכלל שכתבתם"* | **PASS** |
+| H | drill the player **closed**, returning | `play-blitz` | resume | `play-blitz` | **PASS** |
 
-## 3. Browser verification — **PARTIAL**, and executed
+Exactly one primary act rendered per state. **Zero page errors in every row.**
 
-`tests/layout/a-walk-the-derivation-can-be-wrong-about.layout.test.ts`, real Chromium, phone
-viewport, shipped bundle, empty profile:
+Rows E and F are the collision this migration is about: a set in progress outranks a new game, on
+both surfaces, on a first visit as well as a return. Row H is its negative control — an abandoned
+drill is *not* revived.
 
-```
-the record page, empty:        proposes play-first-decision · offers play-first-decision · [unsound: unseenEvent]
-the record page, one decision: proposes play-blitz          · offers play-blitz          · [unsound: unseenEvent]
-```
+### The repository's own walks
 
-**Executed: 2 of the 11 states Phase 17 asks for.** What was reached and what was not:
+| Walk | Result |
+| --- | --- |
+| `a-walk-the-derivation-can-be-wrong-about` | **PASS** — both stops agree, both proposals `[sound]` |
+| `axe-past-the-commit` | PASS |
+| `cumulative-layout-shift` | PASS |
+| `what-a-colour-and-a-direction-mean` | PASS |
+| `the-words-a-stranger-must-read` | PASS |
+| `content-security-policy` | PASS |
 
-| State | Walked? | Why |
-|---|---|---|
-| cold entry | ✓ | stop 1 |
-| first decision | ✓ | the walk records one |
-| reveal | ✓ | the walk passes through it |
-| return / resume | ✓ | stop 2 |
-| record | ✓ | stop 2 *is* the record page |
-| post-game | **NOT EXECUTED** | needs a blitz game played to completion in-browser |
-| active drill | **NOT EXECUTED** | needs a claim at candidate grade, which needs `DISCOVERY_FLOOR` scored decisions |
-| active transfer | **NOT EXECUTED** | needs an authored rule and a preregistered transfer |
-| candidate claim | **NOT EXECUTED** | same floor |
-| untested player rule | **NOT EXECUTED** | needs a reveal-and-reflect cycle |
-| pending analysis | **NOT EXECUTED** | needs a game stored and the queue stopped mid-pass |
+### What the walks caught that unit tests did not
 
-**The three unexecuted states that matter are the three that would exercise the new branches.**
-`continue-drill`, `continue-transfer` and `test-hypothesis` are exactly the branches this work made
-reachable, and none of them was reached in a browser. They are covered by unit and matrix tests and
-by `GATE-CONTINUATION-OUTRANKS`; they are **not** covered by a walk.
+Three real defects in this work, all found against the built app:
 
-That gap is not closed here and is not claimed to be. It is the first half of the next move in
-`ARCHITECTURE_UI_AUTHORITY_TRANSFER.md` §6: the `continue-run` control has to exist before a walk
-through a drill can read anything off the page anyway.
+1. **A render loop.** `useProductState` builds a fresh object every render, so reporting the
+   canonical answer upward set state unconditionally, which re-rendered, which reported again. The
+   front door's offer never settled and the derivation walk read "the screen offers none".
+2. **Two controls, one act.** On a cold front door both `FirstDecision` and the new canonical
+   control rendered `play-first-decision` — LAW 2's defect, caught by the primary-fill walk.
+3. **A gap the whole migration was for.** A **first visit with a non-empty record** — the
+   second-device case — had no renderer for the canonical act at all, because `ResumeScreen` mounts
+   only when returning.
 
-## 4. What the walk established that a unit test could not
+### NOT_VERIFIED
 
-Both stops **agree**, and both proposals are **unsound**.
+| State | Why |
+| --- | --- |
+| active transfer mid-run | seeding one truthfully needs a `learning_transfers` row plus per-position observations plus a rule; constructible, not constructed |
+| claim awaiting its forward test (`test-claim`) | needs a scored claim with a separation, which needs a real analysed blitz record |
+| `wait-analysis` with a live queue | needs a pending game the queue is actively scoring; timing-dependent |
+| `review-event` | **unreachable by construction.** No seen-set exists and none was built |
+| recoverable failure paths | exercised by `RevealFailure`'s own tests, not by this walk |
 
-Before this pass the walk printed two agreements and stopped there. It would have read as *the
-derivation and the screen want the same thing* — true, and not the whole reading. Both answers rest
-on `unseenEvent`, which outranks them and which nothing in the product writes.
+None was faked with arbitrary UI mutation.
 
-**Two agreements, both unsound, is a different result from two agreements.** The walk now says
-which one it found, and the `blind` column is why.
+---
 
-## 5. Scoreboard
+## 3. Definition of done, scored
 
-| | before | after |
-|---|---|---|
-| Truthful canonical inputs | 7 / 11 | **10 / 11** |
-| Routing surfaces instrumented | 1 / 3 | **3 / 3** |
-| Derivation branches reachable in production | 8 / 12 | **11 / 12** |
-| Proposals sound as shipped | 0 / 11 | **3 / 11** |
-| Canonical next-action authority | NONE | **NONE** |
-| Parallel policy engines | 4 | **3** |
-| Hard-coded primary product actions on routing surfaces | 3 | **3** |
-| Gates | 45 | **47** |
+| # | Condition | State |
+| --- | --- | --- |
+| 1 | the UI no longer operates as a parallel product-policy engine | **met** — four policy sites removed, four documented exceptions |
+| 2 | canonical state contains what real decisions need | **met** — `ARCHITECTURE_UI_STATE_MAP.md` §2 |
+| 3 | one canonical policy determines semantic next action | **met** — `proposeNextAction`, unchanged branch order |
+| 4 | every meaningful production surface consumes that intent | **met for Resume, PostGame, Record**; in-run surfaces exempt with reasons |
+| 5 | surfaces retain presentation freedom | **met** — two voices, same act, §6 of the state map |
+| 6 | hardcoded fallbacks removed or justified | **met** — ledger in `ARCHITECTURE_UI_AUTHORITY_MIGRATION.md` §1 |
+| 7 | continuation state crosses the boundaries it needs to | **met** — already true from PR #121; verified again in rows E/F |
+| 8 | missing state is not fabricated | **met** — `GATE-NO-FABRICATED-STATE`, control red |
+| 9 | production behaviour covered by red-proven gates | **met** — 4 new, all controls red |
+| 10 | browser verification confirms agreement | **met** — 8 rows, 0 errors, plus the repo's own walks |
+| 11 | old FIELD evidence stays truthful | **met** — `docs/FIELD_STIMULUS_CUTOFF.md`; nothing rewritten |
+| 12 | remaining human questions classified | **met** — §4 |
 
-**Authority did not move, and the scoreboard is meant to show why that is a result rather than a
-stall.** Three proposals now qualify; two of them name a control that two of the three routing
-surfaces do not have. The blocker moved from *we cannot measure this* to *the product has no way to
-say this*, which is a different and much more actionable sentence.
+---
 
-## 6. `FIELD_REQUIRED`
+## 4. `FIELD_REQUIRED` — what none of this establishes
 
-Untouched by this work and not closeable by it:
+Everything above is about code paths and rendered controls. It establishes architectural
+consistency, reachability, state truthfulness, policy coherence and rendered-action correctness.
 
-- whether a player notices the primary action;
-- whether they understand it;
-- whether they agree with its meaning;
-- whether they know why it is next;
-- whether they prefer the flow, or complete it;
-- whether the **order** in `deriveNextAction` matches what a person would have wanted — `D22`
-  reversal condition 3, which needs the acquisition trial.
+It establishes **nothing** about a person. Specifically, all of these remain open and are
+**`FIELD_REQUIRED`**:
+
+- whether a player **notices** the canonical action;
+- whether they **understand** what it is asking;
+- whether they **agree** it is the right next thing;
+- whether they grasp **why finishing a registered set matters** more than another game;
+- whether the change produces **value** they can feel;
+- whether they **prefer** this flow to the one it replaced;
+- whether they **return**.
+
+A player being shown the right act is not a player acting on it. Treating the eight PASS rows above
+as evidence about people would be exactly the conversion of implementation correctness into UX
+evidence that §15 forbids, and no sentence in this document does it.
+
+`docs/FIELD_STIMULUS_CUTOFF.md` records that the existing freeze no longer describes this product,
+which of its assumptions are void, and that a new freeze is an owner decision that was not taken
+here.

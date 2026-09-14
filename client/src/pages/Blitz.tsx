@@ -56,6 +56,9 @@ import { PostGame } from "@/components/PostGame";
 import { NextActionProbe } from "@/components/NextActionProbe";
 import { ContinueCommitment } from "@/components/ContinueCommitment";
 import { useContinuationOffer } from "@/lib/use-continuation-offer";
+import { useCanonicalAction } from "@/lib/canonical-action";
+import { useCanonicalRouting } from "@/lib/canonical-routing";
+import { presentOnPostGame } from "@shared/post-game-presentation";
 import { useSaveBlitzGame } from "@/lib/record-api";
 import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
 import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
@@ -117,6 +120,16 @@ export default function Blitz() {
    * react-query dedupes by key, so the route makes one request for both.
    */
   const continuation = useContinuationOffer();
+  /*
+   * THE CANONICAL ACT FOR THE WHOLE RECORD, not for the game just played.
+   *
+   * At the top rather than beside the post-game because it is a hook and the post-game sits behind
+   * three levels of branch. It shares its queries with the shadow this route already mounts, so the
+   * route makes one request for both.
+   */
+  const canonical = useCanonicalAction(presentOnPostGame);
+  const canonicalOffer = canonical.status === "sound" ? canonical.offer : null;
+  const routeCanonical = useCanonicalRouting();
   const [game, setGame] = useState<BlitzState>({ phase: "idle" });
   const [session, setSession] = useState<InstrumentSession>(newSession());
   const [, setPaint] = useState(0);
@@ -562,8 +575,24 @@ export default function Blitz() {
                 reading={readBlitzGame(stored.game, stored.decisions)}
                 analysed={stored.decisions.length}
                 onSeePosition={setReviewing}
-                onPlayAgain={() => setGame({ phase: "idle" })}
                 standDown={continuation.suppressPrimary}
+                /*
+                 * THE POLICY'S ANSWER, WORDED FOR THIS SCREEN. `onPlayAgain` is gone: it was the
+                 * one destination this card could express, and expressing one destination is what
+                 * made "play another game" the only thing it could offer.
+                 *
+                 * `play-blitz` STILL LANDS HERE RATHER THAN NAVIGATING. When the ladder's answer
+                 * IS another game, the shell's route would send the player to `/blitz` -- the page
+                 * they are already on -- and a route change to the current route moves nothing.
+                 * `RevealNextPosition` records the identical trap from the other side. So this one
+                 * act is handled in place and every other act goes to the shell.
+                 */
+                offer={canonicalOffer}
+                onCanonicalAction={() => {
+                  if (canonical.status !== "sound") return;
+                  if (canonical.action.kind === "play-blitz") setGame({ phase: "idle" });
+                  else routeCanonical(canonical.action);
+                }}
               />
               {/*
                 * THE SET THIS PLAYER STARTED, IN THE SLOT "משחק חדש" WOULD HAVE HAD.

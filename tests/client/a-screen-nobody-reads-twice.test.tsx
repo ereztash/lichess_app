@@ -186,12 +186,46 @@ const trpcClient = trpc.createClient({
   links: [httpBatchLink({ url: "/api/trpc", transformer: superjson })],
 });
 
+/**
+ * THE CANONICAL OFFER THE PAGE WOULD HAND THIS CARD, held so a test can vary it.
+ *
+ * This screen used to compute its own action from `readResume` -- `play` or `wait`, keyed on a
+ * blitz blocker -- which is precisely why it could not express a set in progress. The policy is now
+ * `proposeNextAction`'s and arrives as a prop, so these tests supply what `Record.tsx` supplies.
+ * What they still assert is this screen's own half: its sentences, and when it draws no control.
+ */
+const OFFER_DEFAULT = {
+  act: "play-blitz" as const,
+  label: "שחק עוד משחק",
+  because: "עוד החלטות מדודות.",
+};
+const offer: { current: typeof OFFER_DEFAULT | null } = { current: OFFER_DEFAULT };
+/* Reset per test: a shared mutable fixture that leaks is a test that passes for the wrong reason. */
+beforeEach(() => {
+  offer.current = OFFER_DEFAULT;
+});
+
 const show = (returning: boolean) => {
   const onPlay = vi.fn();
   const view = render(
     <trpc.Provider client={trpcClient} queryClient={client}>
       <QueryClientProvider client={client}>
-        <ResumeScreen returning={returning} standDown={false} onPlay={onPlay} />
+        <ResumeScreen
+          returning={returning}
+          standDown={false}
+          /*
+           * THE CANONICAL OFFER, SUPPLIED BY THE TEST BECAUSE IT IS SUPPLIED BY THE PAGE.
+           *
+           * This card used to compute its own action from `readResume` -- a two-kind vocabulary,
+           * `play` or `wait`, keyed on a blitz blocker -- which is exactly what made it unable to
+           * express a set in progress. The policy is now `proposeNextAction`'s and reaches this
+           * card as a prop, so these tests supply what `Record.tsx` supplies. What they still
+           * assert is this screen's own half: the sentences, and WHEN it declines to draw a
+           * control at all.
+           */
+          offer={offer.current}
+          onTakeOffer={onPlay}
+        />
       </QueryClientProvider>
     </trpc.Provider>,
   );
@@ -308,6 +342,13 @@ describe("a screen nobody reads twice", () => {
         [pending],
         thinRun("g1", 20).map((d) => ({ ...d, cpLoss: null, standingCp: null })),
       );
+      /*
+       * THE POLICY DECLINES HERE, AND THAT IS NOW WHERE THE DECISION LIVES. `wait-analysis` names
+       * no act -- `actFor` returns null for it -- so `presentOnResume` returns null and the page
+       * hands this card no offer. The screen's job is to draw nothing and say what is happening,
+       * which is what the two assertions below check.
+       */
+      offer.current = null;
       show(true);
       expect(document.querySelector(".finding__action")).toBeNull();
       expect(glance()).not.toContain("שחק עוד משחק");

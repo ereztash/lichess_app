@@ -65,6 +65,13 @@ import {
   type NextActionKind,
   type ProductState,
 } from "../shared/next-action";
+import { proposeNextAction, UNIMPLEMENTED, UNOBSERVED } from "../shared/next-action";
+import { presentOnResume } from "../shared/resume-presentation";
+import { presentOnPostGame } from "../shared/post-game-presentation";
+import type { SurfacePresenter } from "../shared/surface-offer";
+import { localProductPolicy, renamedIntents, unrenderedKinds } from "../shared/authority-scan-ui";
+import { presentRenaming } from "../tests/fixtures/authority-ui/renaming-presenter";
+import { presentThin } from "../tests/fixtures/authority-ui/thin-presenter";
 import { continuationOffer } from "../shared/continuation-offer";
 import {
   COMMITMENT_READ_FAILED,
@@ -188,6 +195,8 @@ function runVitestFile(
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
 const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
+/** The architecture->UI boundary, broken on purpose. G1/G2/G5/G7's controls. */
+const AUTHORITY_UI_FIXTURES = "tests/fixtures/authority-ui";
 /**
  * The product's one `continue-run` control, as it stood when it lived only inside the run.
  *
@@ -455,6 +464,79 @@ const shadowSurfacesLive = (roots: string[]): GateResult => {
     return fail(`${HARNESS_ERROR} the control fixture instruments every declared surface`);
   }
   return fromFindings(findings, "every declared shadow surface has a live call site");
+};
+
+/**
+ * THE ARCHITECTURE->UI GATES. Predicates live in `shared/authority-scan-ui.ts`; these wrap them.
+ *
+ * THE SPLIT IS WHAT MAKES THE CONTROLS MEAN ANYTHING. Each gate and its control call the identical
+ * predicate over different input -- a presenter set, or a file list -- so a red control proves the
+ * predicate detects the violation rather than proving a weaker predicate does.
+ */
+const LIVE_PRESENTERS = [presentOnResume, presentOnPostGame];
+
+const sourcePairs = (roots: string[]): { path: string; source: string }[] =>
+  roots.flatMap((root) =>
+    sourceFiles(root).map((file) => ({ path: file, source: readFileSync(file, "utf8") })),
+  );
+
+const canonicalActionReachable = (presenters: readonly SurfacePresenter[]): GateResult => {
+  const findings = unrenderedKinds(presenters);
+  return fromFindings(findings, "every canonical kind that names an act has a renderer");
+};
+
+const semanticPreservation = (presenters: readonly SurfacePresenter[]): GateResult => {
+  const findings = renamedIntents(presenters);
+  return fromFindings(findings, "no presenter renames the act it was handed");
+};
+
+const noLocalProductPolicy = (roots: string[]): GateResult => {
+  const findings = localProductPolicy(sourcePairs(roots));
+  if (findings.length === 0 && roots.every((r) => r === AUTHORITY_UI_FIXTURES)) {
+    return fail(`${HARNESS_ERROR} the authority-UI control fixture no longer names a product act`);
+  }
+  return fromFindings(findings, "no surface introduces a product act outside the canonical contract");
+};
+
+/**
+ * G3 -- unknown never becomes an answer, and unimplementable never becomes blindness.
+ *
+ * ASKED OF THE LADDER DIRECTLY rather than of a surface, because it is a property of the policy.
+ * Its control inverts the one line that separates the two, which is the line this migration added.
+ */
+const noFabricatedState = (
+  propose: (state: ProductState) => { action: NextAction; blind: readonly string[] },
+): GateResult => {
+  const base: ProductState = {
+    pendingAnalyses: 0,
+    analysisRunning: false,
+    drill: observed(null),
+    transfer: observed(null),
+    unseenEvent: UNIMPLEMENTED,
+    untestedRule: observed(null),
+    claimState: { kind: "nothing-separated", scored: 40 },
+    blitzStanding: { may: true, because: "no-games", readable: 40, needs: null } as never,
+    decisionsOnRecord: 12,
+    anchor: { answered: 8, total: 8 },
+  };
+  const findings: Finding[] = [];
+  const unread = propose({ ...base, drill: UNOBSERVED });
+  if (unread.blind.length === 0) {
+    findings.push({
+      file: "shared/next-action.ts",
+      line: 1,
+      text: "an unread drill produced a sound proposal: unknown became an answer",
+    });
+  }
+  const unimplemented = propose(base);
+  if (unimplemented.blind.includes("unseenEvent")) {
+    findings.push({
+      file: "shared/next-action.ts",
+      line: 1,
+      text: "an unimplementable input was charged as blindness, poisoning every branch below it",
+    });
+  }
+  return fromFindings(findings, "unknown stays unknown and unimplementable is not blindness");
 };
 
 /**
@@ -1456,6 +1538,59 @@ export const GATES: Gate[] = [
               : reading.transfer,
         }),
       ),
+  },
+  {
+    id: "GATE-CANONICAL-ACTION-REACHABLE",
+    rule: "LAW 3",
+    description: "Every canonical action that names an act has at least one surface that renders it.",
+    run: () => canonicalActionReachable(LIVE_PRESENTERS),
+    positiveControl: () =>
+      /*
+       * A SURFACE SET THAT RENDERS ONE KIND. The failure is a canonical kind nobody can show --
+       * which is what `review-event` would have been if the presenters had simply omitted the
+       * branch, and what every kind but two WAS before this migration.
+       */
+      canonicalActionReachable([presentThin]),
+  },
+  {
+    id: "GATE-SEMANTIC-PRESERVATION",
+    rule: "LAW 3",
+    description: "A surface presenter may reword a canonical act and may not rename it.",
+    run: () => semanticPreservation(LIVE_PRESENTERS),
+    positiveControl: () =>
+      /*
+       * A PRESENTER THAT LOOKS LIKE COPY AND IS A POLICY. It rewords `continue-drill` into "new
+       * game" and stamps `play-blitz` -- demoting a pre-registered set in progress to another
+       * blitz, in the layer built to make that impossible.
+       */
+      semanticPreservation([presentRenaming]),
+  },
+  {
+    id: "GATE-NO-LOCAL-PRODUCT-POLICY",
+    rule: "LAW 3",
+    description:
+      "No production surface names a product act of its own outside the canonical contract, and " +
+      "no allowlisted file ranks several.",
+    run: () => noLocalProductPolicy(["client/src"]),
+    positiveControl: () => noLocalProductPolicy([AUTHORITY_UI_FIXTURES]),
+  },
+  {
+    id: "GATE-NO-FABRICATED-STATE",
+    rule: "LAW 4",
+    description: "Unread input stays unsound; an unimplementable input is not charged as blindness.",
+    run: () => noFabricatedState(proposeNextAction),
+    positiveControl: () =>
+      /*
+       * THE LADDER AS IT WAS: every unobserved input charged as blindness, including the one the
+       * product cannot produce. One line, and it made eight of eleven proposals permanently
+       * unsound -- which is exactly why authority had never transferred.
+       */
+      noFabricatedState((state) => {
+        const p = proposeNextAction(state);
+        const blind = [...p.blind];
+        if (!state.unseenEvent.observed && !blind.includes("unseenEvent")) blind.push("unseenEvent");
+        return { action: p.action, blind };
+      }),
   },
   {
     id: "GATE-ONE-PRIMARY-ACTION",

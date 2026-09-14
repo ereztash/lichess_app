@@ -1,188 +1,131 @@
-# Architecture → UI state map
+# Architecture → UI: the state map
 
-Companion to `ARCHITECTURE_UI_AUTHORITY_CURRENT_STATE.md`, which froze the position before the
-work. This says where each canonical input comes from **now**, and — more importantly — how each
-one says that it does not know.
+What the canonical policy reads, where each input comes from, and what happens when it cannot be
+read. Companion to `ARCHITECTURE_UI_CURRENT_STATE.md` (the before) and
+`ARCHITECTURE_UI_AUTHORITY_MIGRATION.md` (what moved).
 
 ---
 
-## 1. The change that makes every other row possible
+## 1. The chain, as built
 
-`ProductState` had four fields whose only value was `null`, and `null` already meant *there is
-none*. A surface that had never asked for a drill had one value available to it, and the value
-meant something else. So every shadow row this product ever wrote asserted **"no drill is
-running"** on the authority of a screen that could not have known.
-
-`shared/next-action.ts` now carries:
-
-```ts
-export type Observed<T> = { observed: true; value: T } | { observed: false };
+```text
+RecordStore  ──►  continuationReading / blitzReading / claimView / recordReading
+                        │
+                        ▼
+                  productStateFor            assembles ProductState, marks what was not read
+                        │
+                        ▼
+                  proposeNextAction          ONE ladder, 12 branches, 11 kinds + blind list
+                        │
+                        ▼
+                  useCanonicalAction         unknown | unsound | sound
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+   presentOnResume  presentOnPostGame  (future surfaces)      wording, per surface
+          │             │
+          ▼             ▼
+   useCanonicalRouting                                        destination, shell-owned
 ```
 
-`{ observed: true, value: null }` is *a record with no drill in it*.
-`{ observed: false }` is *a screen that has not been told*.
-
-These are different facts and they now have different values. **The type no longer offers a way to
-be silently blind**: the only way to say "I read it" is to hand over the value.
-
-### And the blindness reaches the derivation, not just the ledger
-
-`proposeNextAction` returns the proposal **and the prefix of higher-ranked inputs that went
-unread**:
-
-```ts
-interface NextActionProposal {
-  action: NextAction;
-  blind: readonly BlindableInput[];   // empty ⇒ nothing that could have outranked this went unseen
-}
-```
-
-`soundProposal(p)` is `p.blind.length === 0`. **That predicate is the authority gate.** A screen
-rendering a proposal with non-empty `blind` is rendering an answer that a fact it could not see
-would have overruled.
-
-`SURFACE_BLIND_SPOTS` — a hand-maintained `Record<ShadowSurface, string[]>` that reached the ledger
-and never reached the derivation — is **deleted**. It was wrong in both directions: it named four
-inputs on rows where those inputs ranked *below* the branch that fired, and it could not have
-noticed a surface that gained a reader, because it was maintained by attention.
+Four owners, one job each. The policy ranks; the presenter words; the shell routes; the surface
+draws. None of them ranks anything another has ranked.
 
 ---
 
-## 2. Input by input
+## 2. Every input the policy reads
 
-| `ProductState` field | Source now | How it says "unknown" | Status |
-|---|---|---|---|
-| `pendingAnalyses` | `useBlitzReading()` games filtered on `pending` | gated: `useProductState` returns `null` until the reading resolves | unchanged |
-| `analysisRunning` | `useBlitzAnalysis().scoring !== null` | same gate | unchanged |
-| `drill` | **`useContinuation()` → `continuationReading(store)`** | `UNOBSERVED` while the query is unsettled | **new — branch 1 is reachable** |
-| `transfer` | **same read** | `UNOBSERVED` | **new — branch 2 is reachable** |
-| `unseenEvent` | — | `UNOBSERVED`, permanently | **deliberately unbuilt — §4** |
-| `untestedRule` | **same read** | `UNOBSERVED` | **new — branch 5 is reachable** |
-| `claimState` | `claimStateOf(useClaimView().data)` | `{ kind: "unread" }` | unchanged, was already honest |
-| `blitzStanding` | `useBlitzReading()` | `null` = not read yet | unchanged, was already honest |
-| `decisionsOnRecord` | `useDecisionCount()` | `0` while loading | unchanged |
-| `anchor` | `useRecordReading()` + `ANCHOR_POSITIONS.length` | — | unchanged; `anchor.total` is still the *current* set, not the answered set |
+| Input | Source | Unavailable is represented as | Fabricated? |
+| --- | --- | --- | --- |
+| `drill` | `listOpenDrills` → `continuationReading` | `UNOBSERVED` → proposal unsound | no |
+| `transfer` | `getOpenLearningTransfer` per rule | `UNOBSERVED` → proposal unsound | no |
+| `untestedRule` | `listLearningRules` + grade/retrieval step | `UNOBSERVED` → proposal unsound | no |
+| `unseenEvent` | **nothing produces it** | `UNIMPLEMENTED` → branch skipped, **not** charged as blindness | no |
+| `pendingAnalyses` | `StoredBlitzGame.analysisState === "pending"` | counted, never inferred | no |
+| `analysisRunning` | the page-level queue runner | passed in, never hard-coded | no |
+| `claimState` | `claimStateOf(useClaimView())` | `{ kind: "unread" }` | no |
+| `blitzStanding` | `blitzReading.standing` | `null`, and the ladder answers `none` | no |
+| `decisionsOnRecord` | `countDecisions` | `0` only when the query answered `0` | no |
+| `anchor` | `recordReading.anchorAnswered` vs `ANCHOR_POSITIONS` | `0` of the current set | see note |
 
-**Truthful canonical state coverage: 10 of 11 inputs.** The one that is not is `unseenEvent`, and
-it is not an omission — see §4.
-
----
-
-## 3. Where the continuation reading comes from, and what was *not* built
-
-`shared/continuation.ts` holds both the arithmetic and the read.
-
-```
-listOpenDrills()            ─┐
-listLearningRules()          ├─► continuationReading(store) ─► { active, untestedRule }
-listAtoms()                  │
-getOpenLearningTransfer(id)  │
-listLearningTransferObservations(id) ─┘
-```
-
-**Nothing new is stored.** Both kinds of run were *already* written down before their first
-position was shown — `beginDrill` calls `store.saveDrill`, `beginLearningTransfer` calls
-`store.saveLearningTransfer` — because a test whose terms are not recorded in advance is not
-pre-registered. What was missing was never a write. It was a **read**.
-
-### The one store method that had to be added
-
-`listOpenDrills()` — the drill's counterpart to `getOpenLearningTransfer`, which already existed
-and whose own comment states the argument:
-
-> Losing a tab is not misconduct, and a rule whose test can be started but never finished is a rule
-> that can only be refuted by accident.
-
-A drill is the same object one authorship over, and it had no such reader. Added to the interface
-and to all three implementations (MySQL, in-memory, browser-local). Drills with no recorded
-direction are **omitted rather than thrown on**: `getDrill` refuses to hand back an ungradeable
-spec, and a list that threw for one legacy row would hide every open drill behind the oldest bad
-one.
-
-### `done` needs no new write, and that is a property of drills rather than a convenience
-
-`beginDrill` selects positions with `selectDrillPositions(available, decidedFens, …)` — **every
-position in a drill spec is one the player had not decided when the drill started.** So an atom on
-a drill's fen can only have been recorded during the drill, and counting them is exact without a
-timestamp. `drillProgress` is that count.
-
-The transfer needs no such argument: it already writes each observation as it happens, and
-`record-store.ts` says why — *"These used to be held in React state for the whole run and reach the
-server only at completion, and three defects came out of that one choice."*
-
-### What is deliberately still component-local
-
-**The cursor.** Which position of the run is on screen right now is genuinely `Home.tsx`'s, it is
-genuinely lost on navigation, and centralising it would be lifting eight `useState` hooks into a
-store to answer a question the policy never asks. The policy asks whether a run is **open** and how
-much of it is **done**. Both are now answerable from the record.
-
-Resuming a drill *mid-position* after a reload remains unfixed and is named in
-`ARCHITECTURE_UI_AUTHORITY_TRANSFER.md`.
-
-### `untestedRule` is `grade === "hypothesis" && retrieval_step === 0`, and the second conjunct is the one that matters
-
-`gradeLearningRule` folds every completed sitting over the rule and steps `retrieval_step` per
-result, so a rule tested once and neither replicated nor refuted is **still graded `hypothesis`**,
-with `retrieval_step > 0`. Reading the grade alone would call that rule untested — and
-`test-hypothesis` means *"a pattern was found retrospectively and needs a forward test that could
-come back negative."* A test that already came back is not that.
-
-Whether a rule that *has* been tested is **due again** is the retrieval schedule's question
-(`next_due_at`) and is deliberately not answered here. A derivation proposing a scheduled
-repetition under the sentence *"your rule has never been tested"* would be saying something false
-to the player.
-
-A rule whose transfer is **already running** is not untested either — it is branch 2, not branch 5.
-Proposing that the player start a forward test they are three positions into would offer them a
-second draw over the same rule, which is the exact thing `getOpenLearningTransfer` exists to refuse.
+**Note on `anchor.total`.** It is the size of the *current* anchor set, and a record answered under
+an older `ANCHOR_SET_VERSION` would be measured against a set it never saw. This was acceptable in a
+shadow and is less so now that the value can route a player. It is recorded here rather than fixed,
+because fixing it means versioning the answered set and that is a record change, not a wiring one.
 
 ---
 
-## 4. `unseenEvent`: an anti-build decision, recorded
+## 3. The three answers, and what a surface may do with each
 
-**Nothing was built, and nothing should be until the evidence below exists.**
+| `useCanonicalAction` | Meaning | Surface may | Surface may **not** |
+| --- | --- | --- | --- |
+| `unknown` | readings have not settled | render its description, draw no primary control | substitute a product act of its own |
+| `unsound` | a readable input that could have **outranked** this went unread | as above | act on the action anyway |
+| `sound` | every input above the branch that fired was read | render the presenter's offer | rename the act |
 
-There is no seen-set anywhere in the repository — no writer, no reader, no storage. Every reference
-to `unseenEvent` on the SHA this began from was the type, the branch, or a test fixture.
-
-**What would justify building it.** A seen-set is only meaningful if the product can distinguish
-*a finding the player has looked at* from *a finding it has merely rendered*. That requires deciding
-what counts as "seen" — opened, dwelt on, acknowledged — and each answer is a different measurement.
-`docs/decisions/D21-feedback-exposure.md` is why this is not a detail: decisions taken after a
-player has seen feedback are pooled with decisions taken before, and **no field in the record can
-separate them**. A seen-set is the field that would separate them, and inventing one casually would
-put a half-considered exposure marker into the record that every later analysis would read.
-
-**The behaviour that would require it:** a player returning to a record that holds a finding they
-have never opened, and the product offering them another game instead. That is observable — it
-needs the acquisition trial, not more code.
-
-**What stays blind until then.** `review-event` is branch 4 of 12, so **every proposal ranked below
-it carries `blind: ["unseenEvent"]`** and is therefore unsound by `soundProposal`. Concretely:
-`test-hypothesis`, `test-claim`, `play-first-decision`, `play-blitz`, `collect-more-evidence`,
-`return-record` and `none` **cannot be handed authority** while this input is missing.
-
-That is not a limitation of the design. It is the design reporting, correctly, that seven of its
-twelve answers rest on a fact nobody has measured.
+`unsound` is the one that matters. It is not "the policy failed"; it is "the ranking was computed
+without a competitor that might have won". Acting on it would be acting on a ranking that was never
+complete, and substituting the surface's old default would reintroduce the parallel policy through
+the error path.
 
 ---
 
-## 5. Surfaces, now
+## 4. `unseenEvent`: unimplementable, not unread
 
-| Surface | Instrumentation | Cost | Why that shape |
-|---|---|---|---|
-| **resume** | `useNextActionShadow("resume", …)` in `ResumeScreen` | lazy chunk, already paid | unchanged |
-| **post-game** | `useNextActionShadow("post-game", …)` in `PostGame` | **≈ free** | `/blitz` is a lazy route and `Blitz.tsx` already imports the blitz reading chain |
-| **record** | `<NextActionProbe surface="record" />`, lazily mounted in `Record.tsx` | **out of the entry chunk** | `Record.tsx` *is* the entry chunk; a direct hook is +16.1 kB against 0.2 kB of headroom |
-| **Reveal** | none, deliberately | — | `next-decision` is reachable from no `NextActionKind` **by design**; a shadow there would manufacture 100 % disagreement out of a correct architecture |
+This is the single modelling change that made the rest possible, and it is worth being exact.
 
-`resume` and `record` are **two states of one route**, not two routes. `ResumeScreen` returns
-`null` unless `returning`, so the record probe is gated on `!returning`. Two probes mounted
-together would read the same DOM through `offeredAct` and write two rows claiming to be about two
-surfaces — and the ledger would show perfect agreement between them as an artefact of their being
-the same page.
+`unseenEvent` sits at **branch 4**. Nothing in this repository produces it: no seen-set, no writer,
+no reader, no storage. It was modelled as `UNOBSERVED` — *"a surface did not read this"* — which put
+`blind: ["unseenEvent"]` on every branch below it.
 
-The existing browser walk had already found this shape from the other side: its first draft walked
-to `/record`, read a 404 as *"a surface with nothing to offer"*, and would have reported D22's
-reversal condition as met by a typo. **A surface is a state, not a URL.**
+Consequence: `soundProposal` was **false for 8 of the 11 kinds, permanently, for every surface, in
+every state**. `soundProposal` is the predicate authority transfer is gated on. The gate could
+never open, and the cause was recorded in `D22` as "the event set is unbuilt" when it was really
+"the ladder asserts that an impossible state might have outranked this one".
+
+`Observed<T>` now carries `unimplemented?: true`, and `proposeNextAction` skips those rather than
+charging them. **No seen-set was built. `review-event` is still unreachable and is reported as
+unreachable.** What changed is that its unreachability stopped being charged to the branches
+beneath it.
+
+`GATE-NO-FABRICATED-STATE` holds both directions: an unread input must still be unsound, and an
+unimplementable one must not be blindness. Its control inverts exactly that one line.
+
+---
+
+## 5. What survives which boundary
+
+| State | Survives reload | Survives navigation | Where it lives |
+| --- | --- | --- | --- |
+| open drill + progress + cursor | **yes** | **yes** | `drills` table + atoms bound by `drill_id` |
+| open transfer + observations | **yes** | **yes** | `learning_transfers` + per-position observations |
+| abandoned drill | **yes** | **yes** | `drills.abandoned_at` |
+| untested rule | **yes** | **yes** | `learning_rules` grade + `retrieval_step` |
+| claim under test | **yes** | **yes** | `claims` + `drill_results` |
+| blitz record, analysis backlog | **yes** | **yes** | `blitz_games.analysisState` |
+| in-run cursor within a position | no | no | `Home.tsx` / `useDrillRun`, deliberately |
+| which surface the player came from | no | no | not stored, and not needed |
+
+The last two are the line §5 of the mission draws. A drill's *identity and progress* cross every
+boundary because the product needs them there. Which half-move of position 4 is on screen does not
+cross, because nothing outside that screen asks.
+
+---
+
+## 6. The same act, two voices
+
+Proof that centralising policy did not homogenise the interface. Same record, same action, two
+surfaces:
+
+| Canonical action | Resume says | PostGame says |
+| --- | --- | --- |
+| `continue-drill` (4 of 8) | *"חזרה לסט"* — "התחלתם לבדוק את זה ועניתם על 4 מתוך 8 עמדות. סט חלקי לא בודק כלום." | *"חזרה לסט שהתחלתם"* — "יש סט פתוח, 4 מתוך 8 עמדות. הוא נרשם מראש, ולכן חצי ממנו לא בודק כלום." |
+| `play-blitz` | *"שחקו משחק קצר"* — "עוד החלטות מדודות הן מה שמאפשר את הבדיקה הראשונה." | *"משחק חדש"* — "עוד משחק מוסיף החלטות חדשות, וזה מה שמאפשר לבדוק אם משהו חוזר." |
+| `test-hypothesis` | *"בדקו את הכלל שכתבתם"* — "כתבתם כלל ואף פעם לא נבדק קדימה." | *"בדקו את הכלל שכתבתם"* — "הכלל שכתבתם עדיין לא נבדק על עמדות חדשות." |
+| `wait-analysis` | no control; the waiting sentence | no control |
+
+The act is identical in every row. The sentence never is. A returning player is being told what is
+waiting; a player who just finished a game is being told what this game changed.
+
+`GATE-SEMANTIC-PRESERVATION` holds the left column equal across surfaces and says nothing about the
+right.

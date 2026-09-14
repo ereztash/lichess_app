@@ -27,7 +27,7 @@ import { trpc } from "@/lib/trpc";
 import { ResumeScreen } from "@/components/ResumeScreen";
 import { LocalRecordStore } from "@/lib/local-record-store";
 import { clearProgress } from "@/lib/progress-record";
-import { PERMANENTLY_UNOBSERVED, offeredAct, productStateFor } from "@/lib/next-action-shadow";
+import { UNIMPLEMENTED_INPUTS, offeredAct, productStateFor } from "@/lib/next-action-shadow";
 import { actFor, agreesWith, BLINDABLE_INPUTS } from "@shared/next-action";
 import { PRIMARY_ACTIONS, primaryAction } from "@shared/primary-action";
 import { deriveNextAction } from "@shared/next-action";
@@ -160,7 +160,9 @@ describe("what the front door can and cannot supply", () => {
     expect(state.untestedRule.observed).toBe(false);
     /* And the one that stays blind on purpose, because nothing in the product writes it. */
     expect(state.unseenEvent.observed).toBe(false);
-    expect([...PERMANENTLY_UNOBSERVED]).toEqual(["unseenEvent"]);
+    /* Renamed: the list did not change, what it MEANS did. See `UNIMPLEMENTED_INPUTS`. */
+    expect([...UNIMPLEMENTED_INPUTS]).toEqual(["unseenEvent"]);
+    expect(state.unseenEvent.observed === false && state.unseenEvent.unimplemented).toBe(true);
   });
 
   it("carries a run it WAS given, and reports an empty record as an observed absence", () => {
@@ -270,7 +272,7 @@ function renderResume() {
   return render(
     <trpc.Provider client={client} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ResumeScreen returning standDown={false} onPlay={() => undefined} />
+        <ResumeScreen returning standDown={false} offer={null} onTakeOffer={() => undefined} />
       </QueryClientProvider>
     </trpc.Provider>,
   );
@@ -396,10 +398,27 @@ describe("on the screen, it changes nothing", () => {
      * where those inputs ranked BELOW the branch that fired. It is now the prefix that actually
      * outranked this proposal, so it is a subset of the blindable inputs and every member of it
      * outranks the answer. In this test the record is empty and unsigned-in, so the continuation
-     * read fails and every blindable input above the proposal is named.
+     * read fails and the READABLE inputs above the proposal are named.
+     *
+     * `unseenEvent` IS NOT AMONG THEM, AND THIS ASSERTION USED TO REQUIRE THAT IT WAS. Nothing in
+     * this product can produce a seen-set, so nothing can produce an unseen event, so nothing can
+     * outrank an answer from that branch. Naming it here asserted that something might have -- and
+     * because it sits at branch 4, that phantom competitor made eight of the eleven kinds
+     * permanently unsound, which is precisely why no surface could ever act on the policy.
+     * `shared/next-action.ts` now separates "unread" from "unimplementable"; only the first is
+     * blindness. No seen-set was built and `review-event` is still unreachable.
      */
     expect(row.blind.every((input: string) => (BLINDABLE_INPUTS as readonly string[]).includes(input))).toBe(true);
-    expect(row.blind).toContain("unseenEvent");
+    expect(row.blind).not.toContain("unseenEvent");
+    /*
+     * AND HERE IT IS EMPTY, WHICH IS THE WHOLE MIGRATION IN ONE ROW. The local record store
+     * resolves for this empty record, so drill, transfer and the untested rule are all genuinely
+     * READ and reported as observed absences. The only thing left on this row used to be
+     * `unseenEvent` -- an input nothing can produce -- and it alone made the proposal unsound and
+     * therefore unusable by any surface. With the phantom gone the row is sound, which is what
+     * lets a screen act on it instead of merely logging it.
+     */
+    expect(row.blind).toEqual([]);
   });
 
   it("records a proposal even on an empty record, where the screen renders nothing at all", async () => {

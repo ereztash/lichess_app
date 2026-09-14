@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-ארבעים ותשעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+חמישים ושלושה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -43,6 +43,10 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-NEXT-ACTION-RESOLVES-BLOCKER | LAW 3 | חסם שנענה בפעולה שמגדילה בדיוק את מה שחוסם |
 | GATE-SHADOW-SURFACE-LIVE | LAW 3 | משטח שמוכרז כנמדד ואין בו ולו קריאה אחת שמודדת אותו |
 | GATE-CONTINUATION-OUTRANKS | LAW 4 | ריצה פתוחה שנדחקת מתחת להצעה נמוכה ממנה בסולם |
+| GATE-CANONICAL-ACTION-REACHABLE | LAW 3 | פעולה קנונית שיש לה שם אך אין משטח שיודע להציג אותה |
+| GATE-SEMANTIC-PRESERVATION | LAW 3 | משטח שמשנה את המשמעות של הפעולה ולא רק את הניסוח שלה |
+| GATE-NO-LOCAL-PRODUCT-POLICY | LAW 3 | משטח שממציא לעצמו פעולת מוצר מחוץ לחוזה הקנוני |
+| GATE-NO-FABRICATED-STATE | LAW 4 | קלט שלא נקרא שהופך לתשובה, או קלט שאי אפשר לייצר שנרשם כעיוורון |
 | GATE-CONTINUE-REACHABLE-OFF-RUN | LAW 4 | הפעולה שמסיימת סט שכבר התחיל, כשאפשר להגיע אליה רק מתוך הריצה עצמה |
 | GATE-UNREAD-COMMITMENT-NOT-EMPTY | LAW 4 | קריאה שלא חזרה שמוצגת כרשומה שאין בה סט פתוח |
 | GATE-ONE-PRIMARY-ACTION | LAW 2 | דלת כניסה שמציעה שני מוצרים במשקל אחד |

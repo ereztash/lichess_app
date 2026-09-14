@@ -102,7 +102,6 @@ const show = (decisions: StoredBlitzDecision[]) =>
       reading={readBlitzGame(game(), decisions)}
       analysed={decisions.length}
       onSeePosition={vi.fn()}
-      onPlayAgain={vi.fn()}
     />,
   );
 
