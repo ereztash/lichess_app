@@ -38,6 +38,7 @@ import {
   producesEvidence,
   type NextAction,
   type ProductState,
+  observed,
 } from "@shared/next-action";
 import type { BlitzStanding } from "@shared/blitz-reading";
 import { reentryOf } from "@shared/spine";
@@ -48,10 +49,10 @@ const MAY: BlitzStanding = { may: true, readable: 400 };
 const SETTLED: ProductState = {
   pendingAnalyses: 0,
   analysisRunning: false,
-  drill: null,
-  transfer: null,
-  unseenEvent: null,
-  untestedRule: null,
+  drill: observed(null),
+  transfer: observed(null),
+  unseenEvent: observed(null),
+  untestedRule: observed(null),
   claimState: { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
   blitzStanding: MAY,
   decisionsOnRecord: DISCOVERY_FLOOR,
@@ -131,7 +132,7 @@ describe("the order the new input takes, and the three things it may not jump", 
      * FOUND IN THE RECORD. When both are open the player's goes first. The other order is the
      * Instrument-Telos failure in one line: the system asking its question before the person's.
      */
-    expect(next({ claimState: CANDIDATE, untestedRule: "r-1" })).toMatchObject({
+    expect(next({ claimState: CANDIDATE, untestedRule: observed("r-1") })).toMatchObject({
       kind: "test-hypothesis",
       ruleId: "r-1",
     });
@@ -143,7 +144,7 @@ describe("the order the new input takes, and the three things it may not jump", 
      * abandoning a run does not lose its decisions, it loses the only thing that made them a test.
      */
     expect(
-      next({ claimState: CANDIDATE, drill: { drillId: "d-1", done: 4, total: 8 } }).kind,
+      next({ claimState: CANDIDATE, drill: observed({ drillId: "d-1", done: 4, total: 8 }) }).kind,
     ).toBe("continue-drill");
   });
 

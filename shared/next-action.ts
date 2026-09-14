@@ -115,15 +115,51 @@ export type NextActionKind = NextAction["kind"];
  * `blitz-reading.ts`, the runs are `Home.tsx`'s, and `decisionsOnRecord` is the count the reveal
  * already carries. The value of gathering them is that the ORDER between them gets decided once.
  */
+/**
+ * AN INPUT THE SURFACE MAY NOT HAVE BEEN ABLE TO READ.
+ *
+ * WHY `null` COULD NOT CARRY THIS. Four fields below answer "is there one of these open?", and for
+ * each of them `null` already means NO. A surface that cannot see drills had one value available to
+ * it and the value meant something else, so every shadow row this product has ever written said
+ * "no drill is running" on the authority of a screen that could not have known.
+ *
+ * `blitzStanding` and `claimState` were already honest -- `null` is documented there as "not read
+ * yet", and `ClaimState` carries an `unread` kind -- and `deriveNextAction` answers `none` to both.
+ * The four fields that lied are the four that had nowhere to put the truth. This is that place.
+ *
+ * IT IS NOT A MAYBE AND IT IS NOT AN OPTION TYPE. `{ observed: true, value: null }` and
+ * `{ observed: false }` are different facts and the whole point is that they render differently:
+ * the first is a record with no drill in it, the second is a screen that cannot see drills.
+ */
+export type Observed<T> = { readonly observed: true; readonly value: T } | { readonly observed: false };
+
+/** A reading that was taken. */
+export const observed = <T>(value: T): Observed<T> => ({ observed: true, value });
+
+/** A reading that was not taken. Assignable to `Observed<T>` for every `T`. */
+export const UNOBSERVED: Observed<never> = { observed: false };
+
+/**
+ * The inputs a surface may be blind to, IN THE ORDER `deriveNextAction` CONSULTS THEM.
+ *
+ * THE ORDER IS THE WHOLE VALUE OF THE LIST. An unobserved input matters only to proposals ranked
+ * BELOW it: a screen that cannot see drills may still be trusted when it proposes `continue-drill`
+ * for a drill it CAN see, and may never be trusted when it proposes `return-record`, because the
+ * drill it could not see would have outranked that. `proposeNextAction` returns exactly the prefix
+ * of this list that went unread above the branch that fired.
+ */
+export const BLINDABLE_INPUTS = ["drill", "transfer", "unseenEvent", "untestedRule"] as const;
+export type BlindableInput = (typeof BLINDABLE_INPUTS)[number];
+
 export interface ProductState {
   /** Stored blitz games the engine has not scored. */
   pendingAnalyses: number;
   /** True while the queue is actually working on one, as opposed to merely having a backlog. */
   analysisRunning: boolean;
-  /** A drill in progress, or null. */
-  drill: { drillId: string; done: number; total: number } | null;
-  /** A transfer run in progress, or null. */
-  transfer: { transferId: string; done: number; total: number } | null;
+  /** A drill in progress, or null -- or UNOBSERVED where the surface cannot see runs at all. */
+  drill: Observed<{ drillId: string; done: number; total: number } | null>;
+  /** A transfer run in progress, or null -- or UNOBSERVED. */
+  transfer: Observed<{ transferId: string; done: number; total: number } | null>;
   /**
    * One stored decision worth showing that the player has not seen, or null.
    *
@@ -131,9 +167,9 @@ export interface ProductState {
    * action, it is a nag -- and re-showing a finding is exposure, which D21 says the record cannot
    * represent. The caller owns the seen-set; this module only asks whether one is outstanding.
    */
-  unseenEvent: { gameId: string; ply: number } | null;
-  /** A rule saved as a hypothesis and never tested forward, or null. */
-  untestedRule: string | null;
+  unseenEvent: Observed<{ gameId: string; ply: number } | null>;
+  /** A rule saved as a hypothesis and never tested forward, or null -- or UNOBSERVED. */
+  untestedRule: Observed<string | null>;
   /**
    * WHAT THE DECISION LANE'S ACCUMULATED EVIDENCE CURRENTLY SUPPORTS.
    *
@@ -202,75 +238,135 @@ export interface ProductState {
  *
  * 7. AND WHEN NOTHING IS BLOCKED, the record is where the answer is, not another game.
  */
+/**
+ * A proposal and the reason it might be wrong, as one value.
+ */
+export interface NextActionProposal {
+  readonly action: NextAction;
+  /**
+   * Inputs that OUTRANK `action` and were not read, in ladder order.
+   *
+   * Empty is the interesting value: it means nothing that could have beaten this proposal went
+   * unseen, which is the only condition under which a screen may render it.
+   */
+  readonly blind: readonly BlindableInput[];
+}
+
+/**
+ * WHETHER A PROPOSAL MAY BE ACTED ON, as opposed to merely recorded.
+ *
+ * THE ONE PREDICATE AUTHORITY TRANSFER IS ALLOWED TO CONSULT. A screen rendering a proposal whose
+ * `blind` is non-empty is rendering an answer that a fact it could not see would have overruled --
+ * which is the exact defect this migration exists to remove, arriving from the other direction.
+ * Shadows record unsound proposals; screens do not obey them.
+ */
+export function soundProposal(proposal: NextActionProposal): boolean {
+  return proposal.blind.length === 0;
+}
+
 export function deriveNextAction(state: ProductState): NextAction {
-  if (state.drill !== null) {
-    return { kind: "continue-drill", ...state.drill };
-  }
-  if (state.transfer !== null) {
-    return { kind: "continue-transfer", ...state.transfer };
-  }
-  if (state.pendingAnalyses > 0) {
+  return proposeNextAction(state).action;
+}
+
+/**
+ * THE SAME LADDER, WITH WHAT IT COULD NOT SEE ON THE WAY DOWN.
+ *
+ * WHY THE BLINDNESS IS RETURNED AND NOT LOGGED. A proposal and the reason it might be wrong are one
+ * fact, and the product had them in two places: the derivation returned an action, and
+ * `SURFACE_BLIND_SPOTS` -- a hand-maintained table in the SHADOW -- said which inputs that surface
+ * could not read. The table reached the ledger and never reached the derivation, so a screen could
+ * be handed `return-record` while a drill it could not see was running, and nothing in the value it
+ * received said so.
+ *
+ * `blind` IS THE PREFIX OF `BLINDABLE_INPUTS` THAT WENT UNREAD ABOVE THE BRANCH THAT FIRED, and
+ * therefore names exactly the proposals that could have outranked this one. Empty means every input
+ * that could have beaten this answer was actually read. That is the condition for authority, and
+ * `soundProposal` is it stated as a predicate.
+ *
+ * AN UNOBSERVED INPUT DOES NOT STOP THE LADDER, and the alternative was tried first. Returning
+ * `none` at the first blind input is safe and useless: `unseenEvent` has no implementation anywhere
+ * in the product (see `docs/ARCHITECTURE_UI_AUTHORITY_CURRENT_STATE.md` §4), so a derivation that
+ * halted there would answer `none` to every state forever. Carrying the blindness forward keeps the
+ * proposal available to a shadow that wants to compare it, and keeps it out of a screen that wants
+ * to act on it.
+ */
+export function proposeNextAction(state: ProductState): NextActionProposal {
+  const blind: BlindableInput[] = [];
+  const action = ((): NextAction => {
+    if (!state.drill.observed) blind.push("drill");
+    else if (state.drill.value !== null) {
+      return { kind: "continue-drill", ...state.drill.value };
+    }
+    if (!state.transfer.observed) blind.push("transfer");
+    else if (state.transfer.value !== null) {
+      return { kind: "continue-transfer", ...state.transfer.value };
+    }
+    if (state.pendingAnalyses > 0) {
     return {
       kind: "wait-analysis",
       games: state.pendingAnalyses,
       scoring: state.analysisRunning,
     };
-  }
-  if (state.unseenEvent !== null) {
-    return { kind: "review-event", ...state.unseenEvent };
-  }
-  if (state.untestedRule !== null) {
-    return { kind: "test-hypothesis", ruleId: state.untestedRule };
-  }
-  /*
-   * AND THE INSTRUMENT'S OWN OPEN QUESTION, UNDER THE SAME RULE 4 AND ONE RANK BELOW THE PLAYER'S.
-   *
-   * THIS IS WHERE THE LOOP BECOMES RECURSIVE. `awaitsForwardTest` is true only of a separation the
-   * search found and nothing has decided, so the branch fires once, changes what happens next, and
-   * stops firing the moment a drill has graded it in either direction -- including when the drill
-   * REFUTED it. A derivation that kept proposing the test after the answer arrived would be a
-   * system that only accumulates confirmation.
-   *
-   * IT IS ABOVE THE ANCHOR SHORTFALL AND BELOW THE UNSEEN EVENT, and both placements are the file's
-   * existing arguments rather than new ones. Rule 3: a finding nobody has read outranks collecting
-   * more. Rule 4: nothing is coaching until it could have come back negative, so a question that
-   * can be settled outranks adding more evidence of the kind that raised it -- which is also
-   * `shared/claim.ts`'s rule from the other side, that more retrospective data can never promote a
-   * claim however much of it arrives.
-   */
-  if (awaitsForwardTest(state.claimState)) {
+    }
+    if (!state.unseenEvent.observed) blind.push("unseenEvent");
+    else if (state.unseenEvent.value !== null) {
+      return { kind: "review-event", ...state.unseenEvent.value };
+    }
+    if (!state.untestedRule.observed) blind.push("untestedRule");
+    else if (state.untestedRule.value !== null) {
+      return { kind: "test-hypothesis", ruleId: state.untestedRule.value };
+    }
+    /*
+     * AND THE INSTRUMENT'S OWN OPEN QUESTION, UNDER THE SAME RULE 4 AND ONE RANK BELOW THE PLAYER'S.
+     *
+     * THIS IS WHERE THE LOOP BECOMES RECURSIVE. `awaitsForwardTest` is true only of a separation the
+     * search found and nothing has decided, so the branch fires once, changes what happens next, and
+     * stops firing the moment a drill has graded it in either direction -- including when the drill
+     * REFUTED it. A derivation that kept proposing the test after the answer arrived would be a
+     * system that only accumulates confirmation.
+     *
+     * IT IS ABOVE THE ANCHOR SHORTFALL AND BELOW THE UNSEEN EVENT, and both placements are the file's
+     * existing arguments rather than new ones. Rule 3: a finding nobody has read outranks collecting
+     * more. Rule 4: nothing is coaching until it could have come back negative, so a question that
+     * can be settled outranks adding more evidence of the kind that raised it -- which is also
+     * `shared/claim.ts`'s rule from the other side, that more retrospective data can never promote a
+     * claim however much of it arrives.
+     */
+    if (awaitsForwardTest(state.claimState)) {
     return { kind: "test-claim", claimId: state.claimState.claimId };
-  }
-  /*
-   * NOT READ YET IS NOT UNBLOCKED. Everything above this line is a fact the caller holds
-   * synchronously -- a run in progress, a backlog it counted, an event it is holding -- and
-   * everything below depends on a reading that arrives late. `none` is the honest answer in
-   * between, and it is why `none` exists.
-   */
-  if (state.blitzStanding === null) return { kind: "none" };
-  if (state.decisionsOnRecord === 0 && !state.blitzStanding.may && state.blitzStanding.because === "no-games") {
+    }
+    /*
+     * NOT READ YET IS NOT UNBLOCKED. Everything above this line is a fact the caller holds
+     * synchronously -- a run in progress, a backlog it counted, an event it is holding -- and
+     * everything below depends on a reading that arrives late. `none` is the honest answer in
+     * between, and it is why `none` exists.
+     */
+    if (state.blitzStanding === null) return { kind: "none" };
+    if (state.decisionsOnRecord === 0 && !state.blitzStanding.may && state.blitzStanding.because === "no-games") {
     return { kind: "play-first-decision" };
-  }
-  if (!state.blitzStanding.may) {
+    }
+    if (!state.blitzStanding.may) {
     return {
       kind: "play-blitz",
       because: state.blitzStanding.because,
       needs: state.blitzStanding.needs,
     };
-  }
-  /*
-   * THE BLITZ RECORD MAY SPEAK. Whether the STANDARD loop still needs decisions is a separate
-   * question over a separate population, and this is the only place this module answers it.
-   */
-  if (state.decisionsOnRecord === 0) return { kind: "play-first-decision" };
-  if (state.anchor.answered < state.anchor.total) {
+    }
+    /*
+     * THE BLITZ RECORD MAY SPEAK. Whether the STANDARD loop still needs decisions is a separate
+     * question over a separate population, and this is the only place this module answers it.
+     */
+    if (state.decisionsOnRecord === 0) return { kind: "play-first-decision" };
+    if (state.anchor.answered < state.anchor.total) {
     return {
       kind: "collect-more-evidence",
       anchorAnswered: state.anchor.answered,
       anchorTotal: state.anchor.total,
     };
-  }
-  return { kind: "return-record" };
+    }
+    return { kind: "return-record" };
+  })();
+  return { action, blind };
 }
 
 /**

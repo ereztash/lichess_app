@@ -58,8 +58,11 @@ import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
+  observed,
   producesEvidence,
+  SHADOW_SURFACES,
   type NextAction,
+  type NextActionKind,
   type ProductState,
 } from "../shared/next-action";
 
@@ -178,6 +181,7 @@ function runVitestFile(
 
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
+const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
@@ -384,6 +388,130 @@ const asksAgain = (roots: string[]) =>
  * press has no business in the bytes every arrival downloads -- and because a toolbox that is
  * statically imported is one somebody can render unconditionally without noticing the cost.
  */
+/**
+ * EVERY DECLARED SHADOW SURFACE HAS SOMEWHERE THAT ACTUALLY MEASURES IT.
+ *
+ * WHAT WENT WRONG WITHOUT IT. `SHADOW_SURFACES` has named three screens since it was written and
+ * one of them had a call site. The other two were declared, instrumented by nothing, and the ledger
+ * they were absent from looked exactly like a ledger they agreed in -- `D22` found the same shape
+ * one layer down and fixed half of it: `trialEventSeen(name)` deduped across surfaces, so
+ * *"whichever screen rendered first wrote its row and every other surface was silently absent"*.
+ * That repair made a second surface's rows possible. Nothing made them REQUIRED.
+ *
+ * SILENCE MUST NEVER COUNT AS AGREEMENT, and a declaration with no call site is silence that reads
+ * as coverage.
+ *
+ * TWO SHAPES COUNT, AND BOTH ARE REAL INSTRUMENTATION. A hook called with the surface as a literal
+ * (`PostGame`), and the probe component mounted with the surface as a prop (`Record`, which is the
+ * entry chunk and cannot afford the hook -- see `NextActionProbe`'s header). What does NOT count is
+ * the surface name appearing in a type, a comment or the declaration itself, which is why the scan
+ * is anchored to the call and to the prop rather than to the word.
+ */
+const shadowSurfacesLive = (roots: string[]): GateResult => {
+  const findings: Finding[] = [];
+  const seen = new Map<string, string>();
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const source = readFileSync(file, "utf8");
+      const path = file.replaceAll("\\", "/");
+      for (const surface of SHADOW_SURFACES) {
+        const called = new RegExp(`useNextActionShadow\\(\\s*["'\`]${surface}["'\`]`).test(source);
+        const mounted = new RegExp(
+          `<NextActionProbe[^>]*surface=\\{?["'\`]${surface}["'\`]`,
+        ).test(source);
+        if (called || mounted) seen.set(surface, path);
+      }
+    }
+  }
+  for (const surface of SHADOW_SURFACES) {
+    if (!seen.has(surface)) {
+      findings.push({
+        file: "shared/next-action.ts",
+        line: 1,
+        text: `SHADOW_SURFACES declares "${surface}" and nothing instruments it`,
+      });
+    }
+  }
+  if (findings.length === 0 && roots.every((r) => r === SHADOW_FIXTURES)) {
+    /*
+     * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL -- the same hole `GATE-TOOLBOX-OUTSIDE-FOCUS`
+     * names. If the fixture instrumented all three, or were deleted, this would go green and the
+     * gate would be unproven.
+     */
+    return fail(`${HARNESS_ERROR} the control fixture instruments every declared surface`);
+  }
+  return fromFindings(findings, "every declared shadow surface has a live call site");
+};
+
+/**
+ * A RUN IN PROGRESS OUTRANKS EVERYTHING THE DERIVATION COULD OTHERWISE PROPOSE.
+ *
+ * WHY THIS IS A GATE AND NOT ONLY A TEST. It is LAW 4 stated over the derivation: *"a drill is a
+ * pre-registered set: eight positions chosen in advance to test one thing, and four of them tests
+ * nothing. Abandoning it does not lose the decisions -- they are all committed -- it loses the only
+ * thing that made them a test."* Everything below it in the ladder is a reason to go somewhere
+ * else, and each of them is individually plausible: eleven unscored games really are waiting, the
+ * player's own rule really is untested. The defect is not that any one of them is wrong; it is that
+ * any one of them can be placed above an open run by a single reordered `if`.
+ *
+ * THE MATRIX IS EVERY LOWER BRANCH AT ONCE, so a derivation that moved the run check below any of
+ * them fails here rather than in the one state somebody thought to write a test for.
+ */
+const continuationOutranks = (derive: (state: ProductState) => NextAction): GateResult => {
+  const findings: Finding[] = [];
+  const loud: Omit<ProductState, "drill" | "transfer"> = {
+    /* Every lower-ranked branch made as loud as it can be, simultaneously. */
+    pendingAnalyses: 11,
+    analysisRunning: true,
+    unseenEvent: observed({ gameId: "g", ply: 21 }),
+    untestedRule: observed("rule-1"),
+    claimState: { kind: "candidate", claimId: "c1" },
+    blitzStanding: { may: false, because: "nothing-scored", readable: 0, needs: null },
+    decisionsOnRecord: 0,
+    anchor: { answered: 0, total: 8 },
+  };
+  const cases: { name: string; state: ProductState; expect: NextActionKind }[] = [
+    {
+      name: "an open drill",
+      state: {
+        ...loud,
+        drill: observed({ drillId: "d1", done: 3, total: 8 }),
+        transfer: observed(null),
+      },
+      expect: "continue-drill",
+    },
+    {
+      name: "an open drill with nothing done yet",
+      state: {
+        ...loud,
+        drill: observed({ drillId: "d2", done: 0, total: 8 }),
+        transfer: observed(null),
+      },
+      expect: "continue-drill",
+    },
+    {
+      name: "an open transfer",
+      state: {
+        ...loud,
+        drill: observed(null),
+        transfer: observed({ transferId: "t1", done: 1, total: 3 }),
+      },
+      expect: "continue-transfer",
+    },
+  ];
+  for (const c of cases) {
+    const got = derive(c.state).kind;
+    if (got !== c.expect) {
+      findings.push({
+        file: "shared/next-action.ts",
+        line: 1,
+        text: `${c.name} proposed "${got}" instead of "${c.expect}"`,
+      });
+    }
+  }
+  return fromFindings(findings, "an open run outranks every lower-ranked proposal");
+};
+
 const toolboxBehindItsDoor = (roots: string[]): GateResult => {
   const findings: Finding[] = [];
   for (const root of roots) {
@@ -435,10 +563,10 @@ function nextActionResolves(derive: (state: ProductState) => NextAction): GateRe
   const base: ProductState = {
     pendingAnalyses: 0,
     analysisRunning: false,
-    drill: null,
-    transfer: null,
-    unseenEvent: null,
-    untestedRule: null,
+    drill: observed(null),
+    transfer: observed(null),
+    unseenEvent: observed(null),
+    untestedRule: observed(null),
     claimState: { kind: "unread" },
     blitzStanding: null,
     decisionsOnRecord: 40,
@@ -1155,6 +1283,31 @@ export const GATES: Gate[] = [
        * The control is not a contrived function; it is the mapping this product shipped.
        */
       nextActionResolves(() => ({ kind: "play-blitz", because: "nothing-scored", needs: null })),
+  },
+  {
+    id: "GATE-SHADOW-SURFACE-LIVE",
+    rule: "LAW 3",
+    description: "Every declared shadow surface has a live instrumentation call site.",
+    run: () => shadowSurfacesLive(["client/src"]),
+    positiveControl: () => shadowSurfacesLive([SHADOW_FIXTURES]),
+  },
+  {
+    id: "GATE-CONTINUATION-OUTRANKS",
+    rule: "LAW 4",
+    description: "A run in progress outranks every lower-ranked proposal the derivation can make.",
+    run: () => continuationOutranks(deriveNextAction),
+    positiveControl: () =>
+      /*
+       * THE LADDER WITH THE BACKLOG CHECK MOVED ABOVE THE RUN, which is the one-line reordering
+       * this gate exists to catch and is not contrived: `wait-analysis` is the branch P1.5 fought
+       * hardest for, it is the most defensible thing to promote, and promoting it abandons a
+       * pre-registered set to wait for an engine.
+       */
+      continuationOutranks((state) =>
+        state.pendingAnalyses > 0
+          ? { kind: "wait-analysis", games: state.pendingAnalyses, scoring: state.analysisRunning }
+          : deriveNextAction(state),
+      ),
   },
   {
     id: "GATE-ONE-PRIMARY-ACTION",

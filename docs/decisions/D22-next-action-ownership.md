@@ -1,8 +1,10 @@
 # D22 — may a derivation decide what the player is sent to next?
 
-**Mode:** `DEFER` — the derivation exists, one surface shadows it live, and the correspondence
-between what it proposes and what a control can name is now measured rather than waited for. No
-screen has been handed over.
+**Mode:** `DEFER` — **reversal condition 2 fired on 2026-09-14 and is recorded at the foot of this
+file.** The blind spots closed, all three declared surfaces are instrumented, and the derivation now
+reports which of its inputs it could not read. No screen has been handed over, and the reason is no
+longer measurement: it is that the two branches which now qualify name a control two of the three
+surfaces do not have.
 **Evidence level:** E2 — a reference behaviour reproduced beside the product and compared to it. It
 has never been compared against a person's judgement, and reversal condition 3 is why that matters.
 **Depends on:** `shared/next-action.ts`, `client/src/lib/next-action-shadow.ts`,
@@ -118,3 +120,53 @@ Any one of these takes a state, or reopens the design:
 4. **A screen offers an act the derivation cannot name.** The vocabulary is closed and the test
    above checks both directions, so this arrives as a red test rather than as a surprise — and it
    means either a new kind or a screen doing something the derivation has no theory of.
+
+---
+
+## REVERSAL CONDITION 2, FIRED — 2026-09-14
+
+> **The blind spots close.** A drill and a transfer live in `Home.tsx`'s component state and do not
+> survive navigating away — a LAW 4 defect with its own row. While they are invisible to every other
+> surface, `continue-drill` and `continue-transfer` are proposals no screen could ever have agreed
+> with, and a derivation cannot own a state whose highest-priority input it cannot see.
+
+They closed. The full account is in `docs/ARCHITECTURE_UI_AUTHORITY_CURRENT_STATE.md`,
+`…_STATE_MAP.md`, `…_SHADOW_RESULTS.md` and `…_AUTHORITY_TRANSFER.md`. What this decision has to
+record is the four things that changed underneath it.
+
+**The runs were never missing; the READ was.** `beginDrill` has always called `store.saveDrill` and
+`beginLearningTransfer` has always called `store.saveLearningTransfer`, both before the first
+position is shown, because a test whose terms are not written down in advance is not
+pre-registered. Nothing could read an open drill back except by an id only `Home.tsx` held.
+`listOpenDrills()` is the drill's counterpart to `getOpenLearningTransfer`, which already existed.
+
+**This file's cost argument was right about the record page and wrong about the post-game screen.**
+It declined to instrument both *"on two hot routes"* at +16.1 kB raw. `Record.tsx` genuinely is the
+entry chunk and the measured headroom on `a8e7e69` was 0.2 kB, so the conclusion holds there — and
+the answer turned out to be refusing the EAGERNESS rather than the instrumentation: `NextActionProbe`
+is dynamically imported, and the budget counts the entry chunk and what is eagerly fetched beside
+it. `/blitz` is a lazy route that already imports the blitz reading chain, so `post-game` cost
+approximately nothing and should not have been refused. Total measured cost of the whole change:
+**+0.9 kB entry raw**, attributed line by line in `scripts/check_bundle_budget.ts`.
+
+**`SURFACE_BLIND_SPOTS` was the wrong shape and is gone.** This file added it in good faith so a
+disagreement could be interpreted. It was a hand-maintained table that reached the LEDGER and never
+the DERIVATION — so a screen could be handed `return-record` while a drill it could not see was
+running, and nothing in the value it received said so. Blindness is now carried by `Observed<T>` in
+the state itself and reported by `proposeNextAction` as the prefix of higher-ranked inputs that went
+unread. `soundProposal` is that stated as the predicate authority transfer reads.
+
+**And the thing this decision could not have known:** `unseenEvent` sits at branch 4, nothing in the
+product writes a seen-set, and building one casually would put a half-considered exposure marker
+into a record that `D21` says cannot represent exposure at all. So **eight of eleven proposals are
+unsound as shipped**, and the three that are sound are branches 1, 2 and 3. That is not a verdict on
+the derivation. It is the derivation reporting, correctly, that most of its answers rest on a fact
+nobody has measured.
+
+**Reversal condition 1** — a screen and the derivation disagreeing in a walk over the built app — is
+now met too, and by construction rather than by accident: `continue-run` has one control in the
+product and it is inside the run. Every state with an open run, on the record page or the post-game
+screen, is a disagreement. **The defect it exposes is a missing affordance, not a misrouted one**,
+which is why no screen was handed over in the pass that found it.
+
+**Reversal condition 3 is untouched** and still needs the acquisition trial.

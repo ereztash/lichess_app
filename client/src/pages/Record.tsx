@@ -115,6 +115,16 @@ const ResumeScreen = lazyChunk(() =>
   import("@/components/ResumeScreen").then((m) => ({ default: m.ResumeScreen })),
 );
 
+/**
+ * The shadow for the `record` surface, in its own chunk.
+ *
+ * SEE `NextActionProbe`'s HEADER for why this is lazy rather than a hook: this file is the entry
+ * chunk and the reading chain it needs does not fit in it.
+ */
+const NextActionProbe = lazyChunk(() =>
+  import("@/components/NextActionProbe").then((m) => ({ default: m.NextActionProbe })),
+);
+
 function FirstDecision({
   knownUsername,
   /**
@@ -541,6 +551,31 @@ export default function Record() {
          */
         <Suspense fallback={<div className="resume resume--pending" aria-hidden="true" />}>
           <ResumeScreen returning onPlay={() => navigate("/blitz")} />
+        </Suspense>
+      )}
+
+      {/*
+        * THE `record` SURFACE'S SHADOW, AND IT IS GATED ON `!returning` FOR A REASON THAT IS NOT
+        * COST.
+        *
+        * `/` HAS TWO STATES AND THEY ARE TWO SURFACES. `ResumeScreen` returns null unless
+        * `returning`, so a returning visit is the `resume` surface and a first one is the `record`
+        * surface -- the same route, never both at once. `offeredAct` reads the first visible
+        * primary control off `document`, so two probes mounted together would read the SAME screen
+        * and write two rows claiming to be about two surfaces. The ledger would then show perfect
+        * agreement between `resume` and `record` as an artefact of them being the same page.
+        *
+        * The existing browser walk had already found this shape from the other side and said so:
+        * its first draft walked to `/record`, read a 404 as "a surface with nothing to offer", and
+        * would have reported D22's reversal condition as met by a typo. A surface is a state, not a
+        * URL.
+        *
+        * NO RESERVED SPACE AND NO FALLBACK, because unlike the resume card this renders nothing in
+        * either direction. A chunk that never arrives costs one row of telemetry.
+        */}
+      {!returning && (
+        <Suspense fallback={null}>
+          <NextActionProbe surface="record" />
         </Suspense>
       )}
 

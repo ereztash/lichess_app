@@ -29,6 +29,7 @@ import {
   TRANSFER_POSITION_COUNT,
 } from "../shared/learning-record.js";
 import * as service from "../shared/record-service.js";
+import { continuationReading } from "../shared/continuation.js";
 import { blitzRecordReading } from "../shared/blitz-record-reading.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
@@ -371,6 +372,12 @@ export function buildRecordRouter(store: RecordStore) {
 
     /** Cold-start reporting (section 6): the curve, not a single number. */
     count: ownerProcedure.query(() => guard(() => service.countDecisions(store))),
+
+    /**
+     * The run in progress and the rule nothing has tested -- `deriveNextAction`'s branches 1, 2
+     * and 5, which no surface could read before this procedure existed.
+     */
+    continuation: ownerProcedure.query(() => guard(() => continuationReading(store))),
 
     claim: ownerProcedure.query((): Promise<service.ClaimView> =>
       guard(() => service.currentClaim(store, { created_at: new Date().toISOString() })),

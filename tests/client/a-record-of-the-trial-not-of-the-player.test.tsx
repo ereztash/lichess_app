@@ -280,18 +280,38 @@ describe("nothing reads it back", () => {
 
     const callers = ["client/src", "shared", "server"]
       .flatMap((dir) => sources(resolve(root, dir)))
-      .filter((file) => /useNextActionShadow/.test(readFileSync(file, "utf8")))
+      /*
+       * A CALL, NOT A MENTION. This matched the bare identifier, so a module that merely NAMED the
+       * hook in a comment -- `continuation-api.ts` explains why its gating matters by describing
+       * what the shadow does with the value -- was collected as a caller and then failed the
+       * assertion below for not calling it. Prose about a function is not a call site.
+       */
+      .filter((file) => /\buseNextActionShadow\s*\(/.test(readFileSync(file, "utf8")))
       .map((file) => relative(root, file).replaceAll("\\", "/"))
       .filter((file) => file !== "client/src/lib/next-action-shadow.ts");
-    expect(callers).toEqual(["client/src/components/ResumeScreen.tsx"]);
-
-    const resume = readFileSync(resolve(root, "client/src/components/ResumeScreen.tsx"), "utf8");
-    expect(resume, "the resume screen never calls the shadow at all").toMatch(
-      /\n\s*useNextActionShadow\(/,
-    );
-    expect(resume, "the resume screen is listening to the shadow").not.toMatch(
-      /(?:const|let|var|=)\s*[^;\n]*useNextActionShadow\(/,
-    );
+    /*
+     * TWO CALLERS NOW, AND THE ASSERTION MOVED FROM THE LIST TO THE PROPERTY.
+     *
+     * This used to pin one filename, which made it a test about which screen was instrumented
+     * rather than about what instrumentation is allowed to do -- so it went red the moment a second
+     * surface gained a call site, for the reason that a second surface gained a call site.
+     * `GATE-SHADOW-SURFACE-LIVE` owns which surfaces must be measured; what belongs here is that
+     * NONE of them may listen to the answer.
+     *
+     * `NextActionProbe` is the second caller and renders `null`: it exists so the record page,
+     * which is the entry chunk, can be measured without the reading chain being downloaded by
+     * every arrival.
+     */
+    expect(callers.length, "no screen calls the shadow at all").toBeGreaterThan(0);
+    for (const caller of callers) {
+      const source = readFileSync(resolve(root, caller), "utf8");
+      expect(source, `${caller} does not actually call the shadow`).toMatch(
+        /\n\s*useNextActionShadow\(/,
+      );
+      expect(source, `${caller} is listening to the shadow`).not.toMatch(
+        /(?:const|let|var|=)\s*[^;\n]*useNextActionShadow\(/,
+      );
+    }
   });
 
   it("is not reachable from the shared measurements at all", () => {
