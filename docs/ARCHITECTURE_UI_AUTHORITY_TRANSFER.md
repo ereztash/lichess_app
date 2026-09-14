@@ -95,6 +95,51 @@ screen that already offers something.
 
 ---
 
+## 2b. The blocking precondition review found: an abandoned drill never closes
+
+**This is a pre-existing product gap that this change makes load-bearing for the first time, and it
+must be settled before `continue-drill` is rendered anywhere.**
+
+`beginDrill` writes the `StoredDrill` before the briefing renders — correctly, because a
+pre-registered set has to exist before its first position is shown. `closeDrill`
+(`client/src/pages/Home.tsx:1391`) resets eleven pieces of component state and **writes no result
+row**. `saveDrillResult` is reached only from `finishDrill`.
+
+So a player who opens a drill, reads the briefing and dismisses it leaves a drill that is **open in
+the record forever**. Nothing distinguishes it from one they walked away from mid-way and mean to
+finish, because the record stores no such distinction.
+
+Before this change that cost nothing: no surface could see open drills. Now branch 1 fires on it,
+`blind` is empty, and the proposal is **sound** — so a stale drill would be logged as the product's
+top proposal on every surface, indefinitely. That is the same class of defect as `analysisRunning`
+hard-coded `false`: a measurement about the measurer.
+
+**What was done here.** Two things that need no product decision:
+
+- the read takes the **newest** open drill, not the oldest, so a stale run cannot mask a live one;
+- **ungradeable** drills are omitted in all three stores, not just the MySQL one, per the interface
+  contract.
+
+**What was deliberately not done.** Closing a drill on abandon is a change to what the product
+*means* by abandoning one, and there are at least three defensible answers:
+
+1. **`closeDrill` writes an abandonment row.** Honest, and it forecloses resuming — which is the
+   opposite of what `getOpenLearningTransfer` argues for on the transfer side: *"Losing a tab is not
+   misconduct, and a rule whose test can be started but never finished is a rule that can only be
+   refuted by accident."*
+2. **A drill with `done === 0` is not a continuation.** Cheap, and it lets a player who dislikes the
+   positions dismiss the briefing and draw again — choosing their own evidence under a stamp that
+   says they did not, which is exactly what pre-registration exists to prevent.
+3. **`beginDrill` refuses a second open drill**, as `beginLearningTransfer` already does for
+   transfers. The most consistent with the existing domain, and the one that makes the stale drill a
+   blocker the player must resolve rather than a row the read has to guess about.
+
+**Option 3 is the one this document recommends**, on the ground that the transfer side already
+chose it and the drill side is the same object one authorship over. It is a product change, it is
+not in this pass, and `continue-drill` should not be rendered on any surface until it lands.
+
+---
+
 ## 3. Failure states (Phase 14)
 
 Canonical policy must not turn a failure into a fake normal state. Where each lands:
@@ -163,9 +208,14 @@ named as a missing control.
 
 ## 6. Exact next move
 
-**Add a `continue-run` control to the record page and the post-game screen**, gated on
-`soundProposal(proposal) && proposal.action.kind` being a run, then walk it in Chromium in a state
-with a drill actually open.
+**First, settle §2b** — an abandoned drill that never closes makes `continue-drill` unsafe to
+render however good the control is. Option 3 (`beginDrill` refuses a second open drill, as
+`beginLearningTransfer` already does) is the recommendation.
+
+**Then add a `continue-run` control** to the record page and the post-game screen, gated on
+`soundProposal(proposal) && proposal.action.kind` being a run, and walk it in Chromium with a drill
+actually open.
 
 That is the smallest change that turns the one confirmed disagreement class into a product the
-player can act on — and it is the only branch pair that has passed the transfer gate.
+player can act on — and it is the only branch pair that has passed the transfer gate. The order
+matters: the control without §2b would route a player to a run the record cannot tell is live.

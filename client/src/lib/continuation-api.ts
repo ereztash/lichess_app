@@ -38,19 +38,45 @@ import { trpc } from "@/lib/trpc";
  * that no drill is open on the authority of a request that had not come back.
  */
 export function useContinuation() {
-  const { local } = useRecordMode();
+  /*
+   * `serverStatus` AND NOT JUST `local`, AND THE DIFFERENCE IS A WRONG ROW WRITTEN ONCE AND KEPT.
+   *
+   * `useRecordMode` answers `local: true` until the storage probe comes back -- deliberately, and
+   * it says why: *"Guessing the other way would send the first decision of a session into a store
+   * that may reject it."* Right for a WRITE. Wrong for this read: a signed-in player whose record
+   * lives on the server would have this query answered from an empty `LocalRecordStore`, and
+   * `productStateFor` would stamp that empty answer `observed(null)` -- a positive claim that no
+   * drill is open, made from the wrong store.
+   *
+   * AND IT WOULD BE PERMANENT. `useNextActionShadow` writes once per visit per surface and
+   * `trialEventSeenOn` dedupes for the whole surface, so the first proposal is the only one ever
+   * recorded. `D22` found this exact shape twice in the shadow already -- `analysisRunning`
+   * hard-coded `false`, `offered` a constant -- and named it: a shadow that reports a made-up input
+   * is not a weaker shadow, it is one whose disagreements are about itself.
+   *
+   * `unknown` MEANS THE READ HAS NOT SETTLED, which `productStateFor` turns into `UNOBSERVED`.
+   * That is the honest answer and it is exactly what this migration added `Observed` to be able to
+   * say.
+   */
+  const { local, serverStatus } = useRecordMode();
+  const resolved = serverStatus !== "unknown";
   const store = useStore();
   const server = trpc.record.continuation.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
-    enabled: !local,
+    enabled: resolved && !local,
   });
   const localQuery = useQuery({
     queryKey: LOCAL_KEYS.continuation,
     queryFn: () => continuationReading(store),
-    enabled: local,
+    enabled: resolved && local,
     refetchOnWindowFocus: false,
   });
   const active = local ? localQuery : server;
-  return { data: active.data, isLoading: active.isLoading, isError: active.isError };
+  /* Not settled is not empty: an unresolved mode reports loading, never a record with no run. */
+  return {
+    data: resolved ? active.data : undefined,
+    isLoading: !resolved || active.isLoading,
+    isError: resolved && active.isError,
+  };
 }

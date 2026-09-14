@@ -440,7 +440,15 @@ export function useCompleteDrill() {
       const out = !local
         ? await server.mutateAsync(input)
         : await service.finishDrill(store, input, { recorded_at: new Date().toISOString() });
-      if (local) await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      /*
+       * THE CLAIM, ON BOTH PATHS. `finishDrill` grades the claim in either direction and it does so
+       * on the server too, but only the local branch invalidated anything here -- so a signed-in
+       * player finishing a drill kept a cached claim at its pre-drill grade. Same shape as the
+       * continuation gap below, one query over.
+       */
+      await (local
+        ? queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim })
+        : utils.record.claim.invalidate());
       /*
        * ON BOTH PATHS, AND THE SERVER ONE IS WHY THIS IS WRITTEN OUT. The local branch used to be
        * the only one that invalidated anything, because it was the only one whose store the client

@@ -718,6 +718,14 @@ export class LocalRecordStore implements RecordStore {
     const state = read();
     return Object.values(state.drills)
       .filter((d) => !state.drillResults.some((r) => r.drill_id === d.spec.drill_id))
+      /*
+       * THE SAME OMISSION THE INTERFACE MANDATES AND THE SERVER STORE MAKES. A drill whose
+       * direction was never recorded cannot be graded -- `getDrill` throws `MissingClaimDirection`
+       * rather than hand back an ungradeable spec -- so proposing that a player finish it would be
+       * proposing an act with no outcome. The state here is persisted JSON in `localStorage`, so a
+       * browser record written before the field existed really can hold one.
+       */
+      .filter((d) => typeof d.spec.predicts_overconfidence === "boolean")
       .sort((a, b) => a.started_at.localeCompare(b.started_at));
   }
 

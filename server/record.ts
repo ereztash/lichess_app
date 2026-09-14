@@ -1217,6 +1217,8 @@ export class MemoryRecordStore implements RecordStore {
   async listOpenDrills(): Promise<StoredDrill[]> {
     return [...this.drillRows.values()]
       .filter((d) => !this.drillResultRows.some((r) => r.drill_id === d.spec.drill_id))
+      /* The interface's omission rule, kept identical across all three stores. */
+      .filter((d) => typeof d.spec.predicts_overconfidence === "boolean")
       .sort((a, b) => a.started_at.localeCompare(b.started_at));
   }
 

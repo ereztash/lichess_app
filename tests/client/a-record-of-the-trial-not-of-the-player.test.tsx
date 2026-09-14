@@ -280,7 +280,13 @@ describe("nothing reads it back", () => {
 
     const callers = ["client/src", "shared", "server"]
       .flatMap((dir) => sources(resolve(root, dir)))
-      .filter((file) => /useNextActionShadow/.test(readFileSync(file, "utf8")))
+      /*
+       * A CALL, NOT A MENTION. This matched the bare identifier, so a module that merely NAMED the
+       * hook in a comment -- `continuation-api.ts` explains why its gating matters by describing
+       * what the shadow does with the value -- was collected as a caller and then failed the
+       * assertion below for not calling it. Prose about a function is not a call site.
+       */
+      .filter((file) => /\buseNextActionShadow\s*\(/.test(readFileSync(file, "utf8")))
       .map((file) => relative(root, file).replaceAll("\\", "/"))
       .filter((file) => file !== "client/src/lib/next-action-shadow.ts");
     /*

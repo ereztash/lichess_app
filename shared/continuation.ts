@@ -81,26 +81,6 @@ export function drillProgress(spec: DrillSpec, decidedFens: readonly string[]): 
 }
 
 /**
- * Pick the run to finish when the record holds more than one.
- *
- * THE DRILL WINS, AND IT IS `deriveNextAction`'s ORDER RATHER THAN A NEW ONE. `continue-drill` is
- * branch 1 and `continue-transfer` is branch 2; this function is that ordering applied one level
- * earlier so the derivation receives a single value. If the two ever need to be ranked differently,
- * they are ranked differently in ONE place.
- *
- * A DRILL WITH NOTHING DONE IS STILL OPEN. `done: 0` is a pre-registered set that has been drawn
- * and not started, which is exactly the state a player is in when they walk away from the briefing
- * -- and the state where re-drawing would let them choose their own evidence under a stamp that
- * says they did not. It outranks; it does not disappear.
- */
-export function activeContinuationOf(input: {
-  drills: readonly ActiveContinuation[];
-  transfers: readonly ActiveContinuation[];
-}): ActiveContinuation | null {
-  return input.drills[0] ?? input.transfers[0] ?? null;
-}
-
-/**
  * THE RUN THE PLAYER IS IN THE MIDDLE OF, AND THE RULE THEY WROTE THAT NOTHING HAS TESTED.
  *
  * ONE READ FOR TWO QUESTIONS, and they are two questions rather than one. The first is
@@ -128,7 +108,8 @@ export function activeContinuationOf(input: {
  * could not learn.
  */
 export async function continuationReading(store: RecordStore): Promise<{
-  active: ActiveContinuation | null;
+  drill: ActiveContinuation | null;
+  transfer: ActiveContinuation | null;
   untestedRule: string | null;
 }> {
   const [openDrills, rules, atoms] = await Promise.all([
@@ -137,26 +118,41 @@ export async function continuationReading(store: RecordStore): Promise<{
     store.listAtoms(),
   ]);
   const decidedFens = atoms.map((atom) => atom.entry_state.fen);
-  const drills: ActiveContinuation[] = openDrills.map((drill) => ({
-    kind: "drill",
-    runId: drill.spec.drill_id,
-    ...drillProgress(drill.spec, decidedFens),
-  }));
+  /*
+   * THE MOST RECENT, NOT THE OLDEST, AND THE REASON IS THE ONE THING THIS READ CANNOT SEE.
+   *
+   * `listOpenDrills` returns drills started and never reported -- which is not the same set as
+   * drills the player is still in. `closeDrill` (`Home.tsx:1391`) resets component state and writes
+   * no result row, so a drill drawn at the briefing and dismissed stays open in the record forever.
+   * Nothing in the record distinguishes it from one the player walked away from mid-way and means
+   * to finish, and this module is not the place to invent the distinction.
+   *
+   * What it CAN do is refuse to let a stale one mask a live one: taking the newest means a drill
+   * started ten seconds ago outranks one abandoned last month, so the proposal tracks what the
+   * player most recently chose to do. The stale-drill gap itself is a product question and is
+   * recorded as a blocking precondition in `docs/ARCHITECTURE_UI_AUTHORITY_TRANSFER.md`.
+   */
+  const newest = openDrills[openDrills.length - 1] ?? null;
+  const drill: ActiveContinuation | null =
+    newest === null
+      ? null
+      : { kind: "drill", runId: newest.spec.drill_id, ...drillProgress(newest.spec, decidedFens) };
 
   const ordered = [...rules].sort((a, b) => a.created_at.localeCompare(b.created_at));
-  const transfers: ActiveContinuation[] = [];
+  let transfer: ActiveContinuation | null = null;
   const beingTested = new Set<string>();
   for (const rule of ordered) {
     const open = await store.getOpenLearningTransfer(rule.rule_id);
     if (!open) continue;
     beingTested.add(rule.rule_id);
+    if (transfer !== null) continue;
     const seen = await store.listLearningTransferObservations(open.transfer_id);
-    transfers.push({
+    transfer = {
       kind: "transfer",
       runId: open.transfer_id,
       done: seen.length,
       total: open.fens.length,
-    });
+    };
   }
 
   /*
@@ -172,8 +168,5 @@ export async function continuationReading(store: RecordStore): Promise<{
         !beingTested.has(rule.rule_id),
     ) ?? null;
 
-  return {
-    active: activeContinuationOf({ drills, transfers }),
-    untestedRule: untested?.rule_id ?? null,
-  };
+  return { drill, transfer, untestedRule: untested?.rule_id ?? null };
 }

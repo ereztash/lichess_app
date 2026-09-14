@@ -149,7 +149,8 @@ describe("what the front door can and cannot supply", () => {
       decisionsOnRecord: 0,
       record: undefined,
       continuation: {
-        active: { kind: "drill", runId: "d1", done: 3, total: 8 },
+        drill: { kind: "drill", runId: "d1", done: 3, total: 8 },
+        transfer: null,
         untestedRule: null,
       },
     });
@@ -163,7 +164,7 @@ describe("what the front door can and cannot supply", () => {
       games: [],
       decisionsOnRecord: 0,
       record: undefined,
-      continuation: { active: null, untestedRule: null },
+      continuation: { drill: null, transfer: null, untestedRule: null },
     });
     expect(empty.drill).toEqual({ observed: true, value: null });
     expect(empty.untestedRule).toEqual({ observed: true, value: null });
@@ -175,7 +176,7 @@ describe("what the front door can and cannot supply", () => {
       games: [],
       decisionsOnRecord: 4,
       record: undefined,
-      continuation: { active: null, untestedRule: "rule-7" },
+      continuation: { drill: null, transfer: null, untestedRule: "rule-7" },
     });
     expect(deriveNextAction(state)).toEqual({ kind: "test-hypothesis", ruleId: "rule-7" });
   });

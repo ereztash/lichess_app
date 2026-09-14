@@ -130,7 +130,13 @@ export function productStateFor(input: {
    * screen that has not been told. The four fields this replaces had only the first value available
    * to them, so every shadow row ever written asserted the first while meaning the second.
    */
-  continuation: { active: ActiveContinuation | null; untestedRule: string | null } | undefined;
+  continuation:
+    | {
+        drill: ActiveContinuation | null;
+        transfer: ActiveContinuation | null;
+        untestedRule: string | null;
+      }
+    | undefined;
 }): ProductState {
   const runs = input.continuation;
   return {
@@ -141,31 +147,35 @@ export function productStateFor(input: {
     pendingAnalyses: input.games.filter((g) => g.analysisState === "pending").length,
     analysisRunning: input.analysisRunning,
     /*
-     * ONE READING, TWO BRANCHES, AND THE SPLIT HAPPENS HERE RATHER THAN IN THE SERVICE. The record
-     * can hold at most one run worth finishing -- `activeContinuationOf` decides which, once -- and
-     * the derivation asks two questions about it because the SENTENCES differ. Answering "is a
-     * drill open" with "the active run is a transfer" is the honest `null`: observed, and not a
-     * drill.
+     * TWO READINGS, REPORTED INDEPENDENTLY. This used to receive one pre-ranked `active` run and
+     * split it here -- which meant that with a drill AND a transfer both open, the transfer was
+     * reported as `observed(null)`: a POSITIVE claim that the record holds no open transfer, made
+     * by an assembly that had just been told it does. That is the exact defect `Observed` exists to
+     * make unrepresentable, reintroduced one layer up.
+     *
+     * The ranking was also in two places. `deriveNextAction` already puts `continue-drill` above
+     * `continue-transfer`; pre-ranking them in the read made that ordering a fact two modules had
+     * to agree about. Now the read reports what it found and the derivation decides, once.
      */
     drill:
       runs === undefined
         ? UNOBSERVED
         : observed(
-            runs.active?.kind === "drill"
-              ? { drillId: runs.active.runId, done: runs.active.done, total: runs.active.total }
-              : null,
+            runs.drill === null
+              ? null
+              : { drillId: runs.drill.runId, done: runs.drill.done, total: runs.drill.total },
           ),
     transfer:
       runs === undefined
         ? UNOBSERVED
         : observed(
-            runs.active?.kind === "transfer"
-              ? {
-                  transferId: runs.active.runId,
-                  done: runs.active.done,
-                  total: runs.active.total,
-                }
-              : null,
+            runs.transfer === null
+              ? null
+              : {
+                  transferId: runs.transfer.runId,
+                  done: runs.transfer.done,
+                  total: runs.transfer.total,
+                },
           ),
     unseenEvent: UNOBSERVED,
     untestedRule: runs === undefined ? UNOBSERVED : observed(runs.untestedRule),
