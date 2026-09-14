@@ -11,7 +11,13 @@
  * `completeDrill` is the only path that changes a grade. Moving them behind the transport would
  * make them bypassable by whichever caller skipped the router.
  */
-import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim.js";
+import {
+  evaluateClaim,
+  retireClaim,
+  type Claim,
+  type DrillSpec,
+  type ProspectiveDrillResult,
+} from "./claim.js";
 import { selectClaim } from "./claim-derivation.js";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
 import { probeEligibility } from "./counterfactual.js";
@@ -1262,6 +1268,38 @@ function sameLearningRule(a: LearningRule, b: LearningRule): boolean {
   );
 }
 
+/**
+ * Take a claim out of the queue because the player said it is not worth their effort.
+ *
+ * THE ONLY WRITE IN THE SERVICE THAT NO MEASUREMENT JUSTIFIES, and the symmetry with
+ * `retireLearningRule` below is the argument for it: what the player wrote, the player may stop
+ * pursuing, and until now what the instrument found, the player could only outlive.
+ *
+ * IT IS A READ AND A WRITE AND NOTHING BETWEEN THEM. No results are folded, no drill is consulted
+ * and no protocol is asked. `retireClaim` returns a replicated or refuted claim unchanged, so the
+ * write is a no-op on a question a forward test already answered -- which is why this is safe to
+ * call from a control that cannot know the grade before it is pressed.
+ *
+ * NOTHING CALLS IT FROM A SCREEN. `research/player-path/FIELD_RUN_CURRENT.md` freezes the stimulus,
+ * and a control is a surface. See `docs/decisions/D29-question-ownership.md` §M.
+ */
+export async function retireClaimById(
+  store: RecordStore,
+  input: { claim_id: string },
+  now: { retired_at: string },
+): Promise<Claim> {
+  const claim = await store.getClaim(input.claim_id);
+  if (!claim) throw new RecordError("NOT_FOUND", "אין טענה עם המזהה הזה.");
+  const retired = retireClaim(claim, now.retired_at);
+  /*
+   * WRITTEN ONLY WHEN IT CHANGES SOMETHING, on `gradeFromRecord`'s precedent: on a claim already
+   * replicated, refuted or retired, `retireClaim` returns the same object, and writing it back
+   * would put an identical row and a failure surface on a control that did nothing.
+   */
+  if (retired !== claim) await store.saveClaim(retired);
+  return retired;
+}
+
 export async function retireLearningRule(
   store: RecordStore,
   input: { rule_id: string },
@@ -1296,6 +1334,23 @@ export async function beginDrill(
     throw new RecordError(
       "PRECONDITION_FAILED",
       "הטענה כבר הופרכה. הפרכה סופית — לא בודקים אותה שוב.",
+    );
+  }
+  /*
+   * A QUESTION THE PLAYER TOOK OUT OF THE QUEUE IS NOT TESTED, AND THE SENTENCE MUST NOT READ LIKE
+   * THE ONE ABOVE IT.
+   *
+   * `preregisterLearningTransfer` already throws on a retired rule for the other authorship, and
+   * `record-service.ts` says why: a rule *"the player had deliberately retired, still handed"* a
+   * test is the product overruling a decision the player made. The two refusals are adjacent and
+   * say different things on purpose -- one reports a verdict, the other reports a choice -- because
+   * a player told "it was already refuted" about a question they withdrew has been told the
+   * instrument answered something it never asked.
+   */
+  if (claim.grade === "retired") {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      "הוצאת את הטענה מהתור. כדי לבדוק אותה צריך להחזיר אותה, ולא נבדקת טענה שלא ביקשת לבדוק.",
     );
   }
   /*

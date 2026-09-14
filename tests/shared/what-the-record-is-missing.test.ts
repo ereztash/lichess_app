@@ -289,6 +289,14 @@ describe("it is a router, not a coach", () => {
       { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
       { kind: "candidate", claimId: "c-1" },
       { kind: "decided", claimId: "c-1", grade: "refuted" },
+      /*
+       * `retired` CARRIES AN ID AND NOTHING ELSE, which is the vocabulary rule doing real work
+       * rather than being satisfied. The temptation on a withdrawal is a reason, a timestamp or a
+       * "not interested in" -- and a reason is a statement about what the claim is ABOUT, which is
+       * the one thing this union may never carry. The router needs to know the question was
+       * withdrawn. It must not learn what the question was.
+       */
+      { kind: "retired", claimId: "c-1" },
     ];
     /* Every kind is represented, so a member added later cannot slip past the vocabulary check. */
     expect(EVERY_STATE.map((state) => state.kind).sort()).toEqual([...CLAIM_STATE_KINDS].sort());

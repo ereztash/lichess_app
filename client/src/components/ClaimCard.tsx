@@ -30,6 +30,17 @@ const GRADE_MEANING: Record<Claim["grade"], string> = {
     "עלה מהחלטות שכבר שיחקת. עוד החלטות מאותו סוג לא יחזקו את זה — רק בדיקה על החלטות חדשות.",
   replicated: "עמד בבדיקה אחת לפחות על החלטות חדשות, שיכלה להפיל אותו.",
   refuted: "נבדק קדימה ונכשל. נשמר לתמיד, כדי שאותו דפוס שגוי לא יתגלה מחדש.",
+  /*
+   * THE SENTENCE HAS TO SAY THAT NOTHING WAS MEASURED, and it is the one place `retired` could be
+   * mistaken for `refuted`. It says what the player did, says the evidence is untouched, and makes
+   * no statement about the world in either direction.
+   *
+   * NOTHING CAN REACH THIS TODAY. No control retires a claim, so no claim on any screen carries
+   * this grade. It is written because the compiler required the row and a row that said less than
+   * this one would be the drift that gets shipped the day a control does exist.
+   */
+  retired:
+    "הוסר מהתור לפי בחירתך. לא נבדק ולא הופרך — ההחלטות שמאחוריו נשארות בדיוק כפי שהיו.",
 };
 
 /**

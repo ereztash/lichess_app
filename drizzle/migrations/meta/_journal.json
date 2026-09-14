@@ -148,6 +148,13 @@
       "when": 1789394868530,
       "tag": "0020_perpetual_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1789427184230,
+      "tag": "0021_nifty_rick_jones",
+      "breakpoints": true
     }
   ]
 }

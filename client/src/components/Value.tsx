@@ -12,7 +12,15 @@
  */
 import type { ReactNode } from "react";
 
-export type ClaimGrade = "hypothesis" | "replicated" | "refuted";
+/*
+ * THE THIRD HAND-WRITTEN COPY OF THIS VOCABULARY, and the last one. `CLAIM_GRADES` owns it,
+ * `loop-position.ts` had a copy and this file had another; all three read as exhaustive over a set
+ * that had grown. Composed rather than retyped, for the reason `claim-grade-protocol.ts` gives
+ * about `VALIDATION_KEYS`: *"A second hand-written copy of these strings is how a schema and its
+ * type drift apart."* Type-only, so the bundle is unchanged.
+ */
+export type { ClaimGrade } from "@shared/claim";
+import type { ClaimGrade } from "@shared/claim";
 
 /**
  * Where a displayed number came from. There is no `unknown` variant on purpose: a value whose
@@ -33,6 +41,12 @@ const GRADE_LABEL: Record<ClaimGrade, string> = {
   hypothesis: "השערה",
   replicated: "שוחזר",
   refuted: "הופרך",
+  /*
+   * A PROVENANCE LABEL SAYS WHERE A NUMBER CAME FROM, and retiring did not move the number. `n` is
+   * still the count the separation was found on, so the label names what the player did to the
+   * question and asserts nothing about the evidence beside it.
+   */
+  retired: "הוסר מהתור",
 };
 
 export function provenanceLabel(provenance: Provenance): string {

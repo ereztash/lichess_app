@@ -1028,7 +1028,30 @@ const INDEX = `${ROOT}/index.html`;
  * next commit's problem".
  *
  */
-const ENTRY_RAW_KB = 685;
+/**
+ * 685 -> 686 AND 778 -> 779: `D29`'s FOURTH CLAIM GRADE, MEASURED ON TOP OF `#120`.
+ *
+ * This branch's own earlier note, six above, measured 815 bytes against `e663ebc` and raised 679 to
+ * 680. That measurement is superseded rather than wrong: `#120` and `#121` landed between, raised
+ * the ceilings to 685 and 778 with 1.7 kB and 1.5 kB of headroom, and this change spends it.
+ * Re-measured on the merged tree rather than added to the old figure:
+ *
+ *     main at `373b235`, no `retired`          684.3      214.0       777.5
+ *     this branch merged onto it               685.0      214.1       778.2   +0.7 / +0.7
+ *
+ * Both rows built and read here, the baseline in a worktree at `373b235`, neither carried over
+ * from an earlier note.
+ *
+ * 686 AND 779 LEAVE 1.0 kB AND 0.8 kB. Thinner than the 1.7 kB above it and deliberately not
+ * rounded up further: the next change to `shared/` should have to state its own case here rather
+ * than inherit room this one asked for. `ENTRY_GZIP_KB` is untouched at 215 with 214.1 measured,
+ * and remains the tightest of the three.
+ *
+ * WHAT THE BYTES ARE. A fourth member on `CLAIM_GRADES` and the four `Record<ClaimGrade, ...>`
+ * tables that must then name it, the `evaluateClaim` guard that runs before the fold, and the store
+ * refusals. No control, no route, no screen: nothing a participant can reach is different.
+ */
+const ENTRY_RAW_KB = 686;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
@@ -1222,7 +1245,7 @@ const ENTRY_GZIP_KB = 215;
  * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 778;
+const INITIAL_RAW_KB = 779;
 
 interface Asset {
   name: string;

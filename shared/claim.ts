@@ -21,15 +21,51 @@ import {
 } from "./claim-grade-protocol.js";
 import type { ProtocolKind } from "./validation-protocol.js";
 
-export const CLAIM_GRADES = ["hypothesis", "replicated", "refuted"] as const;
+/**
+ * `retired` IS THE ONE THAT IS NOT A READING OF THE EVIDENCE, and it is here because the player's
+ * own hypotheses have had it from the beginning and the instrument's have not.
+ *
+ * `LEARNING_RULE_GRADES` is `["hypothesis", "replicated", "refuted", "retired"]`, and
+ * `learning-record.ts` says what the fourth is for: *"an act of the player's, not a reading of the
+ * evidence -- so it is checked before the fold and never rebuilt by it."* A rule the player retires
+ * leaves the queue; `preregisterLearningTransfer` throws on it; `saveLearningRule` refuses to take
+ * it back off.
+ *
+ * A CLAIM HAD NO SUCH EXIT. `awaitsForwardTest` is a pure function of the claim layer's
+ * `candidate`, so `deriveNextAction` proposed `test-claim` on every derivation until a DRILL graded
+ * the claim -- which means a question the player did not want could only be got rid of by answering
+ * it. The module that derives the proposal already forbids exactly this shape for the other field
+ * it carries: *"An event the product keeps re-offering is not a next action, it is a nag."*
+ * `unseenEvent` got that protection and `claimState` did not. See `docs/decisions/D29-question-ownership.md`.
+ *
+ * IT IS TERMINAL FOR PROPOSALS AND NOT FOR TRUTH. Nothing about the evidence changes: `n`,
+ * `supporting_decision_ids`, `statement` and `scope` are untouched, and the separation the detector
+ * found is exactly as strong as it was. What ends is the asking.
+ */
+export const CLAIM_GRADES = ["hypothesis", "replicated", "refuted", "retired"] as const;
 export type ClaimGrade = (typeof CLAIM_GRADES)[number];
 
-/** How a grade may be spoken about. A hypothesis is never given the word for a finding. */
+/**
+ * How a grade may be spoken about. A hypothesis is never given the word for a finding.
+ *
+ * `retired` MUST NOT BE SPEAKABLE AS `refuted`, and this table is the only place that can go wrong.
+ * One is a verdict the evidence produced; the other is a sentence the evidence never spoke. The
+ * words are chosen so that neither could be mistaken for the other by a reader who knows no English
+ * -- `הופרך` says something was shown false, `הוסר מהתור` says something left the queue -- and
+ * `tests/shared/a-question-nobody-agreed-to-answer.test.ts` holds the two apart rather than this
+ * paragraph.
+ */
 export const GRADE_WORD: Record<ClaimGrade, { he: string; en: string }> = {
   hypothesis: { he: "השערה", en: "hypothesis" },
   replicated: { he: "שוחזר", en: "replicated" },
   refuted: { he: "הופרך", en: "refuted" },
+  retired: { he: "הוסר מהתור", en: "retired" },
 };
+
+/** Grades that end the asking. `refuted` ends it with a verdict; `retired` ends it without one. */
+export function closedToProposal(grade: ClaimGrade): boolean {
+  return grade === "refuted" || grade === "retired" || grade === "replicated";
+}
 
 /**
  * Evidence gathered BEFORE the claim existed. It can form a hypothesis. It can never raise one.
@@ -213,6 +249,18 @@ export function formHypothesis(input: {
  */
 export function evaluateClaim(claim: Claim, results: ProspectiveDrillResult[]): Claim {
   /*
+   * A RETIRED CLAIM IS RETURNED UNCHANGED, AND THE CHECK HAS TO BE HERE RATHER THAN ANYWHERE LATER.
+   *
+   * The fold below opens by resetting the grade to `hypothesis` and replaying the results, which is
+   * what makes it idempotent and what makes it safe to run on a hot path. It is also what would
+   * silently un-retire a claim on the next read: the grade is not derivable from the results,
+   * because no result produced it. Same guard, same position and same reason as
+   * `gradeLearningRule`, which says it in one line: *"`retired` is the one thing not derivable this
+   * way -- it is an act of the player's, not a reading of the evidence -- so it is checked before
+   * the fold and never rebuilt by it."*
+   */
+  if (claim.grade === "retired") return claim;
+  /*
    * Ordered by when the drill was reported, because the fold reproduces the sequence the drills
    * happened in and `refuted` is terminal within it. Ties break on the drill id so the ordering is
    * total: two results stamped the same instant must not grade differently depending on row order.
@@ -258,6 +306,17 @@ function applyDrillResult(claim: Claim, result: ProspectiveDrillResult): Claim {
   }
 
   /*
+   * A RESULT THAT ARRIVES AFTER THE PLAYER RETIRED THE QUESTION IS RECORDED AND DOES NOT GRADE.
+   *
+   * `evaluateClaim` already returns a retired claim before reaching the fold, so this is the
+   * narrower case: a drill that was in flight when the question was retired, whose result lands
+   * afterwards. Discarding it would lose a measurement somebody actually produced; letting it grade
+   * would let the instrument answer a question the player had withdrawn. Appending without grading
+   * is the only option that loses neither.
+   */
+  if (claim.grade === "retired") return append();
+
+  /*
    * AN OFF-PROTOCOL RESULT MAY NOT OVERWRITE A VERDICT REACHED ON PROTOCOL. A timed holdout has
    * measured the claim under the conditions it is about; a later clockless drill has not, and
    * letting it speak last would let the weaker evidence be the one on screen.
@@ -282,6 +341,13 @@ function applyDrillResult(claim: Claim, result: ProspectiveDrillResult): Claim {
  */
 export function gradeIsSettled(claim: Claim): boolean {
   if (claim.grade === "hypothesis") return false;
+  /*
+   * `retired` IS NEVER SETTLED, WHATEVER `graded_under` SAYS. Settled means a protocol entitled to
+   * decide has decided. Retiring decided nothing; it ended the asking. A retired claim that had a
+   * legacy `graded_under` on it from an earlier drill would otherwise be printed as a finished
+   * verdict, which is the one confusion this grade exists to avoid.
+   */
+  if (claim.grade === "retired") return false;
   return claim.graded_under !== null && decidesClaim(claim.graded_under, claim.claim_id);
 }
 
@@ -303,8 +369,39 @@ export function testedUnder(claim: Claim): ProtocolKind | null {
  * or the claim is a hypothesis with no forward test behind it at all.
  */
 export function awaitingProtocol(claim: Claim): ProtocolKind | null {
+  // Nothing is awaited for a question the player withdrew. `gradeIsSettled` is false for it by
+  // design, so without this it would report the protocol that is never going to run.
+  if (claim.grade === "retired") return null;
   if (claim.grade === "hypothesis" || gradeIsSettled(claim)) return null;
   return requiredProtocolFor(claim.claim_id);
+}
+
+/**
+ * The player has decided this question is not worth their effort.
+ *
+ * THE ONLY WRITE IN THIS MODULE THAT NO EVIDENCE JUSTIFIES, which is exactly what it is for.
+ * `formHypothesis` writes what the search found and `evaluateClaim` writes what a forward test
+ * showed; this writes what a person decided, and it must be impossible to read it as either of the
+ * others. So it touches the grade and the evaluation timestamp and nothing else: `n`,
+ * `supporting_decision_ids`, `statement`, `scope`, `refutation_condition`, `prospective_tests` and
+ * `graded_under` all stand, because the evidence is exactly as strong as it was a moment ago.
+ *
+ * A CLAIM ALREADY CLOSED TO PROPOSAL IS RETURNED UNCHANGED rather than refused. Retiring a question
+ * a forward test has already answered is not an error a caller should have to handle -- it is a
+ * request to stop being asked about something nothing is asking about -- and turning it into a
+ * throw would put an error path on a control whose whole purpose is to be safe to press.
+ *
+ * THE GUARD IS `closedToProposal` AND NOT THE TWO DECIDED GRADES, which is the difference between
+ * this version and the one a test caught. Naming `replicated` and `refuted` left `retired` itself
+ * out, so a second press rewrote `last_evaluated_at` -- moving the recorded moment of a decision
+ * the player had already made, on a control that is pressable twice by a double tap or a second
+ * tab. The idempotence S11 asks for is not a property of the caller; it belongs here.
+ *
+ * Mirrors `retireLearningRule`, deliberately, down to writing `last_evaluated_at`.
+ */
+export function retireClaim(claim: Claim, retiredAt: string): Claim {
+  if (closedToProposal(claim.grade)) return claim;
+  return { ...claim, grade: "retired", last_evaluated_at: retiredAt };
 }
 
 /**
