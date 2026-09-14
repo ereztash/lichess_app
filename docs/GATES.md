@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-ארבעים ושבעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+ארבעים ותשעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -43,6 +43,8 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-NEXT-ACTION-RESOLVES-BLOCKER | LAW 3 | חסם שנענה בפעולה שמגדילה בדיוק את מה שחוסם |
 | GATE-SHADOW-SURFACE-LIVE | LAW 3 | משטח שמוכרז כנמדד ואין בו ולו קריאה אחת שמודדת אותו |
 | GATE-CONTINUATION-OUTRANKS | LAW 4 | ריצה פתוחה שנדחקת מתחת להצעה נמוכה ממנה בסולם |
+| GATE-CONTINUE-REACHABLE-OFF-RUN | LAW 4 | הפעולה שמסיימת סט שכבר התחיל, כשאפשר להגיע אליה רק מתוך הריצה עצמה |
+| GATE-UNREAD-COMMITMENT-NOT-EMPTY | LAW 4 | קריאה שלא חזרה שמוצגת כרשומה שאין בה סט פתוח |
 | GATE-ONE-PRIMARY-ACTION | LAW 2 | דלת כניסה שמציעה שני מוצרים במשקל אחד |
 | GATE-NO-DUPLICATE-ACTION | LAW 2 | חשיפה שמציעה את אותה פעולה פעמיים |
 | GATE-TOOLBOX-OUTSIDE-FOCUS | LAW 2 | ארגז הכלים נטען לכל נכנס ונפתח בלי שאיש לחץ עליו |

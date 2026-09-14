@@ -44,6 +44,7 @@ export async function registerDrill(
     },
     predicted: true,
     started_at: "2026-01-01T00:00:00.000Z",
+    abandoned_at: null,
   });
   return drillId;
 }

@@ -43,6 +43,24 @@ export const STORAGE_KEYS = {
    * person wrote about themselves is not a theme setting.
    */
   goal: { key: "decision-lab:goal", area: "localStorage", content: "record" },
+  /*
+   * WHICH RUN A SURFACE ASKED THE BOARD TO REOPEN. An id and nothing else.
+   *
+   * `sessionStorage` AND NOT `localStorage`, and the two reasons point the same way. This is a
+   * one-press handoff between a screen and the route it is navigating to, so it is spent within
+   * seconds and has nothing to say to tomorrow's visit -- `session-position.ts` persists because a
+   * board is worth coming back to, and a request to reopen a run is not. And the commitment itself
+   * lives in the RECORD: if this key is lost, the drill is still open and every surface still says
+   * so. Losing it costs one press, never a run.
+   *
+   * `bookkeeping` RATHER THAN `record`, because an opaque run id is not the player's words and not
+   * a position. What the run contains is in the record, under the key above.
+   */
+  resumeRun: {
+    key: "decision-lab.resume-run.v1",
+    area: "sessionStorage",
+    content: "bookkeeping",
+  },
 } as const satisfies Record<string, StorageKeyEntry>;
 
 export type StorageKeyName = keyof typeof STORAGE_KEYS;
@@ -60,6 +78,7 @@ export const STORAGE_KEY_NOTES: Record<StorageKeyName, string> = {
   chunkReload: "a mark that this tab already reloaded once after a stale build, so it does not loop",
   theme: "light or dark",
   goal: "one sentence you wrote about why you are here. Nothing in the app measures distance to it",
+  resumeRun: "which test you asked to carry on with, for the moment between pressing and arriving. Cleared on arrival, and never kept past this tab",
 };
 
 /** Every registered key, for a test that walks the source. */

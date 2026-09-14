@@ -22,6 +22,7 @@ import {
 } from "@/lib/local-record-store";
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
+import { restoreDrillRun } from "@shared/drill-restore";
 import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
@@ -456,6 +457,62 @@ export function useCompleteDrill() {
        * would otherwise keep a cached reading that says the run is still open -- and the run is
        * the highest-ranked thing the derivation has.
        */
+      await invalidateContinuation(queryClient, utils, local);
+      return out;
+    },
+  };
+}
+
+/**
+ * READ A DRILL BACK SO THE BOARD CAN PUT THE PLAYER INSIDE IT AGAIN.
+ *
+ * IMPERATIVE AND NOT A QUERY, because the question is asked once, in response to a press, and the
+ * answer is consumed into component state rather than rendered. A `useQuery` keyed on a drill id
+ * would hold a cached spec for a run that has since been reported, and the terms of a
+ * pre-registered test are not a thing to serve from a cache.
+ *
+ * IT RE-READS THE RECORD ON EVERY RESUME, deliberately. The surface that navigated here may have
+ * been showing a list rendered a minute ago in another tab. What is registered is whatever the
+ * record says now.
+ */
+export function useRestoreDrill() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const utils = trpc.useUtils();
+  return {
+    fetch: (drillId: string) =>
+      local
+        ? restoreDrillRun(store, drillId)
+        : utils.record.restoreDrill.fetch({ drill_id: drillId }),
+  };
+}
+
+/**
+ * CLOSE A DRILL THE PLAYER IS PUTTING DOWN, and write that they did.
+ *
+ * WHY THIS EXISTS AT ALL. `closeDrill` in `Home.tsx` reset eleven `useState` hooks and wrote
+ * nothing, so a drill drawn at the briefing and dismissed stayed open in the record forever -- and
+ * once any surface started routing on "a drill is open", that stale row would have sent every
+ * arrival back to a set the player had already walked away from. The three ways out were argued in
+ * `docs/LEARNING_COMMITMENT_CONTINUITY.md` §2; this is the one that reads what the player actually
+ * did rather than guessing from how far they got.
+ *
+ * A RELOAD, A NAVIGATION AND A LOST TAB WRITE NOTHING, which is the whole asymmetry. Only this
+ * mutation ends a drill early, and only the close control calls it.
+ */
+export function useAbandonDrill() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
+  const server = trpc.record.abandonDrill.useMutation();
+  return {
+    mutateAsync: async (input: { drill_id: string }) => {
+      const at = new Date().toISOString();
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await store.abandonDrill(input.drill_id, at).then(() => ({ drill_id: input.drill_id }));
+      /* The open set just changed, and it is the highest-ranked thing the derivation reads. */
       await invalidateContinuation(queryClient, utils, local);
       return out;
     },

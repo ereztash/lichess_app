@@ -54,6 +54,8 @@ import { toPendingRecord, isRefusal } from "@shared/blitz-record";
 import { readBlitzGame, type BlitzEvent } from "@shared/blitz-reading";
 import { PostGame } from "@/components/PostGame";
 import { NextActionProbe } from "@/components/NextActionProbe";
+import { ContinueCommitment } from "@/components/ContinueCommitment";
+import { useContinuationOffer } from "@/lib/use-continuation-offer";
 import { useSaveBlitzGame } from "@/lib/record-api";
 import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
 import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
@@ -107,6 +109,14 @@ const REFUSAL_NOTICE: Record<string, string> = {
 
 export default function Blitz() {
   const [, navigate] = useLocation();
+  /*
+   * WHETHER A SET THIS PLAYER STARTED OUTRANKS ANOTHER GAME, read once for the whole route.
+   *
+   * AT THE TOP RATHER THAN BESIDE THE POST-GAME, because it is a hook and the post-game is behind
+   * three levels of branch. The query is shared with the shadow this route already mounts, and
+   * react-query dedupes by key, so the route makes one request for both.
+   */
+  const continuation = useContinuationOffer();
   const [game, setGame] = useState<BlitzState>({ phase: "idle" });
   const [session, setSession] = useState<InstrumentSession>(newSession());
   const [, setPaint] = useState(0);
@@ -553,6 +563,25 @@ export default function Blitz() {
                 analysed={stored.decisions.length}
                 onSeePosition={setReviewing}
                 onPlayAgain={() => setGame({ phase: "idle" })}
+                standDown={continuation.suppressPrimary}
+              />
+              {/*
+                * THE SET THIS PLAYER STARTED, IN THE SLOT "משחק חדש" WOULD HAVE HAD.
+                *
+                * NOT A QUIETER LINK ELSEWHERE ON THE SCREEN. `deriveNextAction` ranks an unfinished
+                * pre-registered set above another game, and the only place a player reads a ranking
+                * is weight and position. A continuation tucked under the fold beside a dominant
+                * "new game" would be the screen saying the opposite of the policy while satisfying
+                * the letter of having offered it.
+                *
+                * DIRECTLY IN `Blitz.tsx` AND NOT LAZILY, because this whole route is already lazy:
+                * `App.tsx` splits `/blitz` out of the entry chunk, so the reading costs the bytes of
+                * a screen the player has already chosen to open.
+                */}
+              <ContinueCommitment
+                offer={continuation.offer}
+                onResume={continuation.resume}
+                onClose={continuation.close}
               />
               {/*
                 * THE `post-game` SURFACE'S SHADOW, MOUNTED BESIDE THE SCREEN RATHER THAN INSIDE IT.

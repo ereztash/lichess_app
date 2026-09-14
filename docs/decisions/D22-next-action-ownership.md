@@ -170,3 +170,38 @@ screen, is a disagreement. **The defect it exposes is a missing affordance, not 
 which is why no screen was handed over in the pass that found it.
 
 **Reversal condition 3 is untouched** and still needs the acquisition trial.
+
+---
+
+## THE MISSING AFFORDANCE, BUILT — 2026-09-14
+
+The paragraph above ends: *"the defect it exposes is a missing affordance, not a misrouted one,
+which is why no screen was handed over in the pass that found it."* That affordance now exists.
+`docs/LEARNING_COMMITMENT_CONTINUITY.md` is the full account; three things belong here because they
+change what this decision rests on.
+
+**It is a smaller claim than authority transfer, deliberately.** No surface defers to
+`deriveNextAction` for what to do in general. Three surfaces render ONE act — finishing a set the
+player already started — and stand their own primary down while it is on offer. The ladder decides
+which of the two runs that is, through `proposeContinuation`, which is this file's own branch order
+asked with everything below branch 2 honestly unread. Nothing else moved. **CANONICAL AUTHORITY:
+PARTIAL**, and that is the intended end state of this slice rather than a shortfall in it.
+
+**Reversal condition 2's repair had a precondition, and the precondition is settled.**
+`docs/ARCHITECTURE_UI_AUTHORITY_TRANSFER.md` §2b recorded that `closeDrill` wrote no terminal row,
+so an open drill could not be told from an abandoned one — and recommended refusing a second open
+drill. That recommendation is overturned, on an argument §2b could not have made: a reader that has
+to distinguish `UNKNOWN ≠ NONE ≠ ABANDONED ≠ COMPLETED ≠ ACTIVE` cannot be built on an option that
+produces no `ABANDONED` state, and neither of the two favoured options does. `drills.abandoned_at`
+is written by the player's own close control and by nothing else, so the asymmetry
+`getOpenLearningTransfer` argues for is kept: losing a tab is still not misconduct.
+
+**And a fourth thing this decision could not have known.** `null` in `ProductState` was the defect
+this file's amendment already names. The same shape was one layer further out: a screen holding
+`data: undefined` from a failed query is holding four different facts, and the direction it collapses
+in is the expensive one — a player four positions into an eight-position set, told they have nothing
+waiting and offered something else at full weight. `useContinuation` now returns a reading always
+and `undefined` never. `GATE-UNREAD-COMMITMENT-NOT-EMPTY` holds it, and its control is the one `??`
+that would undo it.
+
+**Reversal condition 3 is still untouched** and still needs the acquisition trial.

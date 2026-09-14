@@ -68,6 +68,19 @@ type StateInput = Parameters<typeof productStateFor>[0];
  * so a case that says nothing about the claim is a case about a front door whose claim view has not
  * come back, which is the state every one of these assertions was written in.
  */
+import {
+  COMMITMENT_UNREAD,
+  type LiveLearningCommitment,
+} from "../../shared/continuation";
+
+/** An open run, spelled once: five states means a literal is no longer a two-field object. */
+const activeDrill = (runId: string, done: number, total: number): LiveLearningCommitment => ({
+  state: "active",
+  kind: "drill",
+  run: { kind: "drill", runId, resumeWith: runId, done, total },
+  restore: { ok: true },
+});
+
 const stateFrom = (
   over: Omit<StateInput, "analysisRunning" | "claim" | "continuation"> & {
     analysisRunning?: boolean;
@@ -76,12 +89,20 @@ const stateFrom = (
   },
 ) =>
   /*
-   * `continuation: undefined` IS THE DEFAULT AND IT MEANS UNOBSERVED, which is the state every
-   * surface was permanently in before this reading existed. A test that wants the run branch
-   * reachable has to hand over a reading, which is the point: there is no longer a way to be
-   * silently blind.
+   * `COMMITMENT_UNREAD` IS THE DEFAULT AND IT MEANS UNOBSERVED, which is the state every surface was
+   * permanently in before this reading existed. A test that wants the run branch reachable has to
+   * hand over a reading, which is the point: there is no longer a way to be silently blind.
+   *
+   * IT IS A READING AND NOT `undefined`, and that is the whole of §16 at the type level. The hook
+   * cannot answer "no data"; it answers `unknown` with a reason, so no caller ever has to decide
+   * for itself what an absent value meant.
    */
-  productStateFor({ analysisRunning: false, claim: undefined, continuation: undefined, ...over });
+  productStateFor({
+    analysisRunning: false,
+    claim: undefined,
+    continuation: COMMITMENT_UNREAD,
+    ...over,
+  });
 
 beforeEach(() => {
   localStorage.clear();
@@ -149,8 +170,8 @@ describe("what the front door can and cannot supply", () => {
       decisionsOnRecord: 0,
       record: undefined,
       continuation: {
-        drill: { kind: "drill", runId: "d1", done: 3, total: 8 },
-        transfer: null,
+        drill: activeDrill("d1", 3, 8),
+        transfer: { state: "none", kind: "transfer" },
         untestedRule: null,
       },
     });
@@ -164,7 +185,11 @@ describe("what the front door can and cannot supply", () => {
       games: [],
       decisionsOnRecord: 0,
       record: undefined,
-      continuation: { drill: null, transfer: null, untestedRule: null },
+      continuation: {
+        drill: { state: "none", kind: "drill" },
+        transfer: { state: "none", kind: "transfer" },
+        untestedRule: null,
+      },
     });
     expect(empty.drill).toEqual({ observed: true, value: null });
     expect(empty.untestedRule).toEqual({ observed: true, value: null });
@@ -176,7 +201,11 @@ describe("what the front door can and cannot supply", () => {
       games: [],
       decisionsOnRecord: 4,
       record: undefined,
-      continuation: { drill: null, transfer: null, untestedRule: "rule-7" },
+      continuation: {
+        drill: { state: "none", kind: "drill" },
+        transfer: { state: "none", kind: "transfer" },
+        untestedRule: "rule-7",
+      },
     });
     expect(deriveNextAction(state)).toEqual({ kind: "test-hypothesis", ruleId: "rule-7" });
   });
@@ -241,7 +270,7 @@ function renderResume() {
   return render(
     <trpc.Provider client={client} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ResumeScreen returning onPlay={() => undefined} />
+        <ResumeScreen returning standDown={false} onPlay={() => undefined} />
       </QueryClientProvider>
     </trpc.Provider>,
   );

@@ -147,6 +147,7 @@ async function seed(store: MemoryRecordStore) {
     },
     predicted: true,
     started_at: "2026-02-01T09:00:00.000Z",
+    abandoned_at: null,
   });
   return drillIds;
 }

@@ -1,0 +1,17 @@
+-- WHEN THE PLAYER PUT A DRILL DOWN, AS DISTINCT FROM WALKING AWAY FROM IT.
+--
+-- `listOpenDrills` returns drills that were started and never reported, and until now that set
+-- could not be trusted: closing a drill reset component state and wrote nothing, so a drill drawn
+-- at the briefing and dismissed stayed open forever, indistinguishable from one the player had
+-- answered three positions of and meant to finish. Every surface that routes on "a drill is open"
+-- would have been routing on that.
+--
+-- NULLABLE WITH NO DEFAULT. Every row already in this table was written when no such act existed,
+-- and null is the true statement about all of them: nobody closed them. It is also the safe
+-- reading, because null means open and an open drill is one the player is invited to finish -- the
+-- direction that returns a commitment rather than silently discards one.
+--
+-- NOT IN `drill_results`, and that is a claim about what this column is. A result carries
+-- `observed` and grades a claim; an abandonment carries neither and must never be folded into a
+-- count of forward tests. A registered test that was not reported stays visible AS not reported.
+ALTER TABLE `drills` ADD `abandoned_at` timestamp;

@@ -989,11 +989,49 @@ const INDEX = `${ROOT}/index.html`;
  *
  * 681 AND 774 LEAVE 1.3 kB AND 1.1 kB, the same order of headroom as every raise above.
  *
+ * ---
+ *
+ * 681 -> 685, 213 -> 215 AND 774 -> 778: A COMMITMENT THAT SURVIVES BEHAVIOURALLY AND NOT ONLY AS A
+ * ROW.
+ *
+ * WHAT THE BYTES ARE. The raise four notes above made the derivation's top branches READABLE. It
+ * did not make them REACHABLE: `continue-run` had one control in the whole client, inside the run it
+ * continues, so a player who navigated away could not get back to a set they had started. Closing
+ * that took a restore path on the board, a terminal state for a drill the player puts down, and a
+ * handoff that carries the press one hop.
+ *
+ * WHERE IT IS *NOT*, AND THE SPLIT WAS DRIVEN BY MEASUREMENT:
+ *
+ *                                                     entry raw   gzipped   initial raw   delta
+ *     one module for the read and the restore           684.7      213.8       777.9      +5.0
+ *     restore split into `shared/drill-restore.ts`      683.0      213.3       776.2      -1.7
+ *     the control lazily mounted from `Record.tsx`      683.3      213.4       776.5      +0.3
+ *
+ * THE READ IS NOT IN THE ENTRY CHUNK AND THE RESTORE HAS TO BE. `Home.tsx` is a static import in
+ * `App.tsx` -- it is the board -- and the board is what puts a player back inside a run, so
+ * `restoreDrillRun` is on the entry route by construction. The READING that answers "is a set open"
+ * is wanted only by the three surfaces that offer to carry on, and every one of them is lazy: the
+ * resume screen, the record page's `ContinuationSlot`, and the `/blitz` route. `shared/continuation.ts`
+ * is named by none of the eager ones.
+ *
+ * THE LAST ROW IS A COST ACCEPTED ON PURPOSE. Mounting the control from `Record.tsx` through a lazy
+ * chunk costs 0.3 kB of `Suspense` and one piece of page state; mounting it directly measured the
+ * full reading chain in the entry graph. `NextActionProbe` made the same trade one control over and
+ * its header says so.
+ *
+ * THE GZIP CEILING MOVES THIS TIME, AND THE NOTE FOUR ABOVE SAYS WHEN THAT IS ALLOWED: it fired.
+ * 213.4 against 213 is over, so the number changes; a ceiling that has not been crossed keeps its
+ * number and that rule is why it kept it last time.
+ *
+ * 685, 215 AND 778 LEAVE 1.7 kB, 1.6 kB AND 1.5 kB, the same order of headroom as every raise above
+ * and deliberately more than the 0.1 kB that the note six above records as "not headroom, it is the
+ * next commit's problem".
+ *
  */
-const ENTRY_RAW_KB = 681;
+const ENTRY_RAW_KB = 685;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 213;
+const ENTRY_GZIP_KB = 215;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -1184,7 +1222,7 @@ const ENTRY_GZIP_KB = 213;
  * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 774;
+const INITIAL_RAW_KB = 778;
 
 interface Asset {
   name: string;

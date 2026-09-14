@@ -1076,7 +1076,7 @@ and the disabled-control skip.
 | type | ops |
 | state | **open, and deliberately governed** — a ratchet, not a refactor, with the argument written down |
 | severity | P2 |
-| basis | **verified** — under a committed ceiling that only goes down; the ceiling is `LINE_CEILING = 2400` and `STATE_CEILING = 53`, and the register is held to those numbers by a test |
+| basis | **verified** — under a committed ceiling that only goes down; the ceiling is `LINE_CEILING = 2400` and `STATE_CEILING = 47`, and the register is held to those numbers by a test |
 
 Real, and not the kind of open the word usually means. `ACTION_PLAN.md` scheduled C1 as *"a
 mechanical extraction with the existing tests as the invariant — not a redesign"*, and
@@ -1091,12 +1091,21 @@ So the honest treatment is the one that shipped: a ceiling, in the same shape as
 a fifty-sixth piece of state" that is better than putting it somewhere else, so raising the ceiling
 would mean the refactor got further away.
 
-**Gate:** `the-file-that-only-ever-grew.test.ts` — `LINE_CEILING = 2400` and `STATE_CEILING = 53`.
+**Gate:** `the-file-that-only-ever-grew.test.ts` — `LINE_CEILING = 2400` and `STATE_CEILING = 47`.
 
 **The ceiling had not gone down, and the rule above says it must.** The UX work extracted five
 times to stay under the line ceiling, and one of those extractions — `useNewGameSetup` — took the
 component from fifty-five pieces of state to fifty-three. The ceiling stayed at fifty-five, which
-quietly restored two slots of headroom that a refactor had just paid for. It is now fifty-three.
+quietly restored two slots of headroom that a refactor had just paid for. It went to fifty-three.
+
+**And down again, to forty-seven, for the same reason.** Learning-commitment continuity added a
+restore path to the board and a terminal state for a drill the player puts down, and the line count
+went over 2,400 — where the rule above says the number is the wrong thing to change. So `useDrillRun`
+took the drill's six pieces of state and its four transitions out as one thing. That it CAN move as
+one thing is the point: they are set together on every transition, read together by `DrillRunner`,
+and no state of the board makes one of them meaningful without the rest — which is the mechanical
+extraction this entry records as unavailable in general and available here. What stayed is
+everything the drill borrows.
 
 The line ceiling keeps its headroom deliberately, and the asymmetry is the point: length is a
 symptom, and a ceiling with no room turns every added comment into a false alarm. State is the

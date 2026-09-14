@@ -37,10 +37,15 @@ import {
   proposeNextAction,
   UNOBSERVED,
   type NextActionProposal,
+  type Observed,
   type ProductState,
   type ShadowSurface,
 } from "@shared/next-action";
-import type { ActiveContinuation } from "@shared/continuation";
+import type {
+  CommitmentRun,
+  ContinuationReading,
+  LiveLearningCommitment,
+} from "@shared/continuation";
 import {
   PRIMARY_ACTION_ATTR,
   PRIMARY_ACTIONS,
@@ -89,6 +94,27 @@ import { useContinuation } from "@/lib/continuation-api";
 export const PERMANENTLY_UNOBSERVED = ["unseenEvent"] as const;
 
 /**
+ * One commitment slot, as the derivation's highest-priority input.
+ *
+ * THE FOUR NON-ACTIVE STATES ARE NOT THE SAME ANSWER TO THE DERIVATION, AND THEY ARE THE SAME
+ * ANSWER HERE, which is worth saying plainly because it looks like a collapse and is not.
+ * `deriveNextAction` asks one question of this field -- is there a run to finish -- and
+ * `completed`, `abandoned` and `none` all answer no. What separates them is what a SCREEN says to
+ * the player, and no screen reads this value: they read the commitment itself.
+ *
+ * `unknown` IS THE ONE THAT MUST NOT COLLAPSE, and it does not. It becomes `UNOBSERVED`, which
+ * makes the proposal unsound rather than making it say the record holds nothing -- the distinction
+ * the whole `Observed` migration exists for.
+ */
+function liveRun<T>(
+  commitment: LiveLearningCommitment,
+  shape: (run: CommitmentRun) => T,
+): Observed<T | null> {
+  if (commitment.state === "unknown") return UNOBSERVED;
+  return observed(commitment.state === "active" ? shape(commitment.run) : null);
+}
+
+/**
  * The state a surface can actually assemble, with everything it cannot left null.
  *
  * ONE ASSEMBLY FOR THREE SCREENS. It was `resumeProductState` and it took the front door's inputs;
@@ -130,13 +156,7 @@ export function productStateFor(input: {
    * screen that has not been told. The four fields this replaces had only the first value available
    * to them, so every shadow row ever written asserted the first while meaning the second.
    */
-  continuation:
-    | {
-        drill: ActiveContinuation | null;
-        transfer: ActiveContinuation | null;
-        untestedRule: string | null;
-      }
-    | undefined;
+  continuation: ContinuationReading;
 }): ProductState {
   const runs = input.continuation;
   return {
@@ -157,28 +177,24 @@ export function productStateFor(input: {
      * `continue-transfer`; pre-ranking them in the read made that ordering a fact two modules had
      * to agree about. Now the read reports what it found and the derivation decides, once.
      */
-    drill:
-      runs === undefined
-        ? UNOBSERVED
-        : observed(
-            runs.drill === null
-              ? null
-              : { drillId: runs.drill.runId, done: runs.drill.done, total: runs.drill.total },
-          ),
-    transfer:
-      runs === undefined
-        ? UNOBSERVED
-        : observed(
-            runs.transfer === null
-              ? null
-              : {
-                  transferId: runs.transfer.runId,
-                  done: runs.transfer.done,
-                  total: runs.transfer.total,
-                },
-          ),
+    drill: liveRun(runs.drill, (run) => ({
+      drillId: run.runId,
+      done: run.done,
+      total: run.total,
+    })),
+    transfer: liveRun(runs.transfer, (run) => ({
+      transferId: run.runId,
+      done: run.done,
+      total: run.total,
+    })),
     unseenEvent: UNOBSERVED,
-    untestedRule: runs === undefined ? UNOBSERVED : observed(runs.untestedRule),
+    /*
+     * OBSERVED ONLY WHEN THE COMMITMENTS WERE, because they come from the same request. Reporting
+     * `observed(null)` here off an unread reading would tell the derivation that this record holds
+     * no untested rule, on the authority of a query that had not come back.
+     */
+    untestedRule:
+      runs.drill.state === "unknown" ? UNOBSERVED : observed(runs.untestedRule),
     claimState: claimStateOf(input.claim),
     blitzStanding: input.reading.standing,
     decisionsOnRecord: input.decisionsOnRecord,

@@ -65,6 +65,12 @@ import {
   type NextActionKind,
   type ProductState,
 } from "../shared/next-action";
+import { continuationOffer } from "../shared/continuation-offer";
+import {
+  COMMITMENT_READ_FAILED,
+  COMMITMENT_UNREAD,
+  type ContinuationReading,
+} from "../shared/continuation";
 
 export type GateStatus = "PASS" | "FAIL" | "NOT-MEASURED";
 export interface GateResult {
@@ -182,6 +188,14 @@ function runVitestFile(
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
 const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
+/**
+ * The product's one `continue-run` control, as it stood when it lived only inside the run.
+ *
+ * NAMED `..._CONTROL_FIXTURES` BECAUSE `CONTINUATION_FIXTURES` IS TAKEN, by O-2's directory about
+ * the press that leads to the next position. Two different senses of "continuation" -- the next
+ * decision in a bank, and the next position of a pre-registered set -- and this is the second.
+ */
+const CONTINUE_CONTROL_FIXTURES = "tests/fixtures/continuation-surfaces";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
@@ -441,6 +455,111 @@ const shadowSurfacesLive = (roots: string[]): GateResult => {
     return fail(`${HARNESS_ERROR} the control fixture instruments every declared surface`);
   }
   return fromFindings(findings, "every declared shadow surface has a live call site");
+};
+
+/**
+ * THE ONE ACT IS REACHABLE FROM SOMEWHERE OTHER THAN INSIDE THE RUN.
+ *
+ * WHY THIS IS A GATE. `continue-drill` and `continue-transfer` are the top of the ladder, and for
+ * the whole life of the product before this work the only control that could express either was in
+ * `Home.tsx`'s header under `learningTransferStage === "running"` -- so the act was reachable only
+ * by somebody who was already taking it. Nothing was broken by that, which is exactly why nothing
+ * caught it: every test passed, the gates were green, and a player who closed the tab lost the
+ * priority of a set they were halfway through while the row sat in the record.
+ *
+ * IT COUNTS FILES AND NOT CALLS, because the defect is topological rather than numerical. Two
+ * controls in `Home.tsx` would be a LAW 2 problem and `GATE-NO-DUPLICATE-ACTION` owns it; what this
+ * asks is whether the act exists anywhere a player who is NOT in the run can press it.
+ *
+ * `Home.tsx` IS EXCLUDED BY NAME rather than by heuristic. It is the page that RUNS drills and
+ * transfers, so its own control is the in-run one by construction and counting it would let the
+ * gate go green on precisely the state it was written to catch.
+ */
+const continueReachableOffRun = (roots: string[]): GateResult => {
+  const ACT = /primaryAction\(\s*["'`]continue-run["'`]\s*\)/;
+  const offRun: string[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const path = file.replaceAll("\\", "/");
+      if (path.endsWith("/pages/Home.tsx")) continue;
+      if (ACT.test(readFileSync(file, "utf8"))) offRun.push(path);
+    }
+  }
+  if (offRun.length > 0) {
+    return pass(`the act is offered from ${offRun.length} place(s) outside the run`);
+  }
+  return fail(
+    "`continue-run` is offered only from inside the run it continues, so a player who navigated " +
+      "away cannot reach a set they already started",
+  );
+};
+
+/**
+ * A READ THAT DID NOT COME BACK IS NEVER RENDERED AS A RECORD WITH NOTHING OPEN.
+ *
+ * THE FAILURE THIS CATCHES IS ONE LINE AND IS THE OBVIOUS SIMPLIFICATION. Anywhere a reading can be
+ * absent, `?? null`, `data ?? { state: "none" }`, or a bare `if (!data) return null` collapses four
+ * facts into one -- and the direction it collapses in is the expensive one: a player four positions
+ * into an eight-position set is told they have nothing waiting, and offered something else at full
+ * weight, which is the sentence they act on.
+ *
+ * ASKED OF `continuationOffer` RATHER THAN OF A SCREEN, because all three surfaces route their
+ * answer through it. A gate that rendered three components would be slower, would pin presentation,
+ * and would still only cover the three that exist today.
+ */
+const unreadIsNotEmpty = (
+  offer: (reading: ContinuationReading) => { kind: string },
+): GateResult => {
+  const findings: Finding[] = [];
+  const cases: { name: string; reading: ContinuationReading }[] = [
+    { name: "a reading nobody has attempted", reading: COMMITMENT_UNREAD },
+    { name: "a reading whose request failed", reading: COMMITMENT_READ_FAILED },
+    {
+      name: "a reading whose drill came back unknown beside an open transfer",
+      reading: {
+        drill: { state: "unknown", kind: "drill", because: "read-failed" },
+        transfer: {
+          state: "active",
+          kind: "transfer",
+          run: { kind: "transfer", runId: "t1", resumeWith: "r1", done: 1, total: 3 },
+          restore: { ok: true },
+        },
+        untestedRule: null,
+      },
+    },
+  ];
+  for (const c of cases) {
+    const kind = offer(c.reading).kind;
+    if (kind !== "unreadable") {
+      findings.push({
+        file: "shared/continuation-offer.ts",
+        line: 1,
+        text: `${c.name} was reported as "${kind}" rather than "unreadable"`,
+      });
+    }
+  }
+  /*
+   * AND THE OTHER DIRECTION, so the gate cannot be satisfied by answering `unreadable` to
+   * everything. A control that never trusts a reading is a control that never appears.
+   */
+  const open: ContinuationReading = {
+    drill: {
+      state: "active",
+      kind: "drill",
+      run: { kind: "drill", runId: "d1", resumeWith: "d1", done: 3, total: 8 },
+      restore: { ok: true },
+    },
+    transfer: { state: "none", kind: "transfer" },
+    untestedRule: null,
+  };
+  if (offer(open).kind !== "resume") {
+    findings.push({
+      file: "shared/continuation-offer.ts",
+      line: 1,
+      text: `an open, restorable drill was reported as "${offer(open).kind}" rather than "resume"`,
+    });
+  }
+  return fromFindings(findings, "an unread commitment is never rendered as an absent one");
 };
 
 /**
@@ -1307,6 +1426,35 @@ export const GATES: Gate[] = [
         state.pendingAnalyses > 0
           ? { kind: "wait-analysis", games: state.pendingAnalyses, scoring: state.analysisRunning }
           : deriveNextAction(state),
+      ),
+  },
+  {
+    id: "GATE-CONTINUE-REACHABLE-OFF-RUN",
+    rule: "LAW 4",
+    description: "The act that finishes a started set is reachable from outside the run itself.",
+    run: () => continueReachableOffRun(["client/src"]),
+    positiveControl: () => continueReachableOffRun([CONTINUE_CONTROL_FIXTURES]),
+  },
+  {
+    id: "GATE-UNREAD-COMMITMENT-NOT-EMPTY",
+    rule: "LAW 4",
+    description: "A commitment that could not be read is never offered as a record with none.",
+    run: () => unreadIsNotEmpty(continuationOffer),
+    positiveControl: () =>
+      /*
+       * THE COLLAPSE AS IT WOULD ACTUALLY BE WRITTEN, and it is one `??` rather than a contrived
+       * function: treat an unread slot as an empty one, which is what every caller did before
+       * `Observed` existed and what the shortest correct-looking patch would do again.
+       */
+      unreadIsNotEmpty((reading) =>
+        continuationOffer({
+          ...reading,
+          drill: reading.drill.state === "unknown" ? { state: "none", kind: "drill" } : reading.drill,
+          transfer:
+            reading.transfer.state === "unknown"
+              ? { state: "none", kind: "transfer" }
+              : reading.transfer,
+        }),
       ),
   },
   {

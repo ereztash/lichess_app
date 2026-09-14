@@ -30,6 +30,7 @@ import {
 } from "../shared/learning-record.js";
 import * as service from "../shared/record-service.js";
 import { continuationReading } from "../shared/continuation.js";
+import { restoreDrillRun } from "../shared/drill-restore.js";
 import { blitzRecordReading } from "../shared/blitz-record-reading.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
@@ -355,6 +356,39 @@ export function buildRecordRouter(store: RecordStore) {
       .mutation(({ input }) =>
         guard(() => service.finishDrill(store, input, { recorded_at: new Date().toISOString() })),
       ),
+
+    /**
+     * PUT A DRILL DOWN WITHOUT REPORTING IT. The player's own decision, written as one.
+     *
+     * IT IS A MUTATION AND NOT A DELETE. The drill row stays, with its positions, its refutation
+     * condition and its direction; what is added is a timestamp saying the player closed it. A
+     * pre-registered test that was registered and not reported is a fact a registry keeps, and the
+     * alternative -- removing the row -- would let a player draw a drill, read the terms, drop it,
+     * and draw again with nothing anywhere recording that they had seen the first one.
+     *
+     * NO VERDICT IS WRITTEN AND NO CLAIM IS GRADED. `finishDrill` is the only path that may do
+     * either, and it refuses a partial set. An abandonment is the absence of evidence, recorded.
+     */
+    abandonDrill: ownerProcedure
+      .input(z.object({ drill_id: z.string().min(1).max(64) }))
+      .mutation(({ input }) =>
+        guard(async () => {
+          await store.abandonDrill(input.drill_id, new Date().toISOString());
+          return { drill_id: input.drill_id };
+        }),
+      ),
+
+    /**
+     * Read a drill back so the board can put the player inside it again.
+     *
+     * THE TERMS COME FROM HERE AND NEVER FROM THE CLIENT. A resume that carried its own spec would
+     * be a pre-registered test travelling through a browser tab, where a stale one could hand the
+     * board a set that no longer matches what was registered. `restoreDrillRun` re-reads the spec,
+     * the decisions bound to it and the first position nobody has answered, or says why it cannot.
+     */
+    restoreDrill: ownerProcedure
+      .input(z.object({ drill_id: z.string().min(1).max(64) }))
+      .query(({ input }) => guard(() => restoreDrillRun(store, input.drill_id))),
 
     /**
      * Whether the SERVER can actually store a decision right now.
