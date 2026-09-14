@@ -6,8 +6,10 @@ any participant was recruited, and is not to be edited after the first session.
 ## The build under test
 
 * Repository: `ereztash/lichess_app`, branch `main`.
-* **Product source frozen at** `e663ebc`, page bundle `assets/index-ZgOyRttd.js`.
-* **RE-FROZEN TWICE, BOTH TIMES BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON EITHER WAS
+* **Stimulus frozen at** `stimulus_sha256` **`20c3c60dcc168b2b8e42625a375acb42dcaf5db994af48c433151b68905b7ebd`**, produced from
+  `d2da163`, over 40 emitted files totalling 8,865,024 bytes. Read from the origin at
+  2026-09-14 05:56Z, not computed here.
+* **RE-FROZEN THREE TIMES, ALL THREE BEFORE ANY PARTICIPANT, AND THAT IS THE ONLY REASON ANY WAS
   ALLOWED.** **Zero participants have run**, which is what makes this bookkeeping rather than a
   protocol violation. After the first session it would be one, and the same change would have to
   wait.
@@ -16,6 +18,7 @@ any participant was recruited, and is not to be edited after the first session.
   |---|---|---|---|
   | 1 | `4c39563` / `index-D_Il6CdA.js` | `dd30b3a` / `index-DUEXf-qq.js` | the owner reported, from a phone frame, that step 2's option list was scrolling inside a clipped box. The repair changes the commitment screen, and a changed commitment screen is a changed stimulus |
   | 2 | `dd30b3a` / `index-DUEXf-qq.js` | `e663ebc` / `index-ZgOyRttd.js` | [PR #109](https://github.com/ereztash/lichess_app/pull/109) merged. Production tracks `main`, so the merge moved the deployment off the named hash |
+  | 3 | `e663ebc` / `index-ZgOyRttd.js` | `d2da163` / `stimulus_sha256 20c3c60d…` | [PR #111](https://github.com/ereztash/lichess_app/pull/111) merged, which is the commit that installed the manifest. **The last one, because after it the identity stops being a filename somebody transcribes** |
 
 * **THE SECOND RE-FREEZE HAS A DIFFERENT CHARACTER FROM THE FIRST, AND THE DIFFERENCE IS THE POINT.**
   The first was a changed stimulus: a participant would have seen something else. The second is a
@@ -87,53 +90,46 @@ any participant was recruited, and is not to be edited after the first session.
   reports for `storage`. The pre-session procedure checks the three things separately;
   `field/README.md` carries it.
 
-* **THE MANIFEST IS NOT ON PRODUCTION YET, AND THIS DOCUMENT DOES NOT PRETEND OTHERWISE.** `e663ebc`
-  was built before the generator existed, so `https://lichessapp.vercel.app/stimulus-manifest.json`
-  carries no manifest. **It does not answer `404`.** Measured signed-out on 2026-09-13 at 21:05Z it
-  answers **`200 text/html`**, the app itself, because `vercel.json` sends every unmatched path to
-  `index.html`. An earlier draft of this bullet said `404` and was wrong, which matters because the
-  pre-session step turns on it: the check is that the page is JSON carrying `stimulus_sha256`, never
-  that the request succeeded. `field/README.md` carries the step and the trap.
-  The `stimulus_sha256` this protocol will name is therefore **`PENDING`**, and
-  writing a number here before a deployment serves it would be the exact defect -- a declaration
-  that drifts from its subject -- the mechanism exists against. **It gets filled in by reading the
-  endpoint, never by computing it locally**, because a build inlines `VITE_` variables and this
-  checkout has none of them set; a local digest is the right answer only if the deployment's flags
-  match, and the manifest records those flags so a reader can tell rather than assume.
+* **THE MANIFEST IS ON PRODUCTION, AND THE THIRD RE-FREEZE IS THE FIRST ONE THAT COULD PROVE ITS OWN
+  CHARACTER.** Read signed-out at 2026-09-14 05:56Z, after `#111` merged:
 
-* **THE MECHANISM IS VERIFIED ON A DEPLOYMENT, not only in a test.** The `PR #111` preview at
-  `fce720a` was fetched at 2026-09-13 20:53Z and answered
-  `content-type: application/json; charset=utf-8` with a well-formed manifest over **40 files** --
-  so `vercel.json`'s `{"handle": "filesystem"}` step does serve a real file and the SPA fallback
-  only catches paths that do not exist. Two things fell out of it that are worth the sentence:
+  | | before | after |
+  |---|---|---|
+  | commit | `e663ebc` | `d2da163` |
+  | `stimulus_sha256` | *(no manifest)* | `20c3c60d…` |
+  | entry chunk | `index-ZgOyRttd.js`, 695,047 B | `index-ZgOyRttd.js`, 695,047 B |
+  | stylesheet | `index-_bGdMEE1.css`, 95,435 B | `index-_bGdMEE1.css`, 95,435 B |
 
-  * its `stimulus_sha256` is **`20c3c60d…`, byte-for-byte the digest the same source produced on a
-    different machine**, with all five recorded flags unset on both. The generator is
-    deterministic across machines when the flags agree, which is what makes a mismatch mean
-    something rather than mean "a different builder".
-  * its entry chunk is `assets/index-ZgOyRttd.js` at **695,047 bytes, identical to production's**,
-    which is independent confirmation that nothing in this pass touched product code.
+  **The commit moved and the stimulus did not, and that is now a number rather than an argument.**
+  The second re-freeze had to be defended with a paragraph about the diff and the import graph, and
+  the honest limit of that defence was written down beside it: *"it is an argument from the diff and
+  the import graph, not a walk."* This one needs no such paragraph. `20c3c60d…` is the digest over
+  all forty emitted files, it is what the preview produced, it is what a local build of the same
+  source produced on a different machine, and it is what production serves. A participant who had
+  sat down before the merge and one who sits down after are looking at the same bytes.
 
-  **THAT MEANS ONE MORE RE-FREEZE, AND IT IS THE LAST ONE BECAUSE IT IS THE ONE THAT INSTALLS THE
-  MECHANISM.** It is still bookkeeping rather than a protocol violation for the reason the first two
-  were: **zero participants have run.** After it the build identity stops being a filename somebody
-  transcribes and becomes a digest the origin serves.
+  **That is also the first real exercise of the design decision to keep `gitSha` beside the digest
+  rather than inside it.** Folded in, this merge would have reported a stimulus change that did not
+  happen -- on a commit that touched only `research/`, `docs/`, `scripts/` and `tests/` -- and the
+  moderator would have been told to stop a session for nothing. Both questions stay answerable and
+  neither answers the other's.
 
-* **UNTIL THAT DEPLOY THE INTERIM CHECK IS BOTH CONTENT-HASHED FILENAMES**, `assets/index-ZgOyRttd.js`
-  and `assets/index-_bGdMEE1.css`. Two is better than one and **it is still not sufficient**: it
-  cannot see a font, a favicon, a share card or a header rule change, which is the finding above and
-  not a reason to relax. It is written down as interim so nobody mistakes it for the design.
+* **THE PRE-SESSION CHECK IS NOW THE DIGEST, AND THE INTERIM TWO-FILENAME CHECK IS RETIRED.** It
+  served while the manifest was not deployed and it was labelled interim so nobody would mistake it
+  for the design. It could not see a font, a favicon, a share card or a header rule; the digest can.
+  `field/README.md` carries the procedure.
 
 * **Nothing else in this file moved.** The participants, the conditions, the assistance tags, M1 to
   M8 and the interpretation rules are exactly as first frozen. Only the build identity is new.
-* Verify before each session, from a signed-out browser, that the origin answers, that the build
-  identity is the frozen one and that storage is the model every walk was performed against. The
-  procedure is `field/README.md`, and it is three checks rather than one filename for the reason
-  above. As of this file production serves the frozen build: verified signed-out on 2026-09-13 at
-  19:25Z, `/build-identity.json` reporting `gitSha: e663ebc6c249…` and `target: production`, the
-  page `200` loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, and `/api/health`
-  `200` with `checks.storage` equal to `"not-configured"` -- nested under `checks` rather than at the
-  top level, re-verified in that shape on 2026-09-13 at 22:29Z.
+* Verify before each session, from a signed-out browser, that the origin answers, that the digest is
+  the frozen one and that storage is the model every walk was performed against. The procedure is
+  `field/README.md`, and it is three checks because no one of them can cover the others. As of this
+  file production serves the frozen stimulus: verified signed-out on 2026-09-14 at 05:56Z,
+  `/stimulus-manifest.json` answering `application/json` with `stimulus_sha256: 20c3c60d…` over 40
+  files, `/build-identity.json` reporting `gitSha: d2da163c2639…` and `target: production`, the page
+  `200` loading `assets/index-ZgOyRttd.js` and `assets/index-_bGdMEE1.css`, and `/api/health` `200`
+  with `checks.storage` equal to `"not-configured"` -- nested under `checks` rather than at the top
+  level.
 * What that commit contains beyond the previous freeze: the recursive spine and the policy-space
   analysis of [PR #109](https://github.com/ereztash/lichess_app/pull/109), `D27` and `D28`. No new
   surface, no new wording pass, and no change to any screen.
