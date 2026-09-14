@@ -1,0 +1,45 @@
+# Ownership of the licensing boundary.
+#
+# WHY THIS FILE EXISTS. The boundary between proprietary first-party code and the GPL engine is
+# held by a small number of files, and every one of them is the kind of file that gets changed in
+# passing: a manifest field, a notices table, a path in a build script. None of those changes look
+# like a licensing decision in a diff, and all of them are one.
+#
+# A CODEOWNERS entry is a review REQUEST, not an access control, and on this repository today it is
+# not even a requirement. `TARGET_2_AUTHORITY_CLOSURE.md` `Q34` made the point before this file
+# existed and it still holds: CODEOWNERS is inert without a branch protection rule, and branch
+# protection lives in repository settings rather than in this tree. Until that rule is configured
+# -- `docs/licensing/MIGRATION_RUNBOOK.md` step 6 -- this file routes review to the right person and
+# does not compel it.
+#
+# It is committed anyway, because the alternative is nothing, and because the half that needs a
+# settings change is a one-time owner action rather than a design problem.
+#
+# `LICENSING.md` §8 is the rule this file enforces. `GATE-LICENSE-BOUNDARY` is the mechanical half:
+# the gate catches what a rule can be written for, and review catches what it cannot.
+
+# --- Licensing documents -----------------------------------------------------------------------
+/LICENSE                                    @ereztash
+/LICENSING.md                               @ereztash
+/THIRD_PARTY_NOTICES.md                     @ereztash
+/IP_PROVENANCE_AUDIT.md                     @ereztash
+/docs/licensing/                            @ereztash
+/docs/legal/                                @ereztash
+
+# --- Package metadata: the `license` field and the dependency set are both licensing surface ----
+/package.json                               @ereztash
+/package-lock.json                          @ereztash
+
+# --- The Stockfish boundary itself --------------------------------------------------------------
+# The bridge is the one first-party file whose licence status depends on an unanswered question
+# (`LICENSING.md` §5), and the harness is first-party code deliberately held on the GPL side (§6).
+/client/src/lib/stockfish.ts                @ereztash
+/client/src/lib/engine-identity.ts          @ereztash
+/scripts/sf-wasm.mjs                        @ereztash
+/client/public/licenses/                    @ereztash
+
+# --- The gate that holds the boundary, and its control ------------------------------------------
+# A gate somebody can quietly weaken is not a gate. The fixture is listed for the same reason:
+# deleting it is how a positive control stops proving anything.
+/scripts/license-boundary.ts                @ereztash
+/tests/fixtures/licensing/                  @ereztash

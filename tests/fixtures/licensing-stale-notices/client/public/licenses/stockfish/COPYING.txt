@@ -1,0 +1,4 @@
+GNU GENERAL PUBLIC LICENSE (fixture placeholder)
+
+Present so that the compliance-material detector does NOT fire in this tree. The only finding this
+fixture may produce is the engine version disagreement.
