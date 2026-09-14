@@ -496,6 +496,24 @@ Define the canonical recursive product loop first.
 
 # PART II — THE CURRENT CANONICAL DIRECTION
 
+> **THIS PART IS HISTORY NOW, AND `D27` IS THE AUTHORITY.** Decisions 11 to 17 were the direction as
+> it stood on 2026-09-13. Every one of them was then derived from the repository, implemented and
+> held by tests, so the live statement of each lives in code rather than here:
+>
+> | this document | where it lives now |
+> |---|---|
+> | 11, one recursive loop | [`D27`](decisions/D27-recursive-spine.md) §C, `shared/spine.ts` |
+> | 12, reveal is not the endpoint | `D27` §B |
+> | 13, event / claim / journey states | `D27` §D — `DecisionStage`, `ClaimState`, `NextAction` |
+> | 14, patterns are longitudinal hypotheses | `CLAIM_GRADES`, `shared/claim.ts`. `D29`, open in [#112](https://github.com/ereztash/lichess_app/pull/112) and deliberately unmerged until the FIELD run ends, adds the player's exit from one |
+> | 15, negative states are legitimate | `nothing-separated`, `NOTHING_SEPARATED` |
+> | 16, next action serves the player | `D27` §D, `D22`, `shared/next-action.ts` |
+> | 17, return to normal play | `reachesPlay`, `PHASE_ARCS` |
+>
+> Kept rather than deleted because a decision record whose decisions are removed once they are
+> implemented stops being a record. **Read it for how the direction was reached; read `D27` for what
+> the direction is.** Part I has no such successor, and that is why this document is worth keeping.
+
 ## 14. Decision 11 — Decision Lab should be one recursive learning loop
 
 ### Canonical product thesis
@@ -513,17 +531,45 @@ It should feel like one recurring loop in which:
 7. the player returns to real chess;
 8. later decisions alter the interpretation of earlier ones.
 
-### Candidate canonical spine
+### Canonical spine
 
 ```text
 PLAY
 → CAPTURE
-→ ACT
 → REVEAL
 → UPDATE
-→ NEXT ACT
+→ RETURN
 → PLAY
 ```
+
+**THE CANDIDATE THIS SECTION FIRST PROPOSED HAD SIX PHASES, AND MEASUREMENT CUT IT TO FIVE.** The
+candidate was:
+
+```text
+PLAY → CAPTURE → ACT → REVEAL → UPDATE → NEXT ACT → PLAY
+```
+
+It is recorded rather than overwritten, because the point of this document is the history and
+because the sentence immediately below was written to license exactly this outcome.
+
+`ACT` came out because the repository contradicts it **in both lanes and in opposite directions**:
+
+* **untimed** — the move is PLACED during the decision and PLAYED at the continuation, *after* the
+  reveal. `continuationAfter` is what plays it, so the act follows the verdict.
+* **blitz** — the move is played immediately and the confidence question is put afterwards, at
+  `BLITZ_ASK_RATE`, so the act precedes the packet.
+
+Two lanes, two orders. Pinning either into the spine makes the other an exception. What is
+invariant across both is the thing the product is actually about: **the evidence packet closes
+before any post-commit information becomes available.** That is `CAPTURE` before `REVEAL`, and it is
+the only ordering the spine asserts.
+
+`NEXT ACT` became `RETURN` for a smaller reason: the phase is not the act itself but the re-entry,
+and `reentryOf` maps every proposal back to the phase it resumes.
+
+Derived, implemented and held by a test in `shared/spine.ts` and
+`tests/shared/a-loop-with-no-way-back-to-the-board.test.ts`. See
+`docs/decisions/D27-recursive-spine.md` §C, *"Why five and not the six the obvious drawing has"*.
 
 The exact labels may change if implementation reveals a better minimal model.
 
@@ -975,19 +1021,22 @@ Failure on any of these points should be treated as a product-architecture issue
 
 Decision Lab should first be reorganized around one recursive product spine.
 
-The current working formulation is:
+The formulation, as derived from the repository and implemented on 2026-09-13 in
+[`D27`](decisions/D27-recursive-spine.md):
 
 ```text
 PLAY
 → CAPTURE
-→ ACT
 → REVEAL
 → UPDATE
-→ NEXT ACT
+→ RETURN
 → PLAY
 ```
 
-with separate event, claim, and journey states; preserved pre/post-feedback evidence boundaries; explicit negative states; traceable provenance; and a natural return to real chess.
+The six-phase candidate this document opened with is recorded in §14 with the measurement that cut
+it. The single asserted invariant is `CAPTURE` before `REVEAL`.
+
+With separate event, claim, and journey states; preserved pre/post-feedback evidence boundaries; explicit negative states; traceable provenance; and a natural return to real chess.
 
 Full gamification, map, avatar, narrative, and resource-economy work remains deferred until the spine is implemented and user evidence demonstrates a bottleneck those layers solve better than cheaper alternatives.
 
