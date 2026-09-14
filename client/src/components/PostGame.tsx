@@ -83,6 +83,20 @@ export function PostGame({
   analysed,
   onSeePosition,
   onPlayAgain,
+  /**
+   * Whether a set this player started is being offered above, so nothing here may offer a new game.
+   *
+   * A PROP AND NOT A HOOK, and the reason is on the record: this component is presentational, its
+   * eleven tests render it with no query client, and an earlier attempt to read the continuation
+   * from inside it broke all eleven. The screen that owns the route reads it and hands down the
+   * answer, which is the same division `ResumeScreen` uses one surface over.
+   *
+   * IT SUPPRESSES BOTH WAYS OF SAYING "PLAY AGAIN", not just the loud one. `post-game__again` is the
+   * stamped primary, and on `nothing-to-conclude` the CARD's own action is `onPlayAgain` under a
+   * different label -- so suppressing only the button would leave the act on screen wearing the
+   * card's clothes. `lead === null` is exactly the state where the card is that act.
+   */
+  standDown = false,
 }: {
   game: StoredBlitzGame;
   reading: PostGameReading;
@@ -90,6 +104,7 @@ export function PostGame({
   analysed: number;
   onSeePosition: (event: BlitzEvent) => void;
   onPlayAgain: () => void;
+  standDown?: boolean;
 }) {
   const words = postGameWords(reading);
   const lead = reading.state === "nothing-to-conclude" ? null : reading.lead;
@@ -118,11 +133,15 @@ export function PostGame({
           )
         }
         authority={words.authority}
-        action={{
-          label: words.action.label,
-          because: words.action.because,
-          onClick: () => (lead ? onSeePosition(lead) : onPlayAgain()),
-        }}
+        action={
+          standDown && lead === null
+            ? null
+            : {
+                label: words.action.label,
+                because: words.action.because,
+                onClick: () => (lead ? onSeePosition(lead) : onPlayAgain()),
+              }
+        }
         why={<Why game={game} analysed={analysed} lead={lead} />}
         /*
          * THE EXPLANATION IS OPEN ON THIS SCREEN AND NOWHERE ELSE. This is where most players meet
@@ -186,7 +205,7 @@ export function PostGame({
         * The reading's own state is what says whether a position is being offered, so that is what
         * is asked.
         */}
-      {lead !== null && (
+      {lead !== null && !standDown && (
         <button
     type="button"
     className="post-game__again"

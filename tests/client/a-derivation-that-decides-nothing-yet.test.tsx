@@ -27,8 +27,8 @@ import { trpc } from "@/lib/trpc";
 import { ResumeScreen } from "@/components/ResumeScreen";
 import { LocalRecordStore } from "@/lib/local-record-store";
 import { clearProgress } from "@/lib/progress-record";
-import { RESUME_BLIND_SPOTS, offeredAct, productStateFor } from "@/lib/next-action-shadow";
-import { actFor, agreesWith } from "@shared/next-action";
+import { PERMANENTLY_UNOBSERVED, offeredAct, productStateFor } from "@/lib/next-action-shadow";
+import { actFor, agreesWith, BLINDABLE_INPUTS } from "@shared/next-action";
 import { PRIMARY_ACTIONS, primaryAction } from "@shared/primary-action";
 import { deriveNextAction } from "@shared/next-action";
 import type { BlitzReading } from "@shared/blitz-reading";
@@ -68,12 +68,41 @@ type StateInput = Parameters<typeof productStateFor>[0];
  * so a case that says nothing about the claim is a case about a front door whose claim view has not
  * come back, which is the state every one of these assertions was written in.
  */
+import {
+  COMMITMENT_UNREAD,
+  type LiveLearningCommitment,
+} from "../../shared/continuation";
+
+/** An open run, spelled once: five states means a literal is no longer a two-field object. */
+const activeDrill = (runId: string, done: number, total: number): LiveLearningCommitment => ({
+  state: "active",
+  kind: "drill",
+  run: { kind: "drill", runId, resumeWith: runId, done, total },
+  restore: { ok: true },
+});
+
 const stateFrom = (
-  over: Omit<StateInput, "analysisRunning" | "claim"> & {
+  over: Omit<StateInput, "analysisRunning" | "claim" | "continuation"> & {
     analysisRunning?: boolean;
     claim?: StateInput["claim"];
+    continuation?: StateInput["continuation"];
   },
-) => productStateFor({ analysisRunning: false, claim: undefined, ...over });
+) =>
+  /*
+   * `COMMITMENT_UNREAD` IS THE DEFAULT AND IT MEANS UNOBSERVED, which is the state every surface was
+   * permanently in before this reading existed. A test that wants the run branch reachable has to
+   * hand over a reading, which is the point: there is no longer a way to be silently blind.
+   *
+   * IT IS A READING AND NOT `undefined`, and that is the whole of §16 at the type level. The hook
+   * cannot answer "no data"; it answers `unknown` with a reason, so no caller ever has to decide
+   * for itself what an absent value meant.
+   */
+  productStateFor({
+    analysisRunning: false,
+    claim: undefined,
+    continuation: COMMITMENT_UNREAD,
+    ...over,
+  });
 
 beforeEach(() => {
   localStorage.clear();
@@ -119,15 +148,66 @@ describe("what the front door can and cannot supply", () => {
     expect(derived).toMatchObject({ kind: "wait-analysis", scoring: true });
   });
 
-  it("leaves every input it cannot see null, and names all four", () => {
+  it("says it did not read a run, rather than saying there is no run", () => {
+    /*
+     * THE DISTINCTION THE WHOLE MIGRATION TURNS ON. These four fields used to be `null` on every
+     * surface, and `null` already meant "there is no drill" -- so a screen that had never asked
+     * asserted, on every shadow row it ever wrote, that no drill was running.
+     */
     const state = stateFrom({ reading: reading(), games: [], decisionsOnRecord: 0, record: undefined });
-    expect(state.drill).toBeNull();
-    expect(state.transfer).toBeNull();
-    expect(state.unseenEvent).toBeNull();
-    expect(state.untestedRule).toBeNull();
-    expect([...RESUME_BLIND_SPOTS].sort()).toEqual(
-      ["drill", "transfer", "unseenEvent", "untestedRule"].sort(),
-    );
+    expect(state.drill.observed).toBe(false);
+    expect(state.transfer.observed).toBe(false);
+    expect(state.untestedRule.observed).toBe(false);
+    /* And the one that stays blind on purpose, because nothing in the product writes it. */
+    expect(state.unseenEvent.observed).toBe(false);
+    expect([...PERMANENTLY_UNOBSERVED]).toEqual(["unseenEvent"]);
+  });
+
+  it("carries a run it WAS given, and reports an empty record as an observed absence", () => {
+    const withRun = stateFrom({
+      reading: reading(),
+      games: [],
+      decisionsOnRecord: 0,
+      record: undefined,
+      continuation: {
+        drill: activeDrill("d1", 3, 8),
+        transfer: { state: "none", kind: "transfer" },
+        untestedRule: null,
+      },
+    });
+    expect(withRun.drill).toEqual({ observed: true, value: { drillId: "d1", done: 3, total: 8 } });
+    /* Observed, and not a drill: the record was read and the active run is not one. */
+    expect(withRun.transfer).toEqual({ observed: true, value: null });
+    expect(deriveNextAction(withRun)).toMatchObject({ kind: "continue-drill", drillId: "d1" });
+
+    const empty = stateFrom({
+      reading: reading(),
+      games: [],
+      decisionsOnRecord: 0,
+      record: undefined,
+      continuation: {
+        drill: { state: "none", kind: "drill" },
+        transfer: { state: "none", kind: "transfer" },
+        untestedRule: null,
+      },
+    });
+    expect(empty.drill).toEqual({ observed: true, value: null });
+    expect(empty.untestedRule).toEqual({ observed: true, value: null });
+  });
+
+  it("proposes the player's own untested rule above the instrument's claim", () => {
+    const state = stateFrom({
+      reading: reading(),
+      games: [],
+      decisionsOnRecord: 4,
+      record: undefined,
+      continuation: {
+        drill: { state: "none", kind: "drill" },
+        transfer: { state: "none", kind: "transfer" },
+        untestedRule: "rule-7",
+      },
+    });
+    expect(deriveNextAction(state)).toEqual({ kind: "test-hypothesis", ruleId: "rule-7" });
   });
 
   it("carries the standing through untouched, so the derivation reads the record's own answer", () => {
@@ -190,7 +270,7 @@ function renderResume() {
   return render(
     <trpc.Provider client={client} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ResumeScreen returning onPlay={() => undefined} />
+        <ResumeScreen returning standDown={false} onPlay={() => undefined} />
       </QueryClientProvider>
     </trpc.Provider>,
   );
@@ -309,7 +389,17 @@ describe("on the screen, it changes nothing", () => {
     expect(row.agrees).toBe(agreesWith(row.proposed, row.offered));
     expect(typeof row.proposed).toBe("string");
     expect(typeof row.agrees).toBe("boolean");
-    expect([...row.blind].sort()).toEqual([...RESUME_BLIND_SPOTS].sort());
+    /*
+     * WHAT IT COULD NOT SEE, FROM THE DERIVATION RATHER THAN FROM A TABLE.
+     *
+     * `blind` used to be a per-surface constant naming four inputs on every row -- including rows
+     * where those inputs ranked BELOW the branch that fired. It is now the prefix that actually
+     * outranked this proposal, so it is a subset of the blindable inputs and every member of it
+     * outranks the answer. In this test the record is empty and unsigned-in, so the continuation
+     * read fails and every blindable input above the proposal is named.
+     */
+    expect(row.blind.every((input: string) => (BLINDABLE_INPUTS as readonly string[]).includes(input))).toBe(true);
+    expect(row.blind).toContain("unseenEvent");
   });
 
   it("records a proposal even on an empty record, where the screen renders nothing at all", async () => {

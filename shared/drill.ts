@@ -78,6 +78,15 @@ export interface StartedDrill {
   readonly started_at: string;
   /** What the claim predicts, fixed before any position is shown (R5). */
   readonly predicted: boolean;
+  /**
+   * Always null here, and it is a field rather than an omission so the type cannot drift.
+   *
+   * `StoredDrill` carries `abandoned_at` because a drill has three endings -- reported, closed by
+   * the player, still open -- and a start is by definition the third. Writing the null explicitly
+   * is what makes `saveDrill(startDrill(...))` typecheck as the same object the store hands back,
+   * so a reader cannot be handed a started drill whose ending is `undefined`.
+   */
+  readonly abandoned_at: null;
 }
 
 /**
@@ -115,7 +124,7 @@ export function startDrill(
   if (!spec.fens?.length) {
     throw new Error(`drill ${spec.drill_id} has no positions to test`);
   }
-  return { spec, started_at: options.started_at, predicted: options.predicted };
+  return { spec, started_at: options.started_at, predicted: options.predicted, abandoned_at: null };
 }
 
 export interface DrillObservation {
@@ -285,7 +294,14 @@ export function evaluateRefutation(
  * is how a claim that cannot fail gets manufactured after the fact.
  */
 export function completeDrillAgainstBaseline(
-  started: StartedDrill,
+  /*
+   * THE REGISTERED TERMS, FROM WHEREVER THEY WERE READ. `StartedDrill` is what `startDrill`
+   * returns and `StoredDrill` is what the record hands back; the only field that separates them is
+   * how the drill ENDED, which is the one thing this function is in the middle of deciding. Taking
+   * the two fields it actually reads says that, and stops a caller holding a stored drill from
+   * having to widen a type to report it.
+   */
+  started: Pick<StartedDrill, "spec" | "predicted">,
   decisions: DrillDecision[],
   verdict: RefutationVerdict,
   options: { recorded_at: string },

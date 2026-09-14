@@ -347,6 +347,20 @@ export const drills = mysqlTable("drills", {
    */
   predictsOverconfidence: boolean("predicts_overconfidence"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
+  /*
+   * WHEN THE PLAYER CLOSED THIS DRILL WITHOUT REPORTING IT. Null on every drill that is still open,
+   * on every drill that reported, and on every row written before this column existed.
+   *
+   * NULLABLE AND NO DEFAULT, for the reason `predicts_overconfidence` above is nullable: the rows
+   * already in this table were written with no such act available, and stamping them with a time
+   * would invent a decision the player never made. A null here means "not abandoned" and also
+   * "never could have been", and both readings point the same way -- the drill is open.
+   *
+   * IT LIVES ON THE DRILL AND NOT IN `drill_results`, because it is not a result. A result carries
+   * `observed` and grades a claim; an abandonment carries neither and must not. Putting it in that
+   * table would make every count of forward tests include tests that were never run.
+   */
+  abandonedAt: timestamp("abandoned_at"),
 });
 export type DrillRow = typeof drills.$inferSelect;
 

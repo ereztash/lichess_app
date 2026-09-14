@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { retryOnce } from "@/lib/retry-once";
+import { useDrillRun } from "@/lib/use-drill-run";
 import { reportEngineFailure, reportFailure } from "@/lib/error-sink";
 import { Chess } from "chess.js";
 import {
@@ -38,6 +39,7 @@ import { useContinuationEvent } from "@/lib/continuation-event";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { adoptStoredPosition, restoreNotice } from "@/lib/adopt-position";
 import { readPosition, type StoredPosition, writePosition } from "@/lib/session-position";
+import { useResumeRequest } from "@/lib/use-resume-request";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
 import { LearningRuleComposer } from "@/components/LearningRuleComposer";
@@ -104,12 +106,14 @@ import type { AnalysisSource } from "@shared/analysis-source";
 import {
   useCommitDecision,
   useRecordCounterfactual,
+  useAbandonDrill,
   useCompleteDrill,
   useCompleteLearningTransfer,
   useDecisionCount,
   useRecordMode,
   useRecordReading,
   useReveal,
+  useRestoreDrill,
   useStartDrill,
   useStartLearningTransfer,
   useImportReading,
@@ -371,18 +375,55 @@ export default function Home() {
   /** The position the opponent has already been asked about, so it is asked exactly once. */
   const answeredFen = useRef<string | null>(null);
 
-  // --- Drill state ------------------------------------------------------------------------
-  // A drill overrides where the board's position comes from. The decision protocol is
-  // unchanged: same CommitmentScreen, same commit-before-reveal, same record.
-  const [drill, setDrill] = useState<DrillSpec | null>(null);
-  const [drillIndex, setDrillIndex] = useState(0);
-  const [drillDecisionIds, setDrillDecisionIds] = useState<string[]>([]);
-  const [drillStage, setDrillStage] = useState<DrillStage>("briefing");
-  const [drillVerdict, setDrillVerdict] = useState<{
-    description: string;
-    refuted: boolean;
-  } | null>(null);
-  const [drillError, setDrillError] = useState<string>();
+  // --- The drill, which lives in `useDrillRun` ---------------------------------------------
+  // Six pieces of state and four transitions moved out together, and the hook says why. Here
+  // rather than with the other mutations below because the hook takes these as arguments.
+  const startDrillMutation = useStartDrill();
+  const completeDrillMutation = useCompleteDrill();
+  const abandonDrillMutation = useAbandonDrill();
+  const restoreDrill = useRestoreDrill();
+  const {
+    drill,
+    drillIndex,
+    drillDecisionIds,
+    drillStage,
+    drillVerdict,
+    drillError,
+    setDrillDecisionIds,
+    setDrillStage,
+    beginDrill,
+    advanceDrill,
+    closeDrill,
+    resumeDrill,
+  } = useDrillRun({
+    history,
+    /*
+     * THE TWO THINGS A DRILL MAY ASK OF THE BOARD IT BORROWS, and no more than two.
+     *
+     * `use-drill-run.ts` argues why this is an act rather than six setters. The half that belongs
+     * here: the state being cleared is the PAGE's, because the same board serves free play, a
+     * loaded game and a transfer.
+     */
+    clearPosition: () => {
+      setAnalysis(null);
+      setRevealInputs(null);
+      setCommittedDraft(null);
+      setCandidateMove(null);
+      setCandidatesConsidered([]);
+      setCommitError(undefined);
+    },
+    backToDeciding: (notice: string) => {
+      setAnalysis(null);
+      setRevealInputs(null);
+      setCommittedDraft(null);
+      setStage("deciding");
+      setNotice(notice);
+    },
+    startDrillMutation,
+    completeDrillMutation,
+    abandonDrillMutation,
+    restoreDrill,
+  });
 
   // --- Player-authored learning and delayed transfer --------------------------------------
   const [learningTransfer, setLearningTransfer] = useState<LearningTransfer | null>(null);
@@ -498,8 +539,6 @@ export default function Home() {
    * the same shared service, so R3 and append-only hold either way -- see lib/record-api.ts.
    */
   const commitDecision = useCommitDecision();
-  const startDrillMutation = useStartDrill();
-  const completeDrillMutation = useCompleteDrill();
   const startLearningTransferMutation = useStartLearningTransfer();
   const completeLearningTransferMutation = useCompleteLearningTransfer();
   const recordTransferObservation = useRecordTransferObservation();
@@ -592,10 +631,34 @@ export default function Home() {
     [],
   );
 
+  /*
+   * WHICH RUN A SURFACE ASKED THIS BOARD TO REOPEN, read before either effect that needs it: the
+   * one below, which must stand down rather than adopt a saved game over a drill, and the one
+   * several hundred lines lower that honours it. `use-resume-request.ts` has the rest.
+   */
+  const pendingResume = useResumeRequest();
+
   const restored = useRef(false);
   useEffect(() => {
     if (restored.current) return;
     restored.current = true;
+    /*
+     * A RUN OUTRANKS A BOARD, and the order of these two reads is that fact.
+     *
+     * The player pressed a control that says "carry on with the set you started", and the saved
+     * position is whatever game happened to be on screen when they last left. Adopting the game
+     * first and then the run would put a board up and take it away again in front of them; adopting
+     * the game AFTER would restore a position over a drill that owns the board. So the handoff is
+     * taken first, and when it holds a request the game is not restored at all -- a drill supplies
+     * its own positions, and `inDrill` already routes the board past `history`.
+     *
+     * TAKEN EXACTLY ONCE. `takeResumeRequest` clears the key as it reads it, so a reload after the
+     * run is reported does not ask to reopen a drill that no longer exists.
+     */
+    if (pendingResume.current !== null) {
+      setRestoreSettled(true);
+      return;
+    }
     const saved = readPosition();
     if (!saved) {
       setRestoreSettled(true);
@@ -605,8 +668,11 @@ export default function Home() {
     adoptPosition(saved, (loaded) => restoreNotice(saved.handover, loaded.length, saved.orientation));
     setRestoreSettled(true);
     /* Listed although `restored.current` makes this run once: a reader cannot tell a stable
-       `useCallback` from an unstable one at the call site, which is what the guard is for. */
-  }, [adoptPosition]);
+       `useCallback` from an unstable one at the call site, which is what the guard is for. And
+       `pendingResume` for the same reason -- the hook holds one object for the component's life,
+       and a dependency array that leaves out what the body reads is the shape this file's own
+       test exists to refuse, stable or not. */
+  }, [adoptPosition, pendingResume]);
 
   /*
    * And written back whenever it changes. `sans` rather than the snapshots: chess.js derives the
@@ -1105,6 +1171,9 @@ export default function Home() {
       learningTransferRecall,
       playMove,
       recordTransferObservation,
+      /* Stable, and listed anyway: it arrives through `useDrillRun` now, and a call site cannot
+         tell a hook's setter from a local one. Omitting what a body reads is what the rule refuses. */
+      setDrillDecisionIds,
       submitReveal,
     ],
   );
@@ -1308,105 +1377,25 @@ export default function Home() {
     ],
   );
 
-  /** Ask the server for a drill. The refutation condition is stored there before it returns. */
-  const beginDrill = useCallback(
-    async (claimId: string) => {
-      setDrillError(undefined);
-      // Offer every position from the loaded game. The server decides which are usable by
-      // excluding the ones already decided -- it holds decisions, not games.
-      const candidates = history.map((snapshot) => snapshot.fen);
-      if (candidates.length === 0) {
-        setDrillError("אין משחק טעון שאפשר לקחת ממנו עמדות. טענו PGN קודם.");
-        return;
-      }
-      try {
-        const response = await startDrillMutation.mutateAsync({
-          claim_id: claimId,
-          candidate_fens: candidates,
-        });
-        if (!response.drill) {
-          setDrillError(response.reason ?? "אי אפשר לבנות דריל כרגע.");
-          return;
-        }
-        setDrill(response.drill);
-        setDrillIndex(0);
-        setDrillDecisionIds([]);
-        setDrillVerdict(null);
-        setDrillStage("briefing");
-      } catch (error) {
-        setDrillError(readableFailureText(error, "הדריל לא התחיל."));
-      }
-    },
-    [history, startDrillMutation],
-  );
-
-  /** Advance to the next drill position, or close the drill and grade the claim. */
-  const advanceDrill = useCallback(async () => {
-    if (!drill) return;
-    const next = drillIndex + 1;
-    setAnalysis(null);
-    setRevealInputs(null);
-    setCommittedDraft(null);
-    setCandidateMove(null);
-    setCandidatesConsidered([]);
-    setCommitError(undefined);
-
-    if (next < drill.fens.length) {
-      setDrillIndex(next);
-      setStage("deciding");
-      setNotice(`עמדה ${next + 1} מתוך ${drill.fens.length} בדריל.`);
-      return;
-    }
-
-    setDrillStage("reporting");
-    /*
-     * THE SAME PAYLOAD, TWICE, for the same reason the reveal does it.
-     *
-     * `finishDrill` gained an idempotent replay branch that repairs a claim whose grade write was
-     * lost -- and it was unreachable from here. This catch sets the stage to "done", not back to
-     * "running" the way the transfer runner does, and at "done" with no verdict `DrillRunner`
-     * renders an error paragraph and no control at all: the verdict block is gated on `verdict`
-     * and the abandon button on briefing|running. The drill id lives only in React state, so a
-     * reload discards it. Nothing would ever have called `completeDrill` with it again.
-     *
-     * A server-side repair branch nothing retries is worth nothing. One retry, with the object
-     * already built -- the decision ids are the record's, not recomputed, so the second attempt
-     * asks the identical question and the replay branch answers it.
-     */
-    const drillPayload = { drill_id: drill.drill_id, decision_ids: drillDecisionIds };
-    try {
-      const result = await retryOnce(() => completeDrillMutation.mutateAsync(drillPayload));
-      // Reported either way -- a refutation is the result, not a failure to report.
-      setDrillVerdict({
-        description: result.description,
-        refuted: result.claim.grade === "refuted",
-      });
-      setDrillStage("done");
-    } catch (error) {
-      setDrillError(readableFailureText(error, "אי אפשר היה לסגור את הדריל."));
-      setDrillStage("done");
-    }
-  }, [completeDrillMutation, drill, drillDecisionIds, drillIndex]);
-
-  const closeDrill = () => {
-    setDrill(null);
-    setDrillIndex(0);
-    setDrillDecisionIds([]);
-    setDrillVerdict(null);
-    setDrillStage("briefing");
-    setDrillError(undefined);
-    setStage("deciding");
-    setAnalysis(null);
-    setRevealInputs(null);
-    setCommittedDraft(null);
-    setNotice("בחרו מהלך.");
-  };
-
   const beginLearningTransfer = useCallback(
-    async (ruleId: string) => {
+    /**
+     * `resuming` SKIPS THE CANDIDATE GUARD, AND ONLY THE GUARD.
+     *
+     * The check below asks whether this board can supply three positions to REGISTER a new test
+     * with. A resume registers nothing: `startLearningTransfer` finds the open transfer first and
+     * hands it back with its observation count, never looking at the candidates. So the guard is
+     * right for a start and wrong for a resume -- and it was the whole of what stopped a run being
+     * reopened from another screen, because somebody arriving to carry on with a set has no game
+     * loaded and no reason to load one. The positions they are being asked about were written down
+     * days ago.
+     *
+     * THE CANDIDATES ARE STILL SENT, unchanged. The server decides whether this is a resume, from
+     * the record; a client that decided by omitting the field would be a second place that knows.
+     */
+    async (ruleId: string, { resuming = false }: { resuming?: boolean } = {}) => {
       setLearningTransferError(undefined);
       const candidates = [INITIAL_FEN, ...history.map((item) => item.fen)];
-      if (candidates.length < 3) {
+      if (!resuming && candidates.length < 3) {
         setLearningTransferError(
           "כדי לבנות בדיקת העברה צריך לטעון משחק עם לפחות שלוש עמדות חדשות.",
         );
@@ -1448,6 +1437,18 @@ export default function Home() {
     },
     [history, startLearningTransferMutation],
   );
+
+  /*
+   * THE PRESS FROM ANOTHER SCREEN, HONOURED HERE BECAUSE HERE IS WHERE BOTH CALLBACKS EXIST.
+   *
+   * A second effect rather than a branch in the game restore above: that one is declared several
+   * hundred lines earlier, and hoisting either of these to reach it would be moving the file to
+   * satisfy an ordering rule. `use-resume-request.ts` has the rest, including why the two kinds
+   * take different paths and why both of those are the record's.
+   */
+  useEffect(() => {
+    pendingResume.honour({ drill: resumeDrill, transfer: beginLearningTransfer });
+  }, [pendingResume, resumeDrill, beginLearningTransfer]);
 
   const advanceLearningTransfer = useCallback(async () => {
     if (!learningTransfer || learningTransferStage !== "running") return;

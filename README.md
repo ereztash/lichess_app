@@ -8,6 +8,29 @@ The live application records decision evidence **before the engine speaks** and 
 
 ---
 
+> ## PUBLIC GPL LINE — FROZEN FOR FIRST-PARTY PRODUCT DEVELOPMENT
+>
+> **This repository is the historical record, not the development authority.** As of
+> `17892945` it receives no further first-party product code. Its root `LICENSE` is
+> **unchanged** and stays GPL-3.0-or-later.
+>
+> **Nothing here is revoked.** Every copy distributed under GPL-3.0-or-later — from `main`, from
+> any branch, at any revision — **remains licensed under those terms, perpetually and
+> irrevocably.** Every fork taken under them remains lawful. No part of this freeze narrows a
+> grant already made, and any statement that it does would be false.
+>
+> First-party development moves to a proprietary default in a separate private repository. **That
+> repository does not exist yet**, and the freeze does not wait for it: a line is frozen by nothing
+> new entering it, not by somewhere else being ready. Third-party components, Stockfish included,
+> keep their own licences and are unaffected.
+>
+> Open pull requests carrying product changes are **historical**. They are not merged into this
+> line. See [`docs/licensing/GPL_CUTOFF.md`](docs/licensing/GPL_CUTOFF.md) for the three public
+> GPL artefacts by SHA, and [`docs/licensing/MIGRATION_RUNBOOK.md`](docs/licensing/MIGRATION_RUNBOOK.md)
+> for what the freeze does and does not cover.
+
+---
+
 ## Why this exists
 
 A chess engine can answer:

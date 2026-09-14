@@ -957,44 +957,104 @@ const INDEX = `${ROOT}/index.html`;
  * change with a real argument and is not this one. `D27`'s own growth WAS taken back rather than
  * raised, by moving `DISCOVERY_FLOOR` to a module both readers already imported -- so this branch
  * spent nothing on the ratchet until this commit.
+ */
+
+/**
+ * 679 -> 681 AND 772 -> 774: THE CANONICAL DERIVATION'S TOP THREE BRANCHES, MADE READABLE.
+ *
+ * WHAT THE BYTES ARE. `deriveNextAction`'s first, second and fifth branches -- `continue-drill`,
+ * `continue-transfer` and `test-hypothesis` -- were unreachable in production because
+ * `productStateFor` hard-coded their inputs to `null`, and `null` already meant "there is none".
+ * The repair is a query (`continuation`), the cache invalidation that keeps it true across the five
+ * writes that open or close a run, and a lazily-mounted probe on the record page.
+ *
+ * WHERE IT IS *NOT*. Three of the four pieces were kept out of the entry graph on purpose and the
+ * split was driven by measurement rather than by taste:
+ *
+ *     the hook in `record-api.ts`                     680.8      212.9       774.0   +2.0
+ *     hook moved to `continuation-api.ts`             680.6      212.9       773.8   -0.2
+ *     read moved out of `record-service.ts`           679.7      212.6       772.9   -0.9
+ *
+ * `record-service.ts` is imported wholesale by `record-api.ts`, so a function added to it is in the
+ * entry chunk whatever imports it -- which is why `continuationReading` lives in
+ * `shared/continuation.ts` and is named only by the lazy surfaces and the server router.
+ *
+ * WHAT THE REMAINING 0.7 kB BUYS, and it is on the write side rather than the read side:
+ * `invalidateContinuation` plus the `trpc.useUtils()` handle in five mutations that previously
+ * needed none. A drill that opens and a screen that still says no drill is open is the same defect
+ * this change exists to remove, arriving one cache layer down, so the invalidation is not optional.
+ *
+ * THE GZIP CEILING DOES NOT MOVE. 212.6 against 213 leaves 0.4 kB and it was not crossed; a ceiling
+ * that has not fired keeps its number, which is the rule the raise four notes above states.
+ *
+ * 681 AND 774 LEAVE 1.3 kB AND 1.1 kB, the same order of headroom as every raise above.
  *
  * ---
  *
- * 679 -> 680, AND THE FORTY-SIX BYTES ABOVE WERE SPENT THE VERY NEXT COMMIT, which is what the
- * paragraph above predicted and is recorded here rather than quietly absorbed.
+ * 681 -> 685, 213 -> 215 AND 774 -> 778: A COMMITMENT THAT SURVIVES BEHAVIOURALLY AND NOT ONLY AS A
+ * ROW.
  *
- *     from e663ebc                                  695,047      212.4       790,482
- *     + the ownership boundary (D29)                695,862      212.6       791,297
+ * WHAT THE BYTES ARE. The raise four notes above made the derivation's top branches READABLE. It
+ * did not make them REACHABLE: `continue-run` had one control in the whole client, inside the run it
+ * continues, so a player who navigated away could not get back to a set they had started. Closing
+ * that took a restore path on the board, a terminal state for a drill the player puts down, and a
+ * handoff that carries the press one hop.
  *
- * 815 bytes on the entry, 769 over the 679 kB ceiling of 695,296 and 769 over the 772 kB initial
- * ceiling of 790,528. Both raised by 1 kB. The gzip ceiling is untouched at 213: 212.6 kB, which is
- * 0.4 kB of headroom and is now the tightest of the three.
+ * WHERE IT IS *NOT*, AND THE SPLIT WAS DRIVEN BY MEASUREMENT:
  *
- * WHAT THE 815 BYTES BUY. `docs/decisions/D29-question-ownership.md`: a question the player declines
- * had no representation anywhere in the tree, so `deriveNextAction` proposed `test-claim` on every
- * derivation until a DRILL graded the claim -- a question the player did not want could only be got
- * rid of by answering it. The bytes are a fourth `CLAIM_GRADES` member and what the compiler then
- * required of every exhaustive map over it: two render rows, a branch in the loop pointer that does
- * not send the player back to the drill panel, a guard in each of the three stores, and
- * `retireClaim` / `closedToProposal` / `withdrawnByPlayer`.
+ *                                                     entry raw   gzipped   initial raw   delta
+ *     one module for the read and the restore           684.7      213.8       777.9      +5.0
+ *     restore split into `shared/drill-restore.ts`      683.0      213.3       776.2      -1.7
+ *     the control lazily mounted from `Record.tsx`      683.3      213.4       776.5      +0.3
  *
- * WHY IT IS NOT TAKEN BACK, checked rather than assumed. Two of the three vocabulary copies this
- * pass removed -- `loop-position.ts:54` and `Value.tsx:15`, each a hand-written
- * `"hypothesis" | "replicated" | "refuted"` -- were already type-only, so deleting them returned
- * nothing. The rest is a Hebrew sentence per render site and one string per store, and a sentence
- * that says less is the drift this repository keeps repairing. `D27`'s fold worked because a
- * constant had two importers; there is no equivalent here.
+ * THE READ IS NOT IN THE ENTRY CHUNK AND THE RESTORE HAS TO BE. `Home.tsx` is a static import in
+ * `App.tsx` -- it is the board -- and the board is what puts a player back inside a run, so
+ * `restoreDrillRun` is on the entry route by construction. The READING that answers "is a set open"
+ * is wanted only by the three surfaces that offer to carry on, and every one of them is lazy: the
+ * resume screen, the record page's `ContinuationSlot`, and the `/blitz` route. `shared/continuation.ts`
+ * is named by none of the eager ones.
  *
- * IT IS ALSO THE MEASUREMENT `D29` §M RESTS ON. The FIELD stimulus is pinned to a built bundle, and
- * this is the proof that `shared/` alone moves it: no control was added, no route changed, nothing a
- * cold participant can reach is different, and the entry chunk is 815 bytes further along. That is
- * why the node cannot merge before the run ends.
+ * THE LAST ROW IS A COST ACCEPTED ON PURPOSE. Mounting the control from `Record.tsx` through a lazy
+ * chunk costs 0.3 kB of `Suspense` and one piece of page state; mounting it directly measured the
+ * full reading chain in the entry graph. `NextActionProbe` made the same trade one control over and
+ * its header says so.
+ *
+ * THE GZIP CEILING MOVES THIS TIME, AND THE NOTE FOUR ABOVE SAYS WHEN THAT IS ALLOWED: it fired.
+ * 213.4 against 213 is over, so the number changes; a ceiling that has not been crossed keeps its
+ * number and that rule is why it kept it last time.
+ *
+ * 685, 215 AND 778 LEAVE 1.7 kB, 1.6 kB AND 1.5 kB, the same order of headroom as every raise above
+ * and deliberately more than the 0.1 kB that the note six above records as "not headroom, it is the
+ * next commit's problem".
+ *
  */
-
-const ENTRY_RAW_KB = 680;
+/**
+ * 685 -> 686 AND 778 -> 779: `D29`'s FOURTH CLAIM GRADE, MEASURED ON TOP OF `#120`.
+ *
+ * This branch's own earlier note, six above, measured 815 bytes against `e663ebc` and raised 679 to
+ * 680. That measurement is superseded rather than wrong: `#120` and `#121` landed between, raised
+ * the ceilings to 685 and 778 with 1.7 kB and 1.5 kB of headroom, and this change spends it.
+ * Re-measured on the merged tree rather than added to the old figure:
+ *
+ *     main at `373b235`, no `retired`          684.3      214.0       777.5
+ *     this branch merged onto it               685.0      214.1       778.2   +0.7 / +0.7
+ *
+ * Both rows built and read here, the baseline in a worktree at `373b235`, neither carried over
+ * from an earlier note.
+ *
+ * 686 AND 779 LEAVE 1.0 kB AND 0.8 kB. Thinner than the 1.7 kB above it and deliberately not
+ * rounded up further: the next change to `shared/` should have to state its own case here rather
+ * than inherit room this one asked for. `ENTRY_GZIP_KB` is untouched at 215 with 214.1 measured,
+ * and remains the tightest of the three.
+ *
+ * WHAT THE BYTES ARE. A fourth member on `CLAIM_GRADES` and the four `Record<ClaimGrade, ...>`
+ * tables that must then name it, the `evaluateClaim` guard that runs before the fold, and the store
+ * refusals. No control, no route, no screen: nothing a participant can reach is different.
+ */
+const ENTRY_RAW_KB = 686;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 213;
+const ENTRY_GZIP_KB = 215;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -1185,7 +1245,7 @@ const ENTRY_GZIP_KB = 213;
  * Attributed to the same change rather than counted twice.
  */
 
-const INITIAL_RAW_KB = 773;
+const INITIAL_RAW_KB = 779;
 
 interface Asset {
   name: string;

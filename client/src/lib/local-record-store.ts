@@ -25,6 +25,7 @@ import type {
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
 import { assembleProbe } from "@shared/counterfactual";
 import { MissingClaimDirection } from "@shared/drill";
+import { RecordError } from "@shared/record-service";
 import type { RevealTiming } from "@shared/reveal-timing";
 import type {
   AnalysisTiming,
@@ -720,6 +721,50 @@ export class LocalRecordStore implements RecordStore {
       throw new MissingClaimDirection(started.spec.claim_id);
     }
     return started;
+  }
+
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    const state = read();
+    return (await this.listDrills()).filter(
+      (d) =>
+        d.abandoned_at === null &&
+        !state.drillResults.some((r) => r.drill_id === d.spec.drill_id),
+    );
+  }
+
+  async listDrills(): Promise<StoredDrill[]> {
+    const state = read();
+    return (
+      Object.values(state.drills)
+        /*
+         * THE SAME OMISSION THE INTERFACE MANDATES AND THE SERVER STORE MAKES. A drill whose
+         * direction was never recorded cannot be graded -- `getDrill` throws `MissingClaimDirection`
+         * rather than hand back an ungradeable spec -- so proposing that a player finish it would be
+         * proposing an act with no outcome. The state here is persisted JSON in `localStorage`, so a
+         * browser record written before the field existed really can hold one.
+         */
+        .filter((d) => typeof d.spec.predicts_overconfidence === "boolean")
+        /*
+         * `?? null` RATHER THAN A MIGRATION. Every drill already in a browser's `localStorage` was
+         * written before this field existed, and null is what is true of all of them: nobody closed
+         * them. It is also the direction that keeps a commitment rather than discarding one.
+         */
+        .map((d) => ({ ...d, abandoned_at: d.abandoned_at ?? null }))
+        .sort((a, b) => a.started_at.localeCompare(b.started_at))
+    );
+  }
+
+  async abandonDrill(drillId: string, at: string): Promise<void> {
+    return update((state) => {
+      const stored = state.drills[drillId];
+      if (!stored) throw new RecordError("NOT_FOUND", "אין דריל עם המזהה הזה.");
+      if (state.drillResults.some((r) => r.drill_id === drillId)) {
+        throw new RecordError("PRECONDITION_FAILED", "הדריל הזה כבר דווח.");
+      }
+      /* Idempotent: the first close is the one that happened, a retry does not move it. */
+      if (stored.abandoned_at) return;
+      state.drills[drillId] = { ...stored, abandoned_at: at };
+    });
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {

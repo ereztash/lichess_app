@@ -45,7 +45,7 @@ import {
   withdrawnByPlayer,
   type ClaimState,
 } from "@shared/claim-state";
-import { deriveNextAction, type NextAction, type ProductState } from "@shared/next-action";
+import { deriveNextAction, observed, type NextAction, type ProductState } from "@shared/next-action";
 import { DISCOVERY_FLOOR } from "@shared/detector";
 import type { BlitzStanding } from "@shared/blitz-reading";
 import { MemoryRecordStore } from "../../server/record";
@@ -212,10 +212,10 @@ describe("the derivation", () => {
   const SETTLED: ProductState = {
     pendingAnalyses: 0,
     analysisRunning: false,
-    drill: null,
-    transfer: null,
-    unseenEvent: null,
-    untestedRule: null,
+    drill: observed(null),
+    transfer: observed(null),
+    unseenEvent: observed(null),
+    untestedRule: observed(null),
     claimState: { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
     blitzStanding: MAY,
     decisionsOnRecord: DISCOVERY_FLOOR,
@@ -241,18 +241,23 @@ describe("the derivation", () => {
    * cannot become a user obligation merely because the detector produced it.
    */
   it("changes its proposal on the player's answer alone, with every record fact held equal", () => {
-    const held = { pendingAnalyses: 0, drill: null, transfer: null, untestedRule: null } as const;
+    const held = {
+      pendingAnalyses: 0,
+      drill: observed(null),
+      transfer: observed(null),
+      untestedRule: observed(null),
+    } as const;
     expect(next({ ...held, claimState: CANDIDATE }).kind).toBe("test-claim");
     expect(next({ ...held, claimState: RETIRED }).kind).not.toBe("test-claim");
   });
 
   it("keeps the player's own question ahead of the instrument's, retired or not", () => {
     // The constitutional ordering of D22. Adding a way out of the queue must not reorder it.
-    expect(next({ claimState: CANDIDATE, untestedRule: "rule-7" })).toEqual({
+    expect(next({ claimState: CANDIDATE, untestedRule: observed("rule-7") })).toEqual({
       kind: "test-hypothesis",
       ruleId: "rule-7",
     });
-    expect(next({ claimState: RETIRED, untestedRule: "rule-7" })).toEqual({
+    expect(next({ claimState: RETIRED, untestedRule: observed("rule-7") })).toEqual({
       kind: "test-hypothesis",
       ruleId: "rule-7",
     });
@@ -260,7 +265,7 @@ describe("the derivation", () => {
 
   it("keeps a drill in flight ahead of everything, so retiring cannot strand one", () => {
     const inFlight = { drillId: "drill-1", done: 3, total: 8 };
-    expect(next({ claimState: RETIRED, drill: inFlight }).kind).toBe("continue-drill");
+    expect(next({ claimState: RETIRED, drill: observed(inFlight) }).kind).toBe("continue-drill");
   });
 });
 

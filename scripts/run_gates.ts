@@ -53,14 +53,30 @@ import { findAuthorityDrift } from "./authority-scan";
 import { findUnobservableCues } from "./cue-scan.js";
 import { findFalsificationDrift } from "./falsification-scan";
 import { rollbackDrift as findRollbackDrift } from "./rollback-scan";
+import { RECORDED_FLAGS } from "./stimulus-manifest";
 import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
+  observed,
   producesEvidence,
+  SHADOW_SURFACES,
   type NextAction,
+  type NextActionKind,
   type ProductState,
 } from "../shared/next-action";
+import { continuationOffer } from "../shared/continuation-offer";
+import {
+  licenseBoundaryFindings,
+  REQUIRED_DETECTORS,
+  REPOSITORY as LICENSE_REPOSITORY,
+  type LicenseTree,
+} from "./license-boundary";
+import {
+  COMMITMENT_READ_FAILED,
+  COMMITMENT_UNREAD,
+  type ContinuationReading,
+} from "../shared/continuation";
 
 export type GateStatus = "PASS" | "FAIL" | "NOT-MEASURED";
 export interface GateResult {
@@ -177,6 +193,26 @@ function runVitestFile(
 
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
+const SHADOW_FIXTURES = "tests/fixtures/shadow-surfaces";
+/**
+ * The product's one `continue-run` control, as it stood when it lived only inside the run.
+ *
+ * NAMED `..._CONTROL_FIXTURES` BECAUSE `CONTINUATION_FIXTURES` IS TAKEN, by O-2's directory about
+ * the press that leads to the next position. Two different senses of "continuation" -- the next
+ * decision in a bank, and the next position of a pre-registered set -- and this is the second.
+ */
+const CONTINUE_CONTROL_FIXTURES = "tests/fixtures/continuation-surfaces";
+
+/**
+ * The licensing boundary, broken on purpose. `GATE-LICENSE-BOUNDARY`'s controls, nothing else.
+ *
+ * TWO TREES, BECAUSE TWO OF THE DETECTORS CANNOT BE PROVEN IN ONE. Check 5 fires when
+ * `THIRD_PARTY_NOTICES.md` is MISSING; check 7 fires when it is PRESENT and names the wrong engine
+ * version. A single fixture can satisfy one of those and must infer the other, and an inferred
+ * detector is an unproven one -- which this gate has already been caught doing once.
+ */
+const LICENSE_FIXTURES = "tests/fixtures/licensing";
+const LICENSE_STALE_FIXTURES = "tests/fixtures/licensing-stale-notices";
 
 /** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
 const LINEAGE_FIXTURES = "tests/fixtures/lineage";
@@ -196,6 +232,9 @@ const CUE_FIXTURES = "tests/fixtures/cue";
 /** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
 const ROLLBACK_FIXTURES = "tests/fixtures/rollback";
+
+/** A surface flag the stimulus manifest does not record. `GATE-STIMULUS-FLAGS`. */
+const STIMULUS_FIXTURES = "tests/fixtures/stimulus";
 
 /** And for O-2: the clause accepted and ignored, and the way-on press counted as a move. */
 const CONTINUATION_FIXTURES = "tests/fixtures/continuation";
@@ -380,6 +419,340 @@ const asksAgain = (roots: string[]) =>
  * press has no business in the bytes every arrival downloads -- and because a toolbox that is
  * statically imported is one somebody can render unconditionally without noticing the cost.
  */
+/**
+ * EVERY DECLARED SHADOW SURFACE HAS SOMEWHERE THAT ACTUALLY MEASURES IT.
+ *
+ * WHAT WENT WRONG WITHOUT IT. `SHADOW_SURFACES` has named three screens since it was written and
+ * one of them had a call site. The other two were declared, instrumented by nothing, and the ledger
+ * they were absent from looked exactly like a ledger they agreed in -- `D22` found the same shape
+ * one layer down and fixed half of it: `trialEventSeen(name)` deduped across surfaces, so
+ * *"whichever screen rendered first wrote its row and every other surface was silently absent"*.
+ * That repair made a second surface's rows possible. Nothing made them REQUIRED.
+ *
+ * SILENCE MUST NEVER COUNT AS AGREEMENT, and a declaration with no call site is silence that reads
+ * as coverage.
+ *
+ * TWO SHAPES COUNT, AND BOTH ARE REAL INSTRUMENTATION. A hook called with the surface as a literal
+ * (`PostGame`), and the probe component mounted with the surface as a prop (`Record`, which is the
+ * entry chunk and cannot afford the hook -- see `NextActionProbe`'s header). What does NOT count is
+ * the surface name appearing in a type, a comment or the declaration itself, which is why the scan
+ * is anchored to the call and to the prop rather than to the word.
+ */
+const shadowSurfacesLive = (roots: string[]): GateResult => {
+  const findings: Finding[] = [];
+  const seen = new Map<string, string>();
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const source = readFileSync(file, "utf8");
+      const path = file.replaceAll("\\", "/");
+      for (const surface of SHADOW_SURFACES) {
+        const called = new RegExp(`useNextActionShadow\\(\\s*["'\`]${surface}["'\`]`).test(source);
+        const mounted = new RegExp(
+          `<NextActionProbe[^>]*surface=\\{?["'\`]${surface}["'\`]`,
+        ).test(source);
+        if (called || mounted) seen.set(surface, path);
+      }
+    }
+  }
+  for (const surface of SHADOW_SURFACES) {
+    if (!seen.has(surface)) {
+      findings.push({
+        file: "shared/next-action.ts",
+        line: 1,
+        text: `SHADOW_SURFACES declares "${surface}" and nothing instruments it`,
+      });
+    }
+  }
+  if (findings.length === 0 && roots.every((r) => r === SHADOW_FIXTURES)) {
+    /*
+     * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL -- the same hole `GATE-TOOLBOX-OUTSIDE-FOCUS`
+     * names. If the fixture instrumented all three, or were deleted, this would go green and the
+     * gate would be unproven.
+     */
+    return fail(`${HARNESS_ERROR} the control fixture instruments every declared surface`);
+  }
+  return fromFindings(findings, "every declared shadow surface has a live call site");
+};
+
+/**
+ * THE LICENSING BOUNDARY, CHECKED THE WAY EVERY OTHER SCANNING GATE HERE IS CHECKED.
+ *
+ * The predicate lives in `scripts/license-boundary.ts` and takes the tree as an argument, so this
+ * wrapper does one thing: turn findings into a gate result. That split is what lets the control run
+ * the identical logic over a broken fixture.
+ *
+ * A CLEAN RUN OVER THE FIXTURE IS A HARNESS ERROR, NOT A PASS. If the fixture were deleted, or its
+ * violations quietly repaired, the control would go green and the gate would be unproven while
+ * reporting itself proven -- the exact hole `GATE-SHADOW-SURFACE-LIVE` names for its own control.
+ */
+const licenseBoundary = (tree: LicenseTree): GateResult =>
+  fromFindings(
+    licenseBoundaryFindings(tree),
+    "the proprietary/GPL boundary holds across the tree",
+  );
+
+/**
+ * THE CONTROL, WHICH ASSERTS EACH DETECTOR FIRED BY NAME RATHER THAN COUNTING RED.
+ *
+ * A NON-ZERO COUNT IS NOT ENOUGH, and this gate has already proved why. The header check -- the one
+ * that catches a file PASTED in with its licence notice, which is the commonest way a boundary is
+ * actually lost -- was dead on arrival: it was given the SPDX pattern the lockfile checks use, and
+ * a real header says "the terms of the GNU General Public License" with no `GPL` token in it. The
+ * control went red on four findings out of five and the dead check was invisible inside the red.
+ *
+ * So every entry in `REQUIRED_DETECTORS` must be observed firing, across two fixture trees, and
+ * one thing must be observed NOT firing: `scripts/sf-wasm.mjs` carries the same GPL header as
+ * `scripts/ordinary-helper.mjs` beside it, and only the second may be reported. That pair is what
+ * turns the exception list from a comment into a tested rule -- and it is not hypothetical, because
+ * under the previous `.ts`-only walk the allowlist entry for that file could never have fired at
+ * all.
+ */
+const licenseBoundaryControl = (): GateResult => {
+  /*
+   * THE CONTROL TAKES THE REAL TREE'S SOURCE-FAMILY LIST RATHER THAN ITS OWN COPY.
+   *
+   * A review of this gate caught the hole: with a hard-coded list here, dropping `scripts` or
+   * `tests` from `REPOSITORY.proprietary` -- the exact weakening the widening exists to prevent --
+   * would stop the real gate scanning that family while the control went on scanning it. Gate green,
+   * control red, both in their expected states, and a whole first-party family unread.
+   *
+   * Sharing the list closes it: remove `scripts` and the fixture's `ordinary-helper.mjs` stops being
+   * reported, which trips the assertion below and turns the control into a HARNESS ERROR.
+   */
+  const families = LICENSE_REPOSITORY.proprietary;
+  const lost = licenseBoundaryFindings({
+    root: LICENSE_FIXTURES,
+    proprietary: families,
+    exceptions: [
+      {
+        path: "scripts/sf-wasm.mjs",
+        side: "gpl",
+        why: "the real tree's one GPL-side first-party file, mirrored so the pair differs only here",
+      },
+    ],
+  });
+  const stale = licenseBoundaryFindings({
+    root: LICENSE_STALE_FIXTURES,
+    proprietary: families,
+    exceptions: [],
+  });
+  const findings = [...lost, ...stale];
+
+  if (findings.length === 0) {
+    return fail(`${HARNESS_ERROR} the licensing control fixtures no longer violate the boundary`);
+  }
+  const unproven = REQUIRED_DETECTORS.filter(
+    (d) => !findings.some((f) => f.text.includes(d.match)),
+  );
+  if (unproven.length > 0) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control never observed ${unproven.length} detector(s) ` +
+        `firing, so each is unproven however many other findings it returned: ` +
+        unproven.map((d) => d.id).join(", "),
+    );
+  }
+  const allowlistLeaked = lost.filter((f) => f.file.endsWith("scripts/sf-wasm.mjs"));
+  if (allowlistLeaked.length > 0) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control reported the allowlisted GPL-side file, so the ` +
+        `exception list does not hold: ${allowlistLeaked[0].text}`,
+    );
+  }
+  if (!lost.some((f) => f.file.endsWith("scripts/ordinary-helper.mjs"))) {
+    return fail(
+      `${HARNESS_ERROR} the licensing control did not report the un-allowlisted .mjs paste beside ` +
+        `the allowlisted one, so the allowlist proves nothing`,
+    );
+  }
+  /*
+   * THE STALE FIXTURE ISOLATES THE ENGINE-COMPLIANCE PAIR AND NOTHING ELSE, which is a sharper
+   * assertion than a count. Both of its detectors read `THIRD_PARTY_NOTICES.md`, so a finding on any
+   * other file means the fixture has drifted into tripping something it was not built to prove.
+   */
+  const strays = stale.filter((f) => f.file !== "THIRD_PARTY_NOTICES.md");
+  if (strays.length > 0 || stale.length !== 2) {
+    return fail(
+      `${HARNESS_ERROR} the stale-notices fixture is meant to isolate the two engine-compliance ` +
+        `detectors and produced ${stale.length} finding(s): ${stale.map((f) => f.text).join(" | ")}`,
+    );
+  }
+  return fromFindings(findings, "the proprietary/GPL boundary holds across the tree");
+};
+
+/**
+ * THE ONE ACT IS REACHABLE FROM SOMEWHERE OTHER THAN INSIDE THE RUN.
+ *
+ * WHY THIS IS A GATE. `continue-drill` and `continue-transfer` are the top of the ladder, and for
+ * the whole life of the product before this work the only control that could express either was in
+ * `Home.tsx`'s header under `learningTransferStage === "running"` -- so the act was reachable only
+ * by somebody who was already taking it. Nothing was broken by that, which is exactly why nothing
+ * caught it: every test passed, the gates were green, and a player who closed the tab lost the
+ * priority of a set they were halfway through while the row sat in the record.
+ *
+ * IT COUNTS FILES AND NOT CALLS, because the defect is topological rather than numerical. Two
+ * controls in `Home.tsx` would be a LAW 2 problem and `GATE-NO-DUPLICATE-ACTION` owns it; what this
+ * asks is whether the act exists anywhere a player who is NOT in the run can press it.
+ *
+ * `Home.tsx` IS EXCLUDED BY NAME rather than by heuristic. It is the page that RUNS drills and
+ * transfers, so its own control is the in-run one by construction and counting it would let the
+ * gate go green on precisely the state it was written to catch.
+ */
+const continueReachableOffRun = (roots: string[]): GateResult => {
+  const ACT = /primaryAction\(\s*["'`]continue-run["'`]\s*\)/;
+  const offRun: string[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const path = file.replaceAll("\\", "/");
+      if (path.endsWith("/pages/Home.tsx")) continue;
+      if (ACT.test(readFileSync(file, "utf8"))) offRun.push(path);
+    }
+  }
+  if (offRun.length > 0) {
+    return pass(`the act is offered from ${offRun.length} place(s) outside the run`);
+  }
+  return fail(
+    "`continue-run` is offered only from inside the run it continues, so a player who navigated " +
+      "away cannot reach a set they already started",
+  );
+};
+
+/**
+ * A READ THAT DID NOT COME BACK IS NEVER RENDERED AS A RECORD WITH NOTHING OPEN.
+ *
+ * THE FAILURE THIS CATCHES IS ONE LINE AND IS THE OBVIOUS SIMPLIFICATION. Anywhere a reading can be
+ * absent, `?? null`, `data ?? { state: "none" }`, or a bare `if (!data) return null` collapses four
+ * facts into one -- and the direction it collapses in is the expensive one: a player four positions
+ * into an eight-position set is told they have nothing waiting, and offered something else at full
+ * weight, which is the sentence they act on.
+ *
+ * ASKED OF `continuationOffer` RATHER THAN OF A SCREEN, because all three surfaces route their
+ * answer through it. A gate that rendered three components would be slower, would pin presentation,
+ * and would still only cover the three that exist today.
+ */
+const unreadIsNotEmpty = (
+  offer: (reading: ContinuationReading) => { kind: string },
+): GateResult => {
+  const findings: Finding[] = [];
+  const cases: { name: string; reading: ContinuationReading }[] = [
+    { name: "a reading nobody has attempted", reading: COMMITMENT_UNREAD },
+    { name: "a reading whose request failed", reading: COMMITMENT_READ_FAILED },
+    {
+      name: "a reading whose drill came back unknown beside an open transfer",
+      reading: {
+        drill: { state: "unknown", kind: "drill", because: "read-failed" },
+        transfer: {
+          state: "active",
+          kind: "transfer",
+          run: { kind: "transfer", runId: "t1", resumeWith: "r1", done: 1, total: 3 },
+          restore: { ok: true },
+        },
+        untestedRule: null,
+      },
+    },
+  ];
+  for (const c of cases) {
+    const kind = offer(c.reading).kind;
+    if (kind !== "unreadable") {
+      findings.push({
+        file: "shared/continuation-offer.ts",
+        line: 1,
+        text: `${c.name} was reported as "${kind}" rather than "unreadable"`,
+      });
+    }
+  }
+  /*
+   * AND THE OTHER DIRECTION, so the gate cannot be satisfied by answering `unreadable` to
+   * everything. A control that never trusts a reading is a control that never appears.
+   */
+  const open: ContinuationReading = {
+    drill: {
+      state: "active",
+      kind: "drill",
+      run: { kind: "drill", runId: "d1", resumeWith: "d1", done: 3, total: 8 },
+      restore: { ok: true },
+    },
+    transfer: { state: "none", kind: "transfer" },
+    untestedRule: null,
+  };
+  if (offer(open).kind !== "resume") {
+    findings.push({
+      file: "shared/continuation-offer.ts",
+      line: 1,
+      text: `an open, restorable drill was reported as "${offer(open).kind}" rather than "resume"`,
+    });
+  }
+  return fromFindings(findings, "an unread commitment is never rendered as an absent one");
+};
+
+/**
+ * A RUN IN PROGRESS OUTRANKS EVERYTHING THE DERIVATION COULD OTHERWISE PROPOSE.
+ *
+ * WHY THIS IS A GATE AND NOT ONLY A TEST. It is LAW 4 stated over the derivation: *"a drill is a
+ * pre-registered set: eight positions chosen in advance to test one thing, and four of them tests
+ * nothing. Abandoning it does not lose the decisions -- they are all committed -- it loses the only
+ * thing that made them a test."* Everything below it in the ladder is a reason to go somewhere
+ * else, and each of them is individually plausible: eleven unscored games really are waiting, the
+ * player's own rule really is untested. The defect is not that any one of them is wrong; it is that
+ * any one of them can be placed above an open run by a single reordered `if`.
+ *
+ * THE MATRIX IS EVERY LOWER BRANCH AT ONCE, so a derivation that moved the run check below any of
+ * them fails here rather than in the one state somebody thought to write a test for.
+ */
+const continuationOutranks = (derive: (state: ProductState) => NextAction): GateResult => {
+  const findings: Finding[] = [];
+  const loud: Omit<ProductState, "drill" | "transfer"> = {
+    /* Every lower-ranked branch made as loud as it can be, simultaneously. */
+    pendingAnalyses: 11,
+    analysisRunning: true,
+    unseenEvent: observed({ gameId: "g", ply: 21 }),
+    untestedRule: observed("rule-1"),
+    claimState: { kind: "candidate", claimId: "c1" },
+    blitzStanding: { may: false, because: "nothing-scored", readable: 0, needs: null },
+    decisionsOnRecord: 0,
+    anchor: { answered: 0, total: 8 },
+  };
+  const cases: { name: string; state: ProductState; expect: NextActionKind }[] = [
+    {
+      name: "an open drill",
+      state: {
+        ...loud,
+        drill: observed({ drillId: "d1", done: 3, total: 8 }),
+        transfer: observed(null),
+      },
+      expect: "continue-drill",
+    },
+    {
+      name: "an open drill with nothing done yet",
+      state: {
+        ...loud,
+        drill: observed({ drillId: "d2", done: 0, total: 8 }),
+        transfer: observed(null),
+      },
+      expect: "continue-drill",
+    },
+    {
+      name: "an open transfer",
+      state: {
+        ...loud,
+        drill: observed(null),
+        transfer: observed({ transferId: "t1", done: 1, total: 3 }),
+      },
+      expect: "continue-transfer",
+    },
+  ];
+  for (const c of cases) {
+    const got = derive(c.state).kind;
+    if (got !== c.expect) {
+      findings.push({
+        file: "shared/next-action.ts",
+        line: 1,
+        text: `${c.name} proposed "${got}" instead of "${c.expect}"`,
+      });
+    }
+  }
+  return fromFindings(findings, "an open run outranks every lower-ranked proposal");
+};
+
 const toolboxBehindItsDoor = (roots: string[]): GateResult => {
   const findings: Finding[] = [];
   for (const root of roots) {
@@ -431,10 +804,10 @@ function nextActionResolves(derive: (state: ProductState) => NextAction): GateRe
   const base: ProductState = {
     pendingAnalyses: 0,
     analysisRunning: false,
-    drill: null,
-    transfer: null,
-    unseenEvent: null,
-    untestedRule: null,
+    drill: observed(null),
+    transfer: observed(null),
+    unseenEvent: observed(null),
+    untestedRule: observed(null),
     claimState: { kind: "unread" },
     blitzStanding: null,
     decisionsOnRecord: 40,
@@ -557,6 +930,52 @@ async function precommitRevealPayload(): Promise<string> {
   } finally {
     server.close();
   }
+}
+
+/**
+ * Every build-time variable the client reads, against the ones the stimulus manifest records.
+ *
+ * WHY IT IS A GATE AND NOT A LIST SOMEBODY MAINTAINS. `RECORDED_FLAGS` exists so a moderator can
+ * read `/stimulus-manifest.json` and SEE that experimental learning was off before a session, and
+ * a list kept by hand falls behind the code on the first flag added in a hurry -- which is exactly
+ * the failure the manifest was built to end. The `.woff2` faces escaped the old freeze check
+ * because nobody updated a sentence. This makes the same omission red instead of silent.
+ *
+ * The digest is unaffected either way: Vite inlines these values into the JS, so a missing entry
+ * hides a flag from a human, never from the hash. The gate protects legibility, and says so.
+ */
+function unrecordedStimulusFlags(roots: string[]): GateResult {
+  const READ = /import\.meta\.env\.(VITE_[A-Za-z0-9_]+)/g;
+  const found = new Map<string, string>();
+  let scanned = 0;
+  const visit = (dir: string): void => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        if (entry.name !== "node_modules") visit(full);
+        continue;
+      }
+      if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+      scanned += 1;
+      const text = readFileSync(full, "utf8");
+      for (const m of text.matchAll(READ)) if (!found.has(m[1])) found.set(m[1], full);
+    }
+  };
+  for (const root of roots) visit(root);
+
+  const missing = [...found].filter(([name]) => !RECORDED_FLAGS.includes(name));
+  if (missing.length > 0) {
+    return fail(
+      `${missing.length} build-time flag(s) read by the client and absent from RECORDED_FLAGS in ` +
+        `scripts/stimulus-manifest.ts: ${missing.map(([n, f]) => `${n} (${f})`).join(", ")}. ` +
+        `A moderator reading the stimulus manifest would not see it.`,
+    );
+  }
+  if (found.size === 0) {
+    return fail(`no import.meta.env.VITE_* read found under ${roots.join(", ")}; the scan matched nothing`);
+  }
+  return pass(`${found.size} build-time flag(s) across ${scanned} files, all recorded in the stimulus manifest`);
 }
 
 export const GATES: Gate[] = [
@@ -1107,6 +1526,72 @@ export const GATES: Gate[] = [
       nextActionResolves(() => ({ kind: "play-blitz", because: "nothing-scored", needs: null })),
   },
   {
+    id: "GATE-SHADOW-SURFACE-LIVE",
+    rule: "LAW 3",
+    description: "Every declared shadow surface has a live instrumentation call site.",
+    run: () => shadowSurfacesLive(["client/src"]),
+    positiveControl: () => shadowSurfacesLive([SHADOW_FIXTURES]),
+  },
+  {
+    id: "GATE-CONTINUATION-OUTRANKS",
+    rule: "LAW 4",
+    description: "A run in progress outranks every lower-ranked proposal the derivation can make.",
+    run: () => continuationOutranks(deriveNextAction),
+    positiveControl: () =>
+      /*
+       * THE LADDER WITH THE BACKLOG CHECK MOVED ABOVE THE RUN, which is the one-line reordering
+       * this gate exists to catch and is not contrived: `wait-analysis` is the branch P1.5 fought
+       * hardest for, it is the most defensible thing to promote, and promoting it abandons a
+       * pre-registered set to wait for an engine.
+       */
+      continuationOutranks((state) =>
+        state.pendingAnalyses > 0
+          ? { kind: "wait-analysis", games: state.pendingAnalyses, scoring: state.analysisRunning }
+          : deriveNextAction(state),
+      ),
+  },
+  {
+    id: "GATE-LICENSE-BOUNDARY",
+    rule: "R-IP",
+    description:
+      "The proprietary boundary holds across every first-party source family: no copyleft notice " +
+      "in client/src, server, shared, scripts or tests outside the four justified exceptions, no " +
+      "unapproved strong-copyleft dependency, every weak-copyleft dependency classified by hand " +
+      "in LICENSING.md, no whole-product GPL claim, the component map present, and the engine's " +
+      "compliance record matching what ships.",
+    run: () => licenseBoundary(LICENSE_REPOSITORY),
+    positiveControl: licenseBoundaryControl,
+  },
+  {
+    id: "GATE-CONTINUE-REACHABLE-OFF-RUN",
+    rule: "LAW 4",
+    description: "The act that finishes a started set is reachable from outside the run itself.",
+    run: () => continueReachableOffRun(["client/src"]),
+    positiveControl: () => continueReachableOffRun([CONTINUE_CONTROL_FIXTURES]),
+  },
+  {
+    id: "GATE-UNREAD-COMMITMENT-NOT-EMPTY",
+    rule: "LAW 4",
+    description: "A commitment that could not be read is never offered as a record with none.",
+    run: () => unreadIsNotEmpty(continuationOffer),
+    positiveControl: () =>
+      /*
+       * THE COLLAPSE AS IT WOULD ACTUALLY BE WRITTEN, and it is one `??` rather than a contrived
+       * function: treat an unread slot as an empty one, which is what every caller did before
+       * `Observed` existed and what the shortest correct-looking patch would do again.
+       */
+      unreadIsNotEmpty((reading) =>
+        continuationOffer({
+          ...reading,
+          drill: reading.drill.state === "unknown" ? { state: "none", kind: "drill" } : reading.drill,
+          transfer:
+            reading.transfer.state === "unknown"
+              ? { state: "none", kind: "transfer" }
+              : reading.transfer,
+        }),
+      ),
+  },
+  {
     id: "GATE-ONE-PRIMARY-ACTION",
     rule: "LAW 2",
     description: "A state offers at most one primary action.",
@@ -1384,6 +1869,22 @@ export const GATES: Gate[] = [
      */
     run: () => rollbackDrift("."),
     positiveControl: () => rollbackDrift(ROLLBACK_FIXTURES),
+  },
+  {
+    id: "GATE-STIMULUS-FLAGS",
+    rule: "R-01",
+    description:
+      "Every build-time flag the client reads is recorded in the stimulus manifest, so the freeze check a moderator runs is legible rather than trusted.",
+    /*
+     * THE FREEZE CHECK THIS SERVES USED TO BE ONE FILENAME. `research/player-path/field/README.md`
+     * told a moderator that `assets/index-ZgOyRttd.js` was "the whole freeze check". The build
+     * emits forty files; eighteen of them, every font among them, carry no content hash at all, so
+     * that string could never have caught a font change however carefully it was compared.
+     * `scripts/write-stimulus-manifest.ts` replaced it with a digest over the walk. This holds the
+     * one part of the manifest that is still a list to the code it describes.
+     */
+    run: () => unrecordedStimulusFlags(["client"]),
+    positiveControl: () => unrecordedStimulusFlags([STIMULUS_FIXTURES]),
   },
 ];
 

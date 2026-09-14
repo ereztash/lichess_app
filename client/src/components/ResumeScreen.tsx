@@ -49,9 +49,25 @@ export function ResumeScreen({
    * second device is a first-time visitor with a full server record.
    */
   returning,
+  /**
+   * Whether the page is already offering a set this player started, so this card must not offer a
+   * second act at the same weight.
+   *
+   * A PROP AND NOT A HOOK, for the reason `returning` above is a prop: one place decides. The page
+   * mounts the continuation control -- lazily, because the reading it needs has no business in the
+   * chunk every arrival downloads -- and the same answer that draws that control stands this one
+   * down. Two components each asking would be two chances to disagree about whether a set is open,
+   * on the one screen where the disagreement is visible as two loud buttons.
+   *
+   * IT IS TRUE ONLY WHEN THE SET CAN ACTUALLY BE REOPENED. A set that is open and unreadable offers
+   * no act to prefer, and a read that failed has decided nothing; neither may silence the one
+   * control this screen has.
+   */
+  standDown,
   onPlay,
 }: {
   returning: boolean;
+  standDown: boolean;
   onPlay: () => void;
 }) {
   const { data, isLoading } = useBlitzReading();
@@ -175,18 +191,33 @@ export function ResumeScreen({
           * below.
           */
         action={
-          resume.next.kind === "play"
-            ? {
-                label: resume.next.label,
-                because: resume.next.because,
-                /*
-                 * THE FRONT DOOR'S ONE PRIMARY ACT on a returning visit. `FirstDecision` below
-                 * defers to it rather than offering a second, different product at the same weight.
-                 */
-                act: "play-blitz" as const,
-                onClick: onPlay,
-              }
-            : null
+          /*
+           * A SET THE PLAYER IS IN THE MIDDLE OF TAKES THIS SLOT, AND THE NEW GAME STANDS DOWN.
+           *
+           * NOT AN EXTRA LINK BESIDE IT. The card has one action slot and the derivation ranks
+           * `continue-drill` and `continue-transfer` above `play-blitz` -- so a screen that kept
+           * "play a short game" here and added a quieter way back to the set would be inverting
+           * the order in the only place a player reads it: visual weight. LAW 2 counts different
+           * ACTS, and these are two.
+           *
+           * THE OTHER THREE OFFER STATES LEAVE THIS UNTOUCHED. `stuck` offers no act to prefer,
+           * and `unreadable` has decided nothing -- a request that failed may not silence the one
+           * control this screen has.
+           */
+          standDown
+            ? null
+            : resume.next.kind === "play"
+              ? {
+                  label: resume.next.label,
+                  because: resume.next.because,
+                  /*
+                   * THE FRONT DOOR'S ONE PRIMARY ACT on a returning visit. `FirstDecision` below
+                   * defers to it rather than offering a second product at the same weight.
+                   */
+                  act: "play-blitz" as const,
+                  onClick: onPlay,
+                }
+              : null
         }
         why={
           <dl className="resume__why">

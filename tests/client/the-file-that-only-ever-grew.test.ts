@@ -41,7 +41,8 @@ const source = readFileSync(
 const LINE_CEILING = 2400;
 
 /**
- * Measured at 55, now 53, and this is the number that actually makes the file hard to work in.
+ * Measured at 55, then 53, now 47, and this is the number that actually makes the file hard to
+ * work in.
  *
  * Line count is a symptom; fifty-odd pieces of state in one scope is the cause. It is also the
  * number that decides whether an extraction is mechanical, which is why it is pinned separately
@@ -51,9 +52,23 @@ const LINE_CEILING = 2400;
  * this component, and for a while the ceiling stayed at 55 -- which handed back, as headroom, the
  * exact thing the refactor had just bought. A ratchet that does not tighten after a win is a
  * ceiling, and this one is documented as a ratchet: `MASTER_PRODUCT_DEBT.md` R-13 says it may only
- * go down, and `a-register-that-answers-what-is-open.test.ts` holds the register to this constant.
+ * go down, and the register is held to this constant.
+ *
+ * 53 -> 47: `useDrillRun`. A drill's six pieces of state and its four transitions went out as one
+ * thing, which is what makes it a mechanical extraction rather than the redesign this file's header
+ * says is unavailable -- they are set together on every transition, read together by
+ * `DrillRunner`, and there is no state of the board in which one of them is meaningful without the
+ * rest. What stayed is everything the drill BORROWS: the board's position, the engine, the
+ * commitment draft. The hook asks for two named acts over that state rather than six setters, so
+ * the page still decides what clearing a position means.
+ *
+ * IT WAS FORCED BY THE LINE CEILING, WHICH IS THE RATCHET WORKING. Learning-commitment continuity
+ * added a restore path and a terminal state for an abandoned drill; the line count went over 2,400
+ * and the rule above says the number is the wrong thing to change. So something moved out, and the
+ * state ceiling tightens behind it rather than keeping six slots of headroom the extraction paid
+ * for.
  */
-const STATE_CEILING = 53;
+const STATE_CEILING = 47;
 
 describe("the file that only ever grew", () => {
   it("is not longer than it was when this was written", () => {

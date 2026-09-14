@@ -22,6 +22,7 @@ import {
 } from "@/lib/local-record-store";
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
+import { restoreDrillRun } from "@shared/drill-restore";
 import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
@@ -36,6 +37,8 @@ export const LOCAL_KEYS = {
   claim: ["local-record", "claim"] as const,
   reading: ["local-record", "reading"] as const,
   learningRules: ["local-record", "learning-rules"] as const,
+  /* The open run and the untested rule -- `deriveNextAction` branches 1, 2 and 5. */
+  continuation: ["local-record", "continuation"] as const,
   hypothesis: ["local-record", "hypothesis"] as const,
   importReading: ["local-record", "import-reading"] as const,
   /* Used by `blitz-reading-api.ts`, which is deliberately not in this module -- see its header. */
@@ -59,7 +62,18 @@ export const LOCAL_KEYS = {
  */
 const BLITZ_KEYS = [LOCAL_KEYS.blitzGames, LOCAL_KEYS.blitzDecisions, LOCAL_KEYS.blitzReading];
 /* What a decision write makes stale. Named beside `BLITZ_KEYS` so the two write paths read alike. */
-const RECORD_KEYS = [LOCAL_KEYS.count, LOCAL_KEYS.claim, LOCAL_KEYS.reading];
+/*
+ * `continuation` IS IN HERE BECAUSE A DECISION CHANGES IT. `drillProgress` counts a drill's fens
+ * against the decided ones, so committing a decision inside a drill moves `done` -- and a reading
+ * that did not move with it would tell the derivation the run was less finished than it is, on
+ * every screen, until something else happened to invalidate it.
+ */
+const RECORD_KEYS = [
+  LOCAL_KEYS.count,
+  LOCAL_KEYS.claim,
+  LOCAL_KEYS.reading,
+  LOCAL_KEYS.continuation,
+];
 
 /**
  * Which backing is in use, whether it can hold anything, and WHY NOT when it cannot.
@@ -288,7 +302,27 @@ async function invalidateRecord(
           utils.record.reading.invalidate(),
           utils.record.count.invalidate(),
           utils.record.claim.invalidate(),
+          utils.record.continuation.invalidate(),
         ]),
+  ]);
+}
+
+/**
+ * The narrower invalidation, for writes that change a RUN and nothing else a screen reads.
+ *
+ * SEPARATE FROM `invalidateRecord` BECAUSE STARTING A DRILL IS NOT A DECISION. It changes no count,
+ * no reading and no claim grade; refetching those four queries to learn that a run opened would be
+ * four requests to answer one question, on the screen that is about to show the run's first
+ * position.
+ */
+async function invalidateContinuation(
+  queryClient: ReturnType<typeof useQueryClient>,
+  utils: ReturnType<typeof trpc.useUtils>,
+  local: boolean,
+): Promise<void> {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.continuation }),
+    local ? Promise.resolve() : utils.record.continuation.invalidate(),
   ]);
 }
 
@@ -374,14 +408,24 @@ export function useReveal() {
 export function useStartDrill() {
   const { local } = useRecordMode();
   const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.startDrill.useMutation();
   return {
     mutateAsync: async (input: { claim_id: string; candidate_fens: string[] }) => {
-      if (!local) return server.mutateAsync(input);
-      return service.beginDrill(store, input, {
-        drill_id: `drill-${crypto.randomUUID()}`,
-        started_at: new Date().toISOString(),
-      });
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.beginDrill(store, input, {
+            drill_id: `drill-${crypto.randomUUID()}`,
+            started_at: new Date().toISOString(),
+          });
+      /*
+       * THE MOMENT THE HIGHEST-PRIORITY CANONICAL INPUT BECOMES TRUE. Without this, a player who
+       * starts a drill and walks to the record is shown a screen still reading a record with no
+       * run in it -- which is the pre-migration defect with a query in front of it.
+       */
+      await invalidateContinuation(queryClient, utils, local);
+      return out;
     },
   };
 }
@@ -390,14 +434,86 @@ export function useCompleteDrill() {
   const { local } = useRecordMode();
   const store = useStore();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.completeDrill.useMutation();
   return {
     mutateAsync: async (input: { drill_id: string; decision_ids: string[] }) => {
-      if (!local) return server.mutateAsync(input);
-      const out = await service.finishDrill(store, input, {
-        recorded_at: new Date().toISOString(),
-      });
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.finishDrill(store, input, { recorded_at: new Date().toISOString() });
+      /*
+       * THE CLAIM, ON BOTH PATHS. `finishDrill` grades the claim in either direction and it does so
+       * on the server too, but only the local branch invalidated anything here -- so a signed-in
+       * player finishing a drill kept a cached claim at its pre-drill grade. Same shape as the
+       * continuation gap below, one query over.
+       */
+      await (local
+        ? queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim })
+        : utils.record.claim.invalidate());
+      /*
+       * ON BOTH PATHS, AND THE SERVER ONE IS WHY THIS IS WRITTEN OUT. The local branch used to be
+       * the only one that invalidated anything, because it was the only one whose store the client
+       * also read from. `continuation` is served by BOTH, so a signed-in player finishing a drill
+       * would otherwise keep a cached reading that says the run is still open -- and the run is
+       * the highest-ranked thing the derivation has.
+       */
+      await invalidateContinuation(queryClient, utils, local);
+      return out;
+    },
+  };
+}
+
+/**
+ * READ A DRILL BACK SO THE BOARD CAN PUT THE PLAYER INSIDE IT AGAIN.
+ *
+ * IMPERATIVE AND NOT A QUERY, because the question is asked once, in response to a press, and the
+ * answer is consumed into component state rather than rendered. A `useQuery` keyed on a drill id
+ * would hold a cached spec for a run that has since been reported, and the terms of a
+ * pre-registered test are not a thing to serve from a cache.
+ *
+ * IT RE-READS THE RECORD ON EVERY RESUME, deliberately. The surface that navigated here may have
+ * been showing a list rendered a minute ago in another tab. What is registered is whatever the
+ * record says now.
+ */
+export function useRestoreDrill() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const utils = trpc.useUtils();
+  return {
+    fetch: (drillId: string) =>
+      local
+        ? restoreDrillRun(store, drillId)
+        : utils.record.restoreDrill.fetch({ drill_id: drillId }),
+  };
+}
+
+/**
+ * CLOSE A DRILL THE PLAYER IS PUTTING DOWN, and write that they did.
+ *
+ * WHY THIS EXISTS AT ALL. `closeDrill` in `Home.tsx` reset eleven `useState` hooks and wrote
+ * nothing, so a drill drawn at the briefing and dismissed stayed open in the record forever -- and
+ * once any surface started routing on "a drill is open", that stale row would have sent every
+ * arrival back to a set the player had already walked away from. The three ways out were argued in
+ * `docs/LEARNING_COMMITMENT_CONTINUITY.md` §2; this is the one that reads what the player actually
+ * did rather than guessing from how far they got.
+ *
+ * A RELOAD, A NAVIGATION AND A LOST TAB WRITE NOTHING, which is the whole asymmetry. Only this
+ * mutation ends a drill early, and only the close control calls it.
+ */
+export function useAbandonDrill() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
+  const server = trpc.record.abandonDrill.useMutation();
+  return {
+    mutateAsync: async (input: { drill_id: string }) => {
+      const at = new Date().toISOString();
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await store.abandonDrill(input.drill_id, at).then(() => ({ drill_id: input.drill_id }));
+      /* The open set just changed, and it is the highest-ranked thing the derivation reads. */
+      await invalidateContinuation(queryClient, utils, local);
       return out;
     },
   };
@@ -407,6 +523,7 @@ export function useCreateLearningRule() {
   const { local } = useRecordMode();
   const store = useStore();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.createLearningRule.useMutation();
   return {
     mutateAsync: async (input: { reflection: ReflectionDraft; rule: LearningRuleDraft }) => {
@@ -417,6 +534,8 @@ export function useCreateLearningRule() {
             created_at: new Date().toISOString(),
           });
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.learningRules });
+      /* A rule the player just wrote is, by construction, a rule nothing has tested. */
+      await invalidateContinuation(queryClient, utils, local);
       return out;
     },
   };
@@ -448,14 +567,19 @@ export function useLearningRules() {
 export function useStartLearningTransfer() {
   const { local } = useRecordMode();
   const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.startLearningTransfer.useMutation();
   return {
     mutateAsync: async (input: { rule_id: string; candidate_fens: string[] }) => {
-      if (!local) return server.mutateAsync(input);
-      return service.beginLearningTransfer(store, input, {
-        transfer_id: `transfer-${crypto.randomUUID()}`,
-        started_at: new Date().toISOString(),
-      });
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.beginLearningTransfer(store, input, {
+            transfer_id: `transfer-${crypto.randomUUID()}`,
+            started_at: new Date().toISOString(),
+          });
+      await invalidateContinuation(queryClient, utils, local);
+      return out;
     },
   };
 }
@@ -470,15 +594,21 @@ export function useStartLearningTransfer() {
 export function useRecordTransferObservation() {
   const { local } = useRecordMode();
   const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.recordTransferObservation.useMutation();
   return {
     mutateAsync: async (input: {
       transfer_id: string;
       observation: LearningTransferObservation;
-    }) =>
-      !local
-        ? server.mutateAsync(input)
-        : service.recordLearningTransferObservation(store, input),
+    }) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.recordLearningTransferObservation(store, input);
+      /* One observation is one position of `done`. */
+      await invalidateContinuation(queryClient, utils, local);
+      return out;
+    },
   };
 }
 
@@ -486,6 +616,7 @@ export function useCompleteLearningTransfer() {
   const { local } = useRecordMode();
   const store = useStore();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.completeLearningTransfer.useMutation();
   return {
     // A transfer id and nothing else. The observations are read from the record, so there is no
@@ -497,6 +628,7 @@ export function useCompleteLearningTransfer() {
             completed_at: new Date().toISOString(),
           });
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.learningRules });
+      await invalidateContinuation(queryClient, utils, local);
       return out;
     },
   };

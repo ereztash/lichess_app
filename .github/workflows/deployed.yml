@@ -125,6 +125,20 @@ jobs:
           fi
           echo "control went red, as required"
 
+      # THE FOURTH CONTROL: the FIELD freeze's escalation. A moved stimulus is only a warning while
+      # the run is open with zero participants, because production tracks `main` and a check that is
+      # red on every merge is a check somebody learns to override. That leniency is worth having
+      # only if the identical reading is red once a session has run, so the control hands the
+      # verdict a frozen registration and a moved digest. Pure predicate, no origin needed.
+      - name: L6 positive control (a moved stimulus must go red once participants have run)
+        run: |
+          if npx vitest run --config vitest.controls.config.ts \
+               tests/fixtures/controls/field-stimulus.control.test.ts; then
+            echo "::error::the freeze verdict tolerated a moved stimulus after a participant had run. The FIELD pre-registration is enforced by nobody."
+            exit 1
+          fi
+          echo "control went red, as required"
+
       # THE ENGINE CONTROL NEEDS A BROWSER AND THE BUILT BUNDLE, and neither is needed by the other
       # two, so both are installed here rather than at the top of the job. The build is the fixture:
       # the control serves THIS repository's shipped assets under a policy that breaks them, so the

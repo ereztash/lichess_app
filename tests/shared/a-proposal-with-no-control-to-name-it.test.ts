@@ -26,6 +26,7 @@ import {
   deriveNextAction,
   type NextActionKind,
   type ProductState,
+  observed,
 } from "@shared/next-action";
 import { PRIMARY_ACTIONS, type PrimaryAction } from "@shared/primary-action";
 import type { BlitzStanding } from "@shared/blitz-reading";
@@ -73,10 +74,10 @@ const standing = (over: Partial<BlitzStanding> = {}): BlitzStanding =>
 const base = (over: Partial<ProductState> = {}): ProductState => ({
   pendingAnalyses: 0,
   analysisRunning: false,
-  drill: null,
-  transfer: null,
-  unseenEvent: null,
-  untestedRule: null,
+  drill: observed(null),
+  transfer: observed(null),
+  unseenEvent: observed(null),
+  untestedRule: observed(null),
   /* Read, above the floor, and nothing separated: the state that proposes nothing of its own. */
   claimState: { kind: "nothing-separated", scored: DISCOVERY_FLOOR },
   blitzStanding: standing(),
@@ -92,11 +93,11 @@ const base = (over: Partial<ProductState> = {}): ProductState => ({
  * assertion below is what makes this a reachability table rather than a list of wishes.
  */
 const REACHES: Record<NextActionKind, ProductState> = {
-  "continue-drill": base({ drill: { drillId: "d1", done: 4, total: 8 } }),
-  "continue-transfer": base({ transfer: { transferId: "t1", done: 1, total: 6 } }),
+  "continue-drill": base({ drill: observed({ drillId: "d1", done: 4, total: 8 }) }),
+  "continue-transfer": base({ transfer: observed({ transferId: "t1", done: 1, total: 6 }) }),
   "wait-analysis": base({ pendingAnalyses: 3, analysisRunning: true }),
-  "review-event": base({ unseenEvent: { gameId: "g1", ply: 21 } }),
-  "test-hypothesis": base({ untestedRule: "r1" }),
+  "review-event": base({ unseenEvent: observed({ gameId: "g1", ply: 21 }) }),
+  "test-hypothesis": base({ untestedRule: observed("r1") }),
   /*
    * A SEPARATION THE SEARCH FOUND AND NOTHING HAS DECIDED. It is reachable with no rule present,
    * which is the point: `test-hypothesis` needs a sentence the player wrote, and the overwhelming

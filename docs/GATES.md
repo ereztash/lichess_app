@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-ארבעים וארבעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+חמישים שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -41,6 +41,11 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-REUSE-CONFIG | LAW 8 | מסך שמתחיל משחק בלי לקרוא את התשובה שהשחקן כבר נתן |
 | GATE-PENDING-WORK-LIVENESS | LAW 4 | ניתוח שמסך יכול לבטל ביציאה, ושורש שלא יסיים אותו לעולם |
 | GATE-NEXT-ACTION-RESOLVES-BLOCKER | LAW 3 | חסם שנענה בפעולה שמגדילה בדיוק את מה שחוסם |
+| GATE-SHADOW-SURFACE-LIVE | LAW 3 | משטח שמוכרז כנמדד ואין בו ולו קריאה אחת שמודדת אותו |
+| GATE-CONTINUATION-OUTRANKS | LAW 4 | ריצה פתוחה שנדחקת מתחת להצעה נמוכה ממנה בסולם |
+| GATE-CONTINUE-REACHABLE-OFF-RUN | LAW 4 | הפעולה שמסיימת סט שכבר התחיל, כשאפשר להגיע אליה רק מתוך הריצה עצמה |
+| GATE-UNREAD-COMMITMENT-NOT-EMPTY | LAW 4 | קריאה שלא חזרה שמוצגת כרשומה שאין בה סט פתוח |
+| GATE-LICENSE-BOUNDARY | R-IP | קוד copyleft שנכנס לאחת מחמש משפחות המקור הראשוניות, תלות strong-copyleft חדשה, תלות weak-copyleft שאיש לא סיווג, הצהרת GPL על המוצר כולו, מפת הרכיבים שנמחקה, או רשומת התאימות של המנוע שלא תואמת את מה שנשלח |
 | GATE-ONE-PRIMARY-ACTION | LAW 2 | דלת כניסה שמציעה שני מוצרים במשקל אחד |
 | GATE-NO-DUPLICATE-ACTION | LAW 2 | חשיפה שמציעה את אותה פעולה פעמיים |
 | GATE-TOOLBOX-OUTSIDE-FOCUS | LAW 2 | ארגז הכלים נטען לכל נכנס ונפתח בלי שאיש לחץ עליו |
@@ -57,5 +62,6 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-FINDING-OUTRANKS-ITS-NUMBERS | R1 | רשימת קריאות שהמסקנה עליה נכתבת מתחתיה, או נכתבת דרך רגיסטר המקור במקום כממצא |
 | GATE-PLACEMENT-NOT-EVIDENCE | R1 | ציון "שקילה" שנבנה ממהלכים שהונחו על הלוח, בעוד שגרירה שחזרה ואצבע שעברה נרשמות בדיוק כמו מהלך שנבחן |
 | GATE-ELSEWHERE-NOT-MEASURED | R1 | מסך שלישי שממציא את הפועל החזק: החלטות שנקראות בחלק אחר, מדווחות כאילו מנוע כבר ניקד אותן |
+| GATE-STIMULUS-FLAGS | R-01 | דגל בנייה שהלקוח קורא ואינו מופיע במניפסט הגירוי: בדיקת ההקפאה שמנחה הניסוי מריץ לפני מפגש חייבת להיות קריאה, ולא מבוססת על אמון. שם הקובץ היחיד שהמניפסט החליף כיסה קובץ אחד מתוך ארבעים |
 
 The IDs are the synchronized contract. The prose explains why each gate exists but is not treated as an executable definition; the runner remains the authority for what actually runs.

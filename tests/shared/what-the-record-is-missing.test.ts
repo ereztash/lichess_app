@@ -27,6 +27,7 @@ import {
   type NextAction,
   type NextActionKind,
   type ProductState,
+  observed,
 } from "@shared/next-action";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "@shared/blitz-reading";
 import { CLAIM_STATE_KINDS } from "@shared/claim-state";
@@ -44,10 +45,10 @@ const blocked = (because: (typeof BLITZ_BLOCKERS)[number]): BlitzStanding => ({
 const SETTLED: ProductState = {
   pendingAnalyses: 0,
   analysisRunning: false,
-  drill: null,
-  transfer: null,
-  unseenEvent: null,
-  untestedRule: null,
+  drill: observed(null),
+  transfer: observed(null),
+  unseenEvent: observed(null),
+  untestedRule: observed(null),
   /*
    * THE RECORD HAS BEEN READ AND THE SEARCH HAS SEPARATED NOTHING, which is the settled state this
    * file's cases are about. `unread` would be a record still loading and `candidate` an open
@@ -101,15 +102,15 @@ describe("a run in progress outranks everything", () => {
      * only thing that made them a test.
      */
     const action = next({
-      drill: { drillId: "d1", done: 3, total: 8 },
+      drill: observed({ drillId: "d1", done: 3, total: 8 }),
       pendingAnalyses: 9,
-      unseenEvent: { gameId: "g", ply: 7 },
+      unseenEvent: observed({ gameId: "g", ply: 7 }),
     });
     expect(action).toMatchObject({ kind: "continue-drill", drillId: "d1", done: 3, total: 8 });
   });
 
   it("finishes a transfer run for the same reason", () => {
-    expect(next({ transfer: { transferId: "t1", done: 1, total: 3 }, pendingAnalyses: 9 })).toMatchObject(
+    expect(next({ transfer: observed({ transferId: "t1", done: 1, total: 3 }), pendingAnalyses: 9 })).toMatchObject(
       { kind: "continue-transfer", transferId: "t1" },
     );
   });
@@ -117,17 +118,17 @@ describe("a run in progress outranks everything", () => {
 
 describe("a finding nobody has read outranks collecting more", () => {
   it("offers the event before another game", () => {
-    const action = next({ unseenEvent: { gameId: "g4", ply: 21 } });
+    const action = next({ unseenEvent: observed({ gameId: "g4", ply: 21 }) });
     expect(action).toMatchObject({ kind: "review-event", gameId: "g4", ply: 21 });
   });
 
   it("offers a forward test before more evidence, because an untested rule is not a finding", () => {
-    expect(next({ untestedRule: "r7" })).toMatchObject({ kind: "test-hypothesis", ruleId: "r7" });
+    expect(next({ untestedRule: observed("r7") })).toMatchObject({ kind: "test-hypothesis", ruleId: "r7" });
   });
 
   it("puts the unread event above the untested rule", () => {
     /* One is something the record already showed; the other is something it has yet to check. */
-    expect(next({ unseenEvent: { gameId: "g", ply: 1 }, untestedRule: "r7" }).kind).toBe(
+    expect(next({ unseenEvent: observed({ gameId: "g", ply: 1 }), untestedRule: observed("r7") }).kind).toBe(
       "review-event",
     );
   });
@@ -192,7 +193,7 @@ describe("what it refuses to say", () => {
   it("still answers from the facts it holds synchronously, before any reading arrives", () => {
     /* A backlog and a half-finished drill are counted by the caller, not read from a projection. */
     expect(next({ blitzStanding: null, pendingAnalyses: 2 }).kind).toBe("wait-analysis");
-    expect(next({ blitzStanding: null, drill: { drillId: "d", done: 1, total: 4 } }).kind).toBe(
+    expect(next({ blitzStanding: null, drill: observed({ drillId: "d", done: 1, total: 4 }) }).kind).toBe(
       "continue-drill",
     );
   });
@@ -205,10 +206,10 @@ describe("what it refuses to say", () => {
      */
     const reached = new Set<NextActionKind>([
       next({ pendingAnalyses: 1 }).kind,
-      next({ drill: { drillId: "d", done: 1, total: 4 } }).kind,
-      next({ transfer: { transferId: "t", done: 1, total: 3 } }).kind,
-      next({ unseenEvent: { gameId: "g", ply: 3 } }).kind,
-      next({ untestedRule: "r" }).kind,
+      next({ drill: observed({ drillId: "d", done: 1, total: 4 }) }).kind,
+      next({ transfer: observed({ transferId: "t", done: 1, total: 3 }) }).kind,
+      next({ unseenEvent: observed({ gameId: "g", ply: 3 }) }).kind,
+      next({ untestedRule: observed("r") }).kind,
       next({ claimState: { kind: "candidate", claimId: "c" } }).kind,
       next({ decisionsOnRecord: 0, blitzStanding: blocked("no-games") }).kind,
       next({ blitzStanding: blocked("too-few-readable") }).kind,

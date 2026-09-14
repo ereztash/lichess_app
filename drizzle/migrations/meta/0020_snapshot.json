@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "3f80c219-37ad-4d9e-9f14-d9816c707068",
+  "id": "78e201ee-3871-461a-9c2b-5a4b329d3d42",
   "prevId": "efeb7b10-f480-4200-a823-d00bd72279bd",
   "tables": {
     "blitz_decisions": {
@@ -338,7 +338,7 @@
         },
         "grade": {
           "name": "grade",
-          "type": "enum('hypothesis','replicated','refuted','retired')",
+          "type": "enum('hypothesis','replicated','refuted')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -902,6 +902,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": "(now())"
+        },
+        "abandoned_at": {
+          "name": "abandoned_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},

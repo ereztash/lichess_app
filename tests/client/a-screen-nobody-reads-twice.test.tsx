@@ -191,7 +191,7 @@ const show = (returning: boolean) => {
   const view = render(
     <trpc.Provider client={trpcClient} queryClient={client}>
       <QueryClientProvider client={client}>
-        <ResumeScreen returning={returning} onPlay={onPlay} />
+        <ResumeScreen returning={returning} standDown={false} onPlay={onPlay} />
       </QueryClientProvider>
     </trpc.Provider>,
   );

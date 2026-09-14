@@ -156,6 +156,48 @@ export interface RecordStore {
   /** Record a started drill. R5: written before the drill runs, condition included. */
   saveDrill(started: StoredDrill): Promise<void>;
   getDrill(drillId: string): Promise<StoredDrill | null>;
+  /**
+   * Drills that were started and never reported -- the drill's `getOpenLearningTransfer`.
+   *
+   * WITHOUT THIS THE PRODUCT CANNOT SEE ITS OWN HIGHEST-PRIORITY STATE. `saveDrill` writes before
+   * the first position is shown, precisely so that a pre-registered set exists independently of the
+   * screen running it. Nothing could read it back except by id, and the only holder of the id was
+   * `Home.tsx`'s component state -- so a reload orphaned the run, every other surface believed no
+   * drill was open, and `deriveNextAction`'s first branch was unreachable in production.
+   *
+   * The transfer side already had this, and `getOpenLearningTransfer` states the argument in full:
+   * *"Losing a tab is not misconduct, and a rule whose test can be started but never finished is a
+   * rule that can only be refuted by accident."* A drill is the same object one authorship over.
+   *
+   * A DRILL WITH NO RECORDED DIRECTION IS NOT OPEN AND IS NOT RETURNED. `getDrill` throws
+   * `MissingClaimDirection` on one rather than hand back a spec that cannot be graded; a list may
+   * not throw for one bad row, so it omits them. The effect is the honest one: an ungradeable drill
+   * is unfinishable, and proposing that a player finish it would be proposing an act with no
+   * outcome.
+   */
+  listOpenDrills(): Promise<StoredDrill[]>;
+  /**
+   * Every drill this record has started, oldest first, whatever became of it.
+   *
+   * `listOpenDrills` ANSWERS "WHAT SHOULD THE PLAYER FINISH"; THIS ANSWERS "WHAT HAS THE PLAYER
+   * EVER STARTED", and the second question is the one that separates four different silences. A
+   * reader holding only the open list sees an empty array over a record that has never drilled,
+   * over one whose drill is running in another tab and has just been reported, and over one whose
+   * drill the player closed a minute ago -- and `shared/continuation.ts` must say something
+   * different to each. The same omission rule applies: an ungradeable row is not returned, because
+   * a drill with no recorded direction has no outcome to report either way.
+   */
+  listDrills(): Promise<StoredDrill[]>;
+  /**
+   * Mark a drill closed by the player, without reporting it.
+   *
+   * IDEMPOTENT AND ONE-WAY. Abandoning twice is the same fact twice -- a double-click, a retry
+   * after a lost response -- and raising on the second would turn a successful close into an error
+   * the player has no way to act on. Abandoning a drill that has already REPORTED is refused
+   * instead: that drill has a verdict, and a terminal state written over a terminal state would
+   * make the record hold two different endings for one test.
+   */
+  abandonDrill(drillId: string, at: string): Promise<void>;
   /** Record a drill result. Append-only: a drill reports once. */
   saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
 
@@ -258,4 +300,23 @@ export interface StoredDrill {
   spec: DrillSpec;
   predicted: boolean;
   started_at: string;
+  /**
+   * When the player explicitly closed this drill without reporting it, or null.
+   *
+   * THE DIFFERENCE BETWEEN WALKING AWAY AND PUTTING IT DOWN, and nothing in the record could tell
+   * them apart before this field. `closeDrill` (`Home.tsx`) reset eleven `useState` hooks and wrote
+   * nothing, so a drill drawn at the briefing and dismissed stayed open forever -- indistinguishable
+   * from one the player answered three positions of and means to finish.
+   *
+   * ONLY THE PLAYER'S OWN CLOSE WRITES IT. A reload, a navigation, a lost tab and a crashed browser
+   * all write nothing, and the drill stays open and resumable. That asymmetry is the whole point:
+   * `docs/LEARNING_COMMITMENT_CONTINUITY.md` argues it at length, but the short form is that a
+   * commitment survives everything except the player deciding it should not.
+   *
+   * IT IS NOT A RESULT AND MUST NEVER BECOME ONE. An abandoned drill produces no verdict, grades no
+   * claim, and contributes no evidence -- `drill_results` stays untouched. What it produces is a
+   * visible row saying a pre-registered test was registered and not reported, which is the fact a
+   * registry exists to keep rather than to tidy away.
+   */
+  abandoned_at: string | null;
 }

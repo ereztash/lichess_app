@@ -28,6 +28,7 @@ import {
   importReadings,
   preregisteredHypotheses,
   type Decision,
+  type DrillRow,
   type InsertDecision,
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
@@ -211,6 +212,34 @@ export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
       timer = setTimeout(() => reject(new Error("timed out")), ms);
     }),
   ]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * One drill row, as the record's own shape.
+ *
+ * THREE READS USED TO SPELL THIS OUT SEPARATELY -- `getDrill`, `listOpenDrills`, and now
+ * `listDrills` -- and the third was what made the duplication a defect rather than a cost. Any
+ * field added to `StoredDrill` has to reach every reader or the readers disagree about the same
+ * row, and `abandoned_at` is exactly such a field: a list that forgot it would report an abandoned
+ * drill as open, which is the state this column was added to make impossible.
+ *
+ * THE CALLER STILL DECIDES WHAT AN UNGRADEABLE ROW MEANS. `getDrill` throws on one and the lists
+ * omit it, so the direction is narrowed here rather than checked -- the cast is safe only because
+ * every caller has already refused or filtered the null.
+ */
+function drillRowToStored(row: DrillRow): StoredDrill {
+  return {
+    spec: {
+      drill_id: row.drillId,
+      claim_id: row.claimId,
+      fens: row.fens,
+      refutation_condition: row.refutationCondition,
+      predicts_overconfidence: row.predictsOverconfidence as boolean,
+    },
+    predicted: row.predicted,
+    started_at: row.startedAt.toISOString(),
+    abandoned_at: row.abandonedAt ? row.abandonedAt.toISOString() : null,
+  };
 }
 
 export class DrizzleRecordStore implements RecordStore {
@@ -600,17 +629,7 @@ export class DrizzleRecordStore implements RecordStore {
        */
       throw new MissingClaimDirection(row.claimId);
     }
-    return {
-      spec: {
-        drill_id: row.drillId,
-        claim_id: row.claimId,
-        fens: row.fens,
-        refutation_condition: row.refutationCondition,
-        predicts_overconfidence: row.predictsOverconfidence,
-      },
-      predicted: row.predicted,
-      started_at: row.startedAt.toISOString(),
-    };
+    return drillRowToStored(row);
   }
 
   /**
@@ -736,6 +755,52 @@ export class DrizzleRecordStore implements RecordStore {
   async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
     const db = await this.db();
     return await db.select().from(blitzDecisions);
+  }
+
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(drills)
+      .leftJoin(drillResults, eq(drillResults.drillId, drills.drillId))
+      .where(and(isNull(drillResults.drillId), isNull(drills.abandonedAt)))
+      .orderBy(drills.startedAt);
+    return (
+      rows
+        /*
+         * SKIPPED RATHER THAN THROWN ON, and `getDrill` is why the two differ. A spec with no
+         * recorded direction cannot be graded, so `getDrill` refuses to hand one back; a LIST that
+         * threw for one legacy row would hide every open drill behind the oldest bad one.
+         */
+        .filter((row) => row.drills.predictsOverconfidence !== null)
+        .map((row) => drillRowToStored(row.drills))
+    );
+  }
+
+  async listDrills(): Promise<StoredDrill[]> {
+    const db = await this.db();
+    const rows = await db.select().from(drills).orderBy(drills.startedAt);
+    return rows.filter((row) => row.predictsOverconfidence !== null).map(drillRowToStored);
+  }
+
+  async abandonDrill(drillId: string, at: string): Promise<void> {
+    const db = await this.db();
+    const [reported] = await db
+      .select({ drillId: drillResults.drillId })
+      .from(drillResults)
+      .where(eq(drillResults.drillId, drillId))
+      .limit(1);
+    /*
+     * A REPORTED DRILL CANNOT BE ABANDONED. It has a verdict and that verdict graded a claim;
+     * writing a second terminal state over it would leave the record holding two endings for one
+     * pre-registered test. The idempotent case is the other one -- abandoning twice -- and the
+     * `isNull` below is what makes the second write a no-op rather than a moved timestamp.
+     */
+    if (reported) throw new RecordError("PRECONDITION_FAILED", "הדריל הזה כבר דווח.");
+    await db
+      .update(drills)
+      .set({ abandonedAt: new Date(at) })
+      .where(and(eq(drills.drillId, drillId), isNull(drills.abandonedAt)));
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
@@ -1212,6 +1277,35 @@ export class MemoryRecordStore implements RecordStore {
 
   async getDrill(drillId: string): Promise<StoredDrill | null> {
     return this.drillRows.get(drillId) ?? null;
+  }
+
+  async listOpenDrills(): Promise<StoredDrill[]> {
+    return (await this.listDrills()).filter(
+      (d) =>
+        d.abandoned_at === null &&
+        !this.drillResultRows.some((r) => r.drill_id === d.spec.drill_id),
+    );
+  }
+
+  async listDrills(): Promise<StoredDrill[]> {
+    return (
+      [...this.drillRows.values()]
+        /* The interface's omission rule, kept identical across all three stores. */
+        .filter((d) => typeof d.spec.predicts_overconfidence === "boolean")
+        .map((d) => ({ ...d, abandoned_at: d.abandoned_at ?? null }))
+        .sort((a, b) => a.started_at.localeCompare(b.started_at))
+    );
+  }
+
+  async abandonDrill(drillId: string, at: string): Promise<void> {
+    const stored = this.drillRows.get(drillId);
+    if (!stored) throw new RecordError("NOT_FOUND", "אין דריל עם המזהה הזה.");
+    if (this.drillResultRows.some((r) => r.drill_id === drillId)) {
+      throw new RecordError("PRECONDITION_FAILED", "הדריל הזה כבר דווח.");
+    }
+    /* Idempotent: the first close is the one that happened, a retry does not move it. */
+    if (stored.abandoned_at) return;
+    this.drillRows.set(drillId, { ...stored, abandoned_at: at });
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {

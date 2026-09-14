@@ -27,6 +27,29 @@ without a notice, or an engine version bumped without updating this file, is a r
 | licence text served at | [`/licenses/stockfish/COPYING.txt`](client/public/licenses/stockfish/COPYING.txt) |
 | corresponding source | <https://github.com/nmrugg/stockfish.js> — the WebAssembly build, at the tag matching 18.0.8 |
 | upstream engine source | <https://github.com/official-stockfish/Stockfish> |
+| npm integrity | `sha512-z+f2UMPXLylDBGjv9e9zU8QulY7hUl8MYHesLRrdddewlOXjJrUSmtNmbtID1/F72EPhq0CCkCNxgWS5MQVWtQ==` |
+| loader SHA-256 | `5243fd9b276cab7dfe3ad1d43ab9ead73568fac76468c614242977a210c4a391` |
+| engine SHA-256 | `a8fbc05ec6920b56d7485826dcb02c5ffd2826bcbf751cf973046f237a9096f1` |
+| modified by this project | **no** — see below |
+
+**THE HASHES ARE THE POINT, AND THEY ARE NOT DECORATION.** GPL-3.0 §5 puts obligations on
+*modified* works that §4 does not put on verbatim ones. Saying "we do not modify Stockfish" is a
+claim; the two hashes above are how a reader checks it. Both are SHA-256 of the files as published
+in `stockfish@18.0.8`, and both are byte-identical to what this build serves — verified in
+`IP_PROVENANCE_AUDIT.md` §6.3, which records the distributed artifacts' hashes alongside these.
+
+A dependency bump changes these bytes. `GATE-LICENSE-BOUNDARY` fails when the installed version is
+not the version named here, so a routine `npm update` cannot leave this table describing an engine
+that is no longer the one being conveyed.
+
+**Open item, stated because an unstated weakness is worse than a weak record.** The
+corresponding-source row is a repository URL plus a version, not a pinned upstream commit with the
+build relationship to these exact hashes. That is ordinary practice; a pinned commit would be
+materially stronger. **Whether the present pointer discharges GPL §6 is Question 3b in
+`docs/legal/COUNSEL_BRIEF.md` and is not answered here in either direction** — this file records the
+apparatus (`STOCKFISH_COMPLIANCE_APPARATUS: MECHANICALLY_VERIFIED`), not its legal sufficiency
+(`PENDING_COUNSEL`). Tightening it is recommendation 4 of the audit and is worth doing whatever
+counsel says, because it costs little.
 
 GPL-3.0 §4 requires the licence to be conveyed with the work and its notices kept intact; §6
 requires the corresponding source of conveyed object code to be available. Both are satisfied by
